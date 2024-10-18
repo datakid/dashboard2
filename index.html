@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -396,6 +395,11 @@ let medicationCategories = ['المسكنات', 'مضادات حيوية', 'كل
 let currentChart = null;
 let isExploreMode = false;
 
+const monthOrder = {
+    'July': 1, 'August': 2, 'September': 3, 'October': 4, 'November': 5, 'December': 6,
+    'January': 7, 'February': 8, 'March': 9, 'April': 10, 'May': 11, 'June': 12
+};
+
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -415,7 +419,12 @@ function getAvailableOptions(field, currentFilters) {
             uniqueValues.add(row[field]);
         }
     }
-    return Array.from(uniqueValues).filter(Boolean).sort();
+    return Array.from(uniqueValues).filter(Boolean).sort((a, b) => {
+        if (field === 'Month') {
+            return monthOrder[a] - monthOrder[b];
+        }
+        return a.localeCompare(b);
+    });
 }
 
 function getCurrentFilters() {
@@ -445,12 +454,11 @@ function toggleExploreMode() {
     }
 }
 
-function getTrendIndicator(current, previous) {
-    if (!previous) return '';
-    const diff = current - previous;
-    if (Math.abs(diff) < 0.001) return '<span class="trend-indicator trend-neutral">→</span>';
-    return diff > 0 
-        ? '<span class="trend-indicator trend-up">↑</span>'
+function getTrendIndicator(current , previous) {
+    if (previous === null) return '';
+    if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
+    return current > previous 
+        ? '<span class="trend-indicator trend-up">↑</span>' 
         : '<span class="trend-indicator trend-down">↓</span>';
 }
 
@@ -459,8 +467,9 @@ function updateExploreView() {
     const thead = table.querySelector('thead tr');
     const tbody = table.querySelector('tbody');
     
-    // Get unique months from filtered data
-    const months = Array.from(new Set(filteredData.map(row => row.Month))).sort();
+    // Get unique months from filtered data and sort them
+    const months = Array.from(new Set(filteredData.map(row => row.Month)))
+        .sort((a, b) => monthOrder[a] - monthOrder[b]);
     
     // Update header
     thead.innerHTML = '<th>Metric</th>';
@@ -493,10 +502,9 @@ function updateExploreView() {
         const row = document.createElement('tr');
         row.innerHTML = `<td>${metric}</td>`;
         
-        months.forEach((month, index) => {
+        let previousValue = null;
+        months.forEach((month) => {
             const value = monthlyData[month][metric];
-            const previousMonth = index > 0 ? months[index - 1] : null;
-            const previousValue = previousMonth ? monthlyData[previousMonth][metric] : null;
             const trend = getTrendIndicator(value, previousValue);
             
             row.innerHTML += `
@@ -505,6 +513,7 @@ function updateExploreView() {
                     ${trend}
                 </td>
             `;
+            previousValue = value;
         });
         
         tbody.appendChild(row);
@@ -515,12 +524,9 @@ function initializeFilters() {
     const filters = ['region', 'pharmacy', 'month', 'class'];
     
     filters.forEach(filter => {
-      const filterElement = document.getElementById(`${filter}Filter`);
+        const filterElement = document.getElementById(`${filter}Filter`);
         filterElement.addEventListener('change', () => {
-            document.querySelectorAll('.filter-select').forEach(select => select.classList.remove('highlighted'));
-            if (filterElement.value !== 'all') {
-                filterElement.classList.add('highlighted');
-            }
+            updateFilterHighlights();
             
             const currentFilters = getCurrentFilters();
             filters.forEach(otherFilter => {
@@ -535,6 +541,19 @@ function initializeFilters() {
 
     const currentFilters = getCurrentFilters();
     filters.forEach(filter => updateFilterOptions(filter, currentFilters));
+    updateFilterHighlights();
+}
+
+function updateFilterHighlights() {
+    const currentFilters = getCurrentFilters();
+    Object.entries(currentFilters).forEach(([key, value]) => {
+        const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
+        if (value !== 'all') {
+            filterElement.classList.add('highlighted');
+        } else {
+            filterElement.classList.remove('highlighted');
+        }
+    });
 }
 
 function updateFilterOptions(filterName, currentFilters) {
