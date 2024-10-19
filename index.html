@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,6 +277,36 @@ body {
     opacity: 0;
 }
 
+.export-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+}
+
+.export-button:hover {
+    background-color: #45a049;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 600px) {
+    .button-group {
+        flex-wrap: wrap;
+    }
+
+    .reset-button, .explore-button, .export-button {
+        flex: 1 0 calc(50% - 8px);
+        margin-bottom: 16px;
+    }
+}
+
 @media (max-width: 1200px) {
     .explore-table th,
     .explore-table td {
@@ -358,6 +389,7 @@ body {
         <div class="button-group">
             <button class="reset-button" onclick="resetFilters()">Reset Filters</button>
             <button class="explore-button" onclick="toggleExploreMode()">Explore</button>
+            <button class="export-button" onclick="exportToExcel()">Export to Excel</button>
         </div>
         <div id="resultsCount"></div>
     </div>
@@ -698,6 +730,68 @@ function resetFilters() {
     updateDashboard();
 }
 
+
+function exportToExcel() {
+    if (!filteredData.length) {
+        alert('No data to export');
+        return;
+    }
+
+    // Get unique months from filtered data and sort them
+    const months = Array.from(new Set(filteredData.map(row => row.Month)))
+        .sort((a, b) => monthOrder[a] - monthOrder[b]);
+
+    // Calculate metrics for each month
+    const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
+    const monthlyData = {};
+    
+    months.forEach(month => {
+        const monthData = filteredData.filter(row => row.Month === month);
+        monthlyData[month] = {
+            'Total': medicationCategories.reduce((sum, category) => 
+                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
+            'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
+            'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
+            'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
+            ...Object.fromEntries(medicationCategories.map(category => [
+                category,
+                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+            ]))
+        };
+    });
+
+    // Prepare data for CSV
+    let csvContent = [
+        // Header row
+        ['Metric', ...months].join(',')
+    ];
+
+    // Data rows
+    metrics.forEach(metric => {
+        let row = [
+            metric,
+            ...months.map(month => monthlyData[month][metric].toFixed(3))
+        ];
+        csvContent.push(row.join(','));
+    });
+
+    // Join all rows
+    csvContent = csvContent.join('\n');
+
+    // Create Blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "pharmacy_data_export.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 // Initialize the dashboard
 fetch(SHEET_URL)
     .then(response => response.text())
@@ -724,4 +818,4 @@ fetch(SHEET_URL)
     });
 </script>
 </body>
-</html>
+</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
