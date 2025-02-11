@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pharmacy Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
@@ -399,15 +402,18 @@
           <thead>
             <tr>
               <th>Metric</th>
+              <!-- Month columns will be added dynamically -->
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            <!-- Data rows will be added dynamically -->
+          </tbody>
         </table>
       </div>
     </div>
 
     <script>
-      // Month order mapping remains unchanged.
+      // Keep the month order mapping as you intended.
       const monthOrder = {
         july: 1,
         august: 2,
@@ -421,6 +427,7 @@
         april: 10,
         may: 11,
         june: 12,
+        // Arabic month names with the same order in lower case
         'يوليو': 1,
         'أغسطس': 2,
         'سبتمبر': 3,
@@ -432,13 +439,14 @@
         'مارس': 9,
         'أبريل': 10,
         'مايو': 11,
-        'يونيو': 12
+        'يونيو': 12,
       };
 
       const getMonthOrderValue = (month) =>
         month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
-      let data = [], filteredData = [];
+      let data = [],
+        filteredData = [];
       const medicationCategories = [
         'المسكنات',
         'مضادات حيوية',
@@ -457,12 +465,12 @@
         'مضادات تقلصات',
         'اورام',
         'فيتامينات',
-        'مختلفة'
+        'مختلفة',
       ];
       let currentChart = null;
       let isExploreMode = false;
 
-      // Debounce function 
+      // Debounce function remains the same.
       const debounce = (func, wait) => {
         let timeout;
         return (...args) => {
@@ -471,24 +479,32 @@
         };
       };
 
+      // Utility functions
       const getCurrentFilters = () => ({
         Region: document.getElementById('regionFilter').value,
         Pharmacy: document.getElementById('pharmacyFilter').value,
         Month: document.getElementById('monthFilter').value,
-        Class: document.getElementById('classFilter').value
+        Class: document.getElementById('classFilter').value,
       });
 
       const getAvailableOptions = (field, currentFilters) => {
         const uniqueValues = new Set();
-        data.forEach(row => {
-          if (Object.entries(currentFilters).every(([key, value]) => value === 'all' || key === field || row[key] === value)) {
+        data.forEach((row) => {
+          if (
+            Object.entries(currentFilters).every(
+              ([key, value]) =>
+                value === 'all' || key === field || row[key] === value
+            )
+          ) {
             uniqueValues.add(row[field] ? row[field].trim() : row[field]);
           }
         });
         return Array.from(uniqueValues)
           .filter(Boolean)
           .sort((a, b) => {
-            if (field === 'Month') return getMonthOrderValue(a) - getMonthOrderValue(b);
+            if (field === 'Month') {
+              return getMonthOrderValue(a) - getMonthOrderValue(b);
+            }
             return a.localeCompare(b);
           });
       };
@@ -508,30 +524,32 @@
         const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
         const availableOptions = getAvailableOptions(fieldName, currentFilters);
         select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
-        availableOptions.forEach(option => {
+        availableOptions.forEach((option) => {
           const optElement = document.createElement('option');
           optElement.value = option;
           optElement.textContent = option;
           select.appendChild(optElement);
         });
-        select.value = currentValue === 'all' || availableOptions.includes(currentValue) ? currentValue : 'all';
+        select.value = currentValue === 'all' || availableOptions.includes(currentValue)
+          ? currentValue
+          : 'all';
       };
 
       const initializeFilters = () => {
         const filters = ['region', 'pharmacy', 'month', 'class'];
-        filters.forEach(filter => {
+        filters.forEach((filter) => {
           const filterElement = document.getElementById(`${filter}Filter`);
           filterElement.addEventListener('change', () => {
             updateFilterHighlights();
             const currentFilters = getCurrentFilters();
-            filters.forEach(otherFilter => {
+            filters.forEach((otherFilter) => {
               if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
             });
             updateDashboard();
           });
         });
         const currentFilters = getCurrentFilters();
-        filters.forEach(filter => updateFilterOptions(filter, currentFilters));
+        filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
         updateFilterHighlights();
       };
 
@@ -549,37 +567,64 @@
         const thead = table.querySelector('thead tr');
         const tbody = table.querySelector('tbody');
 
-        const months = Array.from(new Set(filteredData.map(row => row.Month ? row.Month.trim() : row.Month)))
-          .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+        const months = Array.from(
+          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
+        ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
         thead.innerHTML = '<th>Metric</th>';
-        months.forEach(month => { thead.innerHTML += `<th>${month}</th>`; });
+        months.forEach((month) => { thead.innerHTML += `<th>${month}</th>`; });
 
-        const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
+        const metrics = [
+          'Total',
+          'Total Prescriptions',
+          'Insurance Covered',
+          'Active Pharmacies',
+          ...medicationCategories,
+        ];
         const monthlyData = {};
-        months.forEach(month => {
-          const monthData = filteredData.filter(row => (row.Month ? row.Month.trim() : row.Month) === month);
+        months.forEach((month) => {
+          const monthData = filteredData.filter((row) =>
+            (row.Month ? row.Month.trim() : row.Month) === month
+          );
           monthlyData[month] = {
-            Total: medicationCategories.reduce((sum, category) =>
-              sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
-            'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
-            'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
-            'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
-            ...Object.fromEntries(medicationCategories.map(category => [
-              category,
-              monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-            ]))
+            Total: medicationCategories.reduce(
+              (sum, category) =>
+                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+              0
+            ),
+            'Total Prescriptions': monthData.reduce(
+              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+              0
+            ),
+            'Insurance Covered': monthData.reduce(
+              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+              0
+            ),
+            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
+            ...Object.fromEntries(
+              medicationCategories.map((category) => [
+                category,
+                monthData.reduce(
+                  (sum, row) => sum + parseFloat(row[category] || 0),
+                  0
+                ),
+              ])
+            ),
           };
         });
         tbody.innerHTML = '';
-        metrics.forEach(metric => {
+        metrics.forEach((metric) => {
           const row = document.createElement('tr');
           row.innerHTML = `<td>${metric}</td>`;
           let previousValue = null;
-          months.forEach(month => {
+          months.forEach((month) => {
             const value = monthlyData[month][metric];
             const trend = getTrendIndicator(value, previousValue);
-            row.innerHTML += `<td>${typeof value === 'number' ? value.toFixed(3) : value} ${trend}</td>`;
+            row.innerHTML += `
+              <td>
+                ${typeof value === 'number' ? value.toFixed(3) : value} ${trend}
+              </td>
+            `;
             previousValue = value;
           });
           tbody.appendChild(row);
@@ -589,8 +634,10 @@
       // Dashboard update functions
       const applyFilters = () => {
         const currentFilters = getCurrentFilters();
-        filteredData = data.filter(row =>
-          Object.entries(currentFilters).every(([key, value]) => value === 'all' || row[key] === value)
+        filteredData = data.filter((row) =>
+          Object.entries(currentFilters).every(
+            ([key, value]) => value === 'all' || row[key] === value
+          )
         );
       };
 
@@ -606,7 +653,9 @@
           (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
           0
         );
-        const activePharmacies = new Set(filteredData.map(row => row.Pharmacy).filter(Boolean)).size;
+        const activePharmacies = new Set(
+          filteredData.map((row) => row.Pharmacy).filter(Boolean)
+        ).size;
         const totalMedications = medicationCategories.reduce(
           (sum, category) =>
             sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
@@ -618,8 +667,11 @@
         addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
         addStatCard('Active Pharmacies', activePharmacies);
 
-        medicationCategories.forEach(category => {
-          const total = filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0);
+        medicationCategories.forEach((category) => {
+          const total = filteredData.reduce(
+            (sum, row) => sum + parseFloat(row[category] || 0),
+            0
+          );
           addStatCard(category, total.toFixed(3));
         });
       };
@@ -629,7 +681,11 @@
         const card = document.createElement('div');
         card.className = isTotal ? 'stat-card total-card' : 'stat-card';
         card.innerHTML = `
-          <div class="stat-value">${Number(value).toLocaleString(undefined, {maximumFractionDigits: 3})}</div>
+          <div class="stat-value">
+            ${Number(value).toLocaleString(undefined, {
+              maximumFractionDigits: 3,
+            })}
+          </div>
           <div class="stat-label">${label}</div>
         `;
         statsContainer.appendChild(card);
@@ -639,128 +695,62 @@
         document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
       };
 
-      // Updated chart to be a stacked bar chart with separate datasets for student and workforce:
       const updateMedicationChart = () => {
         const ctx = document.getElementById('medicationChart').getContext('2d');
-        if (currentChart) currentChart.destroy();
-
-        // Separate data for each class
-        const studentData = medicationCategories.map(category =>
-          filteredData
-            .filter(row => row.Class && row.Class.toLowerCase() === 'student')
-            .reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+        if (currentChart) {
+          currentChart.destroy();
+        }
+        const medicationData = medicationCategories.map((category) =>
+          filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
         );
-        const workforceData = medicationCategories.map(category =>
-          filteredData
-            .filter(row => row.Class && row.Class.toLowerCase() === 'workforce')
-            .reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-        );
-
         currentChart = new Chart(ctx, {
           type: 'bar',
           data: {
             labels: medicationCategories,
             datasets: [
               {
-                label: 'Student',
-                data: studentData,
-                backgroundColor: 'rgba(255, 179, 179, 0.7)', // Light red
-                borderColor: 'rgba(255, 179, 179, 1)',
+                label: 'Medication Distribution',
+                data: medicationData,
+                backgroundColor: 'rgba(63, 81, 181, 0.7)',
+                borderColor: '#3f51b5',
                 borderWidth: 1,
-                stack: 'combined'
               },
-              {
-                label: 'Workforce',
-                data: workforceData,
-                backgroundColor: 'rgba(173, 216, 230, 0.7)', // Light blue
-                borderColor: 'rgba(173, 216, 230, 1)',
-                borderWidth: 1,
-                stack: 'combined'
-              }
-            ]
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              x: {
-                stacked: true,
-                grid: { display: false }
-              },
               y: {
-                stacked: true,
                 beginAtZero: true,
                 grid: {
-                  color: 'rgba(0, 0, 0, 0.05)'
-                }
-              }
+                  color: 'rgba(0, 0, 0, 0.05)',
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
             },
             plugins: {
-              legend: { display: true },
+              legend: {
+                display: false,
+              },
               title: {
                 display: true,
-                text: 'Medication Distribution (Stacked by Class)',
-                font: { size: 16, weight: 'bold' }
-              }
-            }
-          }
+                text: 'Medication Distribution',
+                font: {
+                  size: 16,
+                  weight: 'bold',
+                },
+              },
+            },
+          },
         });
       };
 
-      const resetFilters = () => {
-        document.querySelectorAll('.filter-select').forEach(select => {
-          select.value = 'all';
-          select.classList.remove('highlighted');
-        });
-        const currentFilters = getCurrentFilters();
-        ['region', 'pharmacy', 'month', 'class'].forEach(filter => updateFilterOptions(filter, currentFilters));
-        updateDashboard();
-      };
-
-      const exportToExcel = () => {
-        if (!filteredData.length) {
-          alert('No data to export');
-          return;
-        }
-        const months = Array.from(new Set(filteredData.map(row => row.Month ? row.Month.trim() : row.Month)))
-          .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-        const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
-        const monthlyData = {};
-        months.forEach(month => {
-          const monthData = filteredData.filter(row => (row.Month ? row.Month.trim() : row.Month) === month);
-          monthlyData[month] = {
-            Total: medicationCategories.reduce((sum, category) =>
-              sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
-            'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
-            'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
-            'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
-            ...Object.fromEntries(medicationCategories.map(category => [
-              category,
-              monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-            ]))
-          };
-        });
-        let csvContent = [['Metric', ...months].join(',')];
-        metrics.forEach(metric => {
-          let row = [metric, ...months.map(month => monthlyData[month][metric].toFixed(3))];
-          csvContent.push(row.join(','));
-        });
-        csvContent = csvContent.join('\n');
-        const BOM = '\uFEFF';
-        csvContent = BOM + csvContent;
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', 'pharmacy_data_export.csv');
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      };
-
+      // Main function to update the dashboard
       const updateDashboard = debounce(() => {
         console.time('updateDashboard');
         applyFilters();
@@ -776,6 +766,7 @@
         const exploreButton = document.getElementById('toggleExploreBtn');
         const dashboardView = document.querySelector('.dashboard-view');
         const exploreView = document.querySelector('.explore-view');
+
         if (isExploreMode) {
           exploreButton.textContent = 'Back';
           dashboardView.classList.add('hidden');
@@ -788,33 +779,121 @@
         }
       };
 
+      const resetFilters = () => {
+        document.querySelectorAll('.filter-select').forEach((select) => {
+          select.value = 'all';
+          select.classList.remove('highlighted');
+        });
+        const currentFilters = getCurrentFilters();
+        ['region', 'pharmacy', 'month', 'class'].forEach((filter) =>
+          updateFilterOptions(filter, currentFilters)
+        );
+        updateDashboard();
+      };
+
+      const exportToExcel = () => {
+        if (!filteredData.length) {
+          alert('No data to export');
+          return;
+        }
+
+        const months = Array.from(
+          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
+        ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+
+        const metrics = [
+          'Total',
+          'Total Prescriptions',
+          'Insurance Covered',
+          'Active Pharmacies',
+          ...medicationCategories,
+        ];
+        const monthlyData = {};
+        months.forEach((month) => {
+          const monthData = filteredData.filter((row) =>
+            (row.Month ? row.Month.trim() : row.Month) === month
+          );
+          monthlyData[month] = {
+            Total: medicationCategories.reduce(
+              (sum, category) =>
+                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+              0
+            ),
+            'Total Prescriptions': monthData.reduce(
+              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+              0
+            ),
+            'Insurance Covered': monthData.reduce(
+              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+              0
+            ),
+            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean))
+              .size,
+            ...Object.fromEntries(
+              medicationCategories.map((category) => [
+                category,
+                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
+              ])
+            ),
+          };
+        });
+
+        let csvContent = [['Metric', ...months].join(',')];
+        metrics.forEach((metric) => {
+          let row = [metric, ...months.map((month) => monthlyData[month][metric].toFixed(3))];
+          csvContent.push(row.join(','));
+        });
+        csvContent = csvContent.join('\n');
+
+        const BOM = '\uFEFF';
+        csvContent = BOM + csvContent;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', 'pharmacy_data_export.csv');
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      };
+
+      // Initialize event listeners and load data when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
+        // Attach event listeners for buttons
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
         document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+
+        // Fetch CSV data from Google Sheets
         const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
         fetch(SHEET_URL)
-          .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
             return response.text();
           })
-          .then(csvText => {
+          .then((csvText) => {
             Papa.parse(csvText, {
               header: true,
               encoding: 'UTF-8',
-              complete: function(results) {
+              complete: function (results) {
                 data = results.data;
                 filteredData = data;
                 initializeFilters();
                 updateDashboard();
               },
-              error: function(err) {
+              error: function (err) {
                 console.error('Error parsing CSV: ', err);
-              }
+              },
             });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('Error fetching or parsing data:', error);
             document.getElementById('statsContainer').innerHTML = `
               <div class="stat-card">
