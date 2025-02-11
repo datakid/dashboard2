@@ -1,32 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pharmacy Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
   <style>
     :root {
-      --primary-color: #3f51b5;
-      --primary-light: #757de8;
-      --primary-dark: #002984;
-      --text-color: #333;
-      --background-color: #f5f5f5;
-      --card-background: #ffffff;
-      --hover-color: #e8eaf6;
-      --shadow: 0 2px 4px rgba(0,0,0,0.1);
-      --total-card-background: #3f51b5;
-      --total-card-text: #ffffff;
-      --positive-change: #4caf50;
-      --negative-change: #f44336;
-      --neutral-change: #9e9e9e;
-      /* New color variables for classes */
-      --student-color-light: #FFCDD2;
-      --student-border: #F44336;
-      --workforce-color-light: #BBDEFB;
-      --workforce-border: #2196F3;
+      /* Updated Color Palette */
+      --primary-color: #4A5568; /* dark gray-blue */
+      --primary-light: #718096; /* light gray-blue */
+      --primary-dark: #2D3748; /* darker gray-blue */
+      --accent-red: #F56565; /* bright red */
+      --accent-red-light: rgba(245, 101, 101, 0.4); /* light red for charts */
+      --accent-blue: #4299E1; /* bright blue */
+      --accent-blue-light: rgba(66, 153, 225, 0.4); /* light blue for charts */
+      --background-color: #EDF2F7; /* very light gray */
+      --card-background: #FFFFFF;
+      --text-color: #2D3748;
+      --hover-color: #E2E8F0;
+      --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      --total-card-background: var(--primary-color);
+      --total-card-text: #FFFFFF;
+      --positive-change: #48BB78; /* green */
+      --negative-change: #E53E3E; /* red */
+      --neutral-change: #A0AEC0;  /* gray */
+    }
+    
+    * {
+      box-sizing: border-box;
     }
     
     body {
@@ -47,8 +51,8 @@
     
     .dashboard-header h1 {
       color: var(--primary-color);
-      font-weight: 500;
       font-size: 28px;
+      font-weight: 500;
     }
     
     .filters {
@@ -61,7 +65,7 @@
     .filter-select {
       width: 100%;
       padding: 14px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid var(--primary-light);
       border-radius: 6px;
       background-color: var(--card-background);
       font-size: 16px;
@@ -70,9 +74,9 @@
     }
     
     .filter-select:focus {
-      border-color: var(--primary-color);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
     }
     
     .filter-select.highlighted {
@@ -85,9 +89,11 @@
       gap: 16px;
     }
     
-    .reset-button, .explore-button, .export-button {
+    .reset-button,
+    .explore-button,
+    .export-button {
       background-color: var(--primary-color);
-      color: white;
+      color: #FFFFFF;
       border: none;
       padding: 14px 28px;
       border-radius: 6px;
@@ -104,12 +110,14 @@
     }
     
     .export-button {
-      background-color: #4caf50;
+      background-color: var(--accent-blue);
     }
     
-    .reset-button:hover, .explore-button:hover, .export-button:hover {
+    .reset-button:hover,
+    .explore-button:hover,
+    .export-button:hover {
       background-color: var(--primary-dark);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     
     .controls-container {
@@ -130,25 +138,24 @@
       background-color: var(--card-background);
       border-radius: 10px;
       padding: 24px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     
     .stat-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
     
     .stat-value {
       font-size: 28px;
       font-weight: 600;
-      color: var(--primary-color);
       margin-bottom: 8px;
+      color: var(--primary-color);
     }
     
     .stat-label {
       font-size: 16px;
-      color: var(--text-color);
       opacity: 0.8;
     }
     
@@ -156,11 +163,6 @@
       background-color: var(--total-card-background);
       color: var(--total-card-text);
       grid-column: 1 / -1;
-    }
-    
-    .total-card .stat-value,
-    .total-card .stat-label {
-      color: var(--total-card-text);
     }
     
     .total-card .stat-value {
@@ -212,7 +214,7 @@
     .explore-table td {
       padding: 16px 24px;
       text-align: right;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--hover-color);
       white-space: nowrap;
       line-height: 1.8;
     }
@@ -224,7 +226,7 @@
       left: 0;
       background-color: var(--card-background);
       z-index: 1;
-      border-right: 2px solid #e0e0e0;
+      border-right: 2px solid var(--hover-color);
       font-weight: 500;
     }
     
@@ -244,11 +246,11 @@
     }
     
     .explore-table tr:nth-child(even) {
-      background-color: rgba(0, 0, 0, 0.02);
+      background-color: var(--hover-color);
     }
     
     .explore-table tr:hover td {
-      background-color: var(--hover-color);
+      background-color: var(--primary-light);
     }
     
     .trend-indicator {
@@ -263,17 +265,17 @@
     
     .trend-up {
       color: var(--positive-change);
-      background-color: rgba(76, 175, 80, 0.15);
+      background-color: rgba(72,187,120,0.15);
     }
     
     .trend-down {
       color: var(--negative-change);
-      background-color: rgba(244, 67, 54, 0.15);
+      background-color: rgba(229,62,62,0.15);
     }
     
     .trend-neutral {
       color: var(--neutral-change);
-      background-color: rgba(158, 158, 158, 0.15);
+      background-color: rgba(160,174,192,0.15);
     }
     
     .dashboard-view, .explore-view {
@@ -396,18 +398,18 @@
         <thead>
           <tr>
             <th>Metric</th>
-            <!-- Month columns will be added dynamically -->
+            <!-- Month columns will be appended dynamically -->
           </tr>
         </thead>
         <tbody>
-          <!-- Data rows will be added dynamically -->
+          <!-- Data rows will be appended dynamically -->
         </tbody>
       </table>
     </div>
   </div>
   
   <script>
-    // Updated month order mapping with lower case keys for normalization
+    // Updated month order mapping with lower case keys
     const monthOrder = {
       'july': 1, 'august': 2, 'september': 3, 'october': 4, 'november': 5, 'december': 6,
       'january': 7, 'february': 8, 'march': 9, 'april': 10, 'may': 11, 'june': 12,
@@ -650,7 +652,7 @@
       const classFilter = document.getElementById('classFilter').value;
       
       if (classFilter === 'all') {
-        // Create two datasets: one for Student and one for Workforce; stacked chart
+        // Two datasets for stacked chart: Student (light red) and Workforce (light blue)
         const studentData = medicationCategories.map(category => 
           filteredData.filter(row => row.Class && row.Class.trim().toLowerCase() === "student")
                       .reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
@@ -668,15 +670,15 @@
               {
                 label: 'Student',
                 data: studentData,
-                backgroundColor: 'rgba(255, 205, 210, 0.7)', // light red
-                borderColor: '#F44336',
+                backgroundColor: varColor('--accent-red-light') || 'rgba(245,101,101,0.4)',
+                borderColor: varColor('--accent-red') || '#F56565',
                 borderWidth: 1
               },
               {
                 label: 'Workforce',
                 data: workforceData,
-                backgroundColor: 'rgba(187, 222, 251, 0.7)', // light blue
-                borderColor: '#2196F3',
+                backgroundColor: varColor('--accent-blue-light') || 'rgba(66,153,225,0.4)',
+                borderColor: varColor('--accent-blue') || '#4299E1',
                 borderWidth: 1
               }
             ]
@@ -706,18 +708,18 @@
           }
         });
       } else {
-        // If a single class is filtered, display a simple bar chart
+        // For a single class filter: simple bar chart with the correspondingly updated color.
         const datasetData = medicationCategories.map(category => 
           filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
         );
         let datasetLabel = classFilter.charAt(0).toUpperCase() + classFilter.slice(1);
         let bgColor, borderColor;
         if (classFilter.trim().toLowerCase() === "student") {
-          bgColor = 'rgba(255, 205, 210, 0.7)';
-          borderColor = '#F44336';
+          bgColor = varColor('--accent-red-light') || 'rgba(245,101,101,0.4)';
+          borderColor = varColor('--accent-red') || '#F56565';
         } else {
-          bgColor = 'rgba(187, 222, 251, 0.7)';
-          borderColor = '#2196F3';
+          bgColor = varColor('--accent-blue-light') || 'rgba(66,153,225,0.4)';
+          borderColor = varColor('--accent-blue') || '#4299E1';
         }
         currentChart = new Chart(ctx, {
           type: 'bar',
@@ -820,6 +822,11 @@
         link.click();
         document.body.removeChild(link);
       }
+    }
+    
+    // Helper function to get CSS variable values in JavaScript
+    function varColor(variableName) {
+      return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
     }
     
     // Fetch CSV data from Google Sheets
