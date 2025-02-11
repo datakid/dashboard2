@@ -295,7 +295,7 @@
         opacity: 0;
       }
       
-      /* Styling for pharmacy count and total cells */
+      /* Styling for pharmacy counts and totals */
       .pharmacy-count-positive,
       .pharmacy-total-positive {
         color: var(--positive-change);
@@ -453,7 +453,7 @@
     </div>
 
     <script>
-      // Keep the month order mapping as you intended.
+      // Define month order for sorting
       const monthOrder = {
         july: 1,
         august: 2,
@@ -467,7 +467,7 @@
         april: 10,
         may: 11,
         june: 12,
-        // Arabic month names (in lower case) with the same order
+        // Arabic month names:
         "يوليو": 1,
         "أغسطس": 2,
         "سبتمبر": 3,
@@ -512,7 +512,7 @@
       let isPharmaciesMode = false;
       let allPharmacies = [];
 
-      // Debounce function remains the same.
+      // Debounce to avoid rapid-fire updates
       const debounce = (func, wait) => {
         let timeout;
         return (...args) => {
@@ -521,21 +521,24 @@
         };
       };
 
-      // Utility functions
+      // Get current filter values (all lower-case for consistency)
       const getCurrentFilters = () => ({
-        Region: document.getElementById("regionFilter").value,
-        Pharmacy: document.getElementById("pharmacyFilter").value,
-        Month: document.getElementById("monthFilter").value,
-        Class: document.getElementById("classFilter").value,
+        Region: document.getElementById("regionFilter").value.trim().toLowerCase(),
+        Pharmacy: document.getElementById("pharmacyFilter").value.trim().toLowerCase(),
+        Month: document.getElementById("monthFilter").value.trim().toLowerCase(),
+        Class: document.getElementById("classFilter").value.trim().toLowerCase(),
       });
 
+      // Retrieve unique available options for a given field
       const getAvailableOptions = (field, currentFilters) => {
         const uniqueValues = new Set();
         data.forEach((row) => {
           if (
             Object.entries(currentFilters).every(
               ([key, value]) =>
-                value === "all" || key === field || row[key] === value
+                value === "all" ||
+                (row[key] && row[key].trim().toLowerCase() === value) ||
+                key === field
             )
           ) {
             uniqueValues.add(row[field] ? row[field].trim() : row[field]);
@@ -568,12 +571,13 @@
         select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
         availableOptions.forEach((option) => {
           const optElement = document.createElement("option");
-          optElement.value = option;
+          optElement.value = option.toLowerCase();
           optElement.textContent = option;
           select.appendChild(optElement);
         });
         select.value =
-          currentValue === "all" || availableOptions.includes(currentValue)
+          (currentValue === "all" ||
+            availableOptions.map((v) => v.toLowerCase()).includes(currentValue))
             ? currentValue
             : "all";
       };
@@ -588,7 +592,6 @@
             filters.forEach((otherFilter) => {
               if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
             });
-            // When filters change, update whichever view is active.
             updateDashboard();
             if (isPharmaciesMode) updatePharmaciesView();
           });
@@ -598,7 +601,7 @@
         updateFilterHighlights();
       };
 
-      // Explore view update function
+      // For explore view: build table with trends
       const getTrendIndicator = (current, previous) => {
         if (previous === null) return "";
         if (current === previous)
@@ -614,11 +617,7 @@
         const tbody = table.querySelector("tbody");
 
         const months = Array.from(
-          new Set(
-            filteredData.map((row) =>
-              row.Month ? row.Month.trim() : row.Month
-            )
-          )
+          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
         ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
         thead.innerHTML = "<th>Metric</th>";
@@ -636,18 +635,13 @@
         const monthlyData = {};
         months.forEach((month) => {
           const monthData = filteredData.filter(
-            (row) =>
-              (row.Month ? row.Month.trim() : row.Month) === month
+            (row) => (row.Month ? row.Month.trim() : row.Month) === month
           );
           monthlyData[month] = {
+            // "Total" sums only the 18 medication categories.
             Total: medicationCategories.reduce(
               (sum, category) =>
-                sum +
-                monthData.reduce(
-                  (catSum, row) =>
-                    catSum + parseFloat(row[category] || 0),
-                  0
-                ),
+                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
               0
             ),
             "Total Prescriptions": monthData.reduce(
@@ -659,16 +653,11 @@
                 sum + parseFloat(row["Insurance Covered Prescription"] || 0),
               0
             ),
-            "Active Pharmacies": new Set(
-              monthData.map((row) => row.Pharmacy).filter(Boolean)
-            ).size,
+            "Active Pharmacies": new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
-                monthData.reduce(
-                  (sum, row) => sum + parseFloat(row[category] || 0),
-                  0
-                ),
+                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
               ])
             ),
           };
@@ -681,40 +670,28 @@
           months.forEach((month) => {
             const value = monthlyData[month][metric];
             const trend = getTrendIndicator(value, previousValue);
-            row.innerHTML += `
-              <td>
-                ${
-                  typeof value === "number"
-                    ? value.toFixed(3)
-                    : value
-                } ${trend}
-              </td>
-            `;
+            row.innerHTML += `<td>${typeof value === "number" ? value.toFixed(3) : value} ${trend}</td>`;
             previousValue = value;
           });
           tbody.appendChild(row);
         });
       };
 
-      // Pharmacies view update function with count and total.
+      // Update pharmacies view using region and month filters
       const updatePharmaciesView = () => {
         const table = document.getElementById("pharmaciesTable");
         const tbody = table.querySelector("tbody");
         tbody.innerHTML = "";
-        // Use Region and Month filters for this view.
         const currentFilters = getCurrentFilters();
         const regionFilter = currentFilters.Region;
         const monthFilter = currentFilters.Month;
-        // Filter data only by Region and Month.
         const pharmacyFilteredData = data.filter((row) => {
           const regionMatch =
-            regionFilter === "all" || row.Region === regionFilter;
+            regionFilter === "all" || (row.Region && row.Region.trim().toLowerCase() === regionFilter);
           const monthMatch =
-            monthFilter === "all" ||
-            (row.Month && row.Month.trim() === monthFilter);
+            monthFilter === "all" || (row.Month && row.Month.trim().toLowerCase() === monthFilter);
           return regionMatch && monthMatch;
         });
-        // Get the full list of pharmacies from overall data (initialized once).
         if (allPharmacies.length === 0) {
           const pharmacySet = new Set();
           data.forEach((row) => {
@@ -724,47 +701,44 @@
             a.localeCompare(b)
           );
         }
-
-        // For each pharmacy, count the records and sum the Total Prescription in the filtered data.
         allPharmacies.forEach((pharmacy) => {
           const records = pharmacyFilteredData.filter(
-            (row) =>
-              row.Pharmacy &&
-              row.Pharmacy.trim() === pharmacy
+            (row) => row.Pharmacy && row.Pharmacy.trim() === pharmacy
           );
           const count = records.length;
           const total = records.reduce(
             (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
             0
           );
-          const countClass =
-            count > 0 ? "pharmacy-count-positive" : "pharmacy-count-zero";
-          const totalClass =
-            total > 0 ? "pharmacy-total-positive" : "pharmacy-total-zero";
+          const countClass = count > 0 ? "pharmacy-count-positive" : "pharmacy-count-zero";
+          const totalClass = total > 0 ? "pharmacy-total-positive" : "pharmacy-total-zero";
           const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${pharmacy}</td>
-            <td class="${countClass}">${count}</td>
-            <td class="${totalClass}">${total.toFixed(3)}</td>
-          `;
+          tr.innerHTML = `<td>${pharmacy}</td>
+                          <td class="${countClass}">${count}</td>
+                          <td class="${totalClass}">${total.toFixed(3)}</td>`;
           tbody.appendChild(tr);
         });
       };
 
-      // Dashboard update functions
+      // Apply filters to generate filteredData array (case-insensitive)
       const applyFilters = () => {
         const currentFilters = getCurrentFilters();
         filteredData = data.filter((row) =>
-          Object.entries(currentFilters).every(
-            ([key, value]) => value === "all" || row[key] === value
+          Object.entries(currentFilters).every(([key, value]) =>
+            value === "all" || (row[key] && row[key].trim().toLowerCase() === value)
           )
         );
       };
 
+      // Update dashboard stats; "Total" card is the sum of 18 medication categories only.
       const updateStats = () => {
         const statsContainer = document.getElementById("statsContainer");
         statsContainer.innerHTML = "";
-
+        const totalMedications = medicationCategories.reduce(
+          (sum, category) =>
+            sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+          0
+        );
         const totalPrescriptions = filteredData.reduce(
           (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
           0
@@ -775,24 +749,13 @@
           0
         );
         const activePharmacies = new Set(
-          filteredData.map((row) => row.Pharmacy).filter(Boolean)
+          filteredData.map(row => row.Pharmacy).filter(Boolean)
         ).size;
-        const totalMedications = medicationCategories.reduce(
-          (sum, category) =>
-            sum +
-            filteredData.reduce(
-              (catSum, row) =>
-                catSum + parseFloat(row[category] || 0),
-              0
-            ),
-          0
-        );
 
         addStatCard("Total", totalMedications.toFixed(3), true);
         addStatCard("Total Prescriptions", totalPrescriptions.toFixed(3));
         addStatCard("Insurance Covered", insuranceCovered.toFixed(3));
         addStatCard("Active Pharmacies", activePharmacies);
-
         medicationCategories.forEach((category) => {
           const total = filteredData.reduce(
             (sum, row) => sum + parseFloat(row[category] || 0),
@@ -806,14 +769,10 @@
         const statsContainer = document.getElementById("statsContainer");
         const card = document.createElement("div");
         card.className = isTotal ? "stat-card total-card" : "stat-card";
-        card.innerHTML = `
-          <div class="stat-value">
-            ${Number(value).toLocaleString(undefined, {
-              maximumFractionDigits: 3,
-            })}
-          </div>
-          <div class="stat-label">${label}</div>
-        `;
+        card.innerHTML = `<div class="stat-value">
+                            ${Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 })}
+                          </div>
+                          <div class="stat-label">${label}</div>`;
         statsContainer.appendChild(card);
       };
 
@@ -827,24 +786,19 @@
           currentChart.destroy();
         }
         const medicationData = medicationCategories.map((category) =>
-          filteredData.reduce(
-            (sum, row) => sum + parseFloat(row[category] || 0),
-            0
-          )
+          filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
         );
         currentChart = new Chart(ctx, {
           type: "bar",
           data: {
             labels: medicationCategories,
-            datasets: [
-              {
-                label: "Medication Distribution",
-                data: medicationData,
-                backgroundColor: "rgba(63, 81, 181, 0.7)",
-                borderColor: "#3f51b5",
-                borderWidth: 1,
-              },
-            ],
+            datasets: [{
+              label: "Medication Distribution",
+              data: medicationData,
+              backgroundColor: "rgba(63, 81, 181, 0.7)",
+              borderColor: "#3f51b5",
+              borderWidth: 1,
+            }],
           },
           options: {
             responsive: true,
@@ -852,34 +806,23 @@
             scales: {
               y: {
                 beginAtZero: true,
-                grid: {
-                  color: "rgba(0, 0, 0, 0.05)",
-                },
+                grid: { color: "rgba(0, 0, 0, 0.05)" },
               },
-              x: {
-                grid: {
-                  display: false,
-                },
-              },
+              x: { grid: { display: false } },
             },
             plugins: {
-              legend: {
-                display: false,
-              },
+              legend: { display: false },
               title: {
                 display: true,
                 text: "Medication Distribution",
-                font: {
-                  size: 16,
-                  weight: "bold",
-                },
+                font: { size: 16, weight: "bold" },
               },
             },
           },
         });
       };
 
-      // Main function to update the dashboard.
+      // Main function to update the dashboard
       const updateDashboard = debounce(() => {
         console.time("updateDashboard");
         applyFilters();
@@ -892,7 +835,6 @@
 
       const toggleExploreMode = () => {
         isExploreMode = !isExploreMode;
-        // Reset pharmacies view if active.
         if (isPharmaciesMode) {
           isPharmaciesMode = false;
           document.getElementById("pharmaciesBtn").textContent = "Pharmacies";
@@ -917,7 +859,6 @@
 
       const togglePharmaciesMode = () => {
         isPharmaciesMode = !isPharmaciesMode;
-        // Reset explore view if active.
         if (isExploreMode) {
           isExploreMode = false;
           document.getElementById("toggleExploreBtn").textContent = "Explore";
@@ -940,6 +881,7 @@
         }
       };
 
+      // Reset filters without destroying data; reapply options and update dashboard.
       const resetFilters = () => {
         document.querySelectorAll(".filter-select").forEach((select) => {
           select.value = "all";
@@ -959,11 +901,7 @@
         }
 
         const months = Array.from(
-          new Set(
-            filteredData.map((row) =>
-              row.Month ? row.Month.trim() : row.Month
-            )
-          )
+          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
         ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
         const metrics = [
@@ -976,39 +914,21 @@
         const monthlyData = {};
         months.forEach((month) => {
           const monthData = filteredData.filter(
-            (row) =>
-              (row.Month ? row.Month.trim() : row.Month) === month
+            (row) => (row.Month ? row.Month.trim() : row.Month) === month
           );
           monthlyData[month] = {
             Total: medicationCategories.reduce(
               (sum, category) =>
-                sum +
-                monthData.reduce(
-                  (catSum, row) =>
-                    catSum + parseFloat(row[category] || 0),
-                  0
-                ),
+                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
               0
             ),
-            "Total Prescriptions": monthData.reduce(
-              (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
-              0
-            ),
-            "Insurance Covered": monthData.reduce(
-              (sum, row) =>
-                sum + parseFloat(row["Insurance Covered Prescription"] || 0),
-              0
-            ),
-            "Active Pharmacies": new Set(
-              monthData.map((row) => row.Pharmacy).filter(Boolean)
-            ).size,
+            "Total Prescriptions": monthData.reduce((sum, row) => sum + parseFloat(row["Total Prescription"] || 0), 0),
+            "Insurance Covered": monthData.reduce((sum, row) => sum + parseFloat(row["Insurance Covered Prescription"] || 0), 0),
+            "Active Pharmacies": new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
-                monthData.reduce(
-                  (sum, row) => sum + parseFloat(row[category] || 0),
-                  0
-                ),
+                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
               ])
             ),
           };
@@ -1036,9 +956,8 @@
         }
       };
 
-      // Initialize event listeners and load data when DOM is loaded
+      // Initialize everything after DOM loads.
       document.addEventListener("DOMContentLoaded", () => {
-        // Attach event listeners for buttons
         document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
         document.getElementById("toggleExploreBtn").addEventListener("click", toggleExploreMode);
         document.getElementById("pharmaciesBtn").addEventListener("click", togglePharmaciesMode);
