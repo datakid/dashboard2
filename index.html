@@ -676,60 +676,70 @@
         });
       };
 
-         const updatePharmaciesView = () => {
-        const table = document.getElementById("pharmaciesTable");
-        const tbody = table.querySelector("tbody");
-        tbody.innerHTML = "";
-        
-        // Get current filters
-        const currentFilters = getCurrentFilters();
-        const regionFilter = currentFilters.Region;
-        const monthFilter = currentFilters.Month;
+   const updatePharmaciesView = () => {
+  const table = document.getElementById("pharmaciesTable");
+  const tbody = table.querySelector("tbody");
+  tbody.innerHTML = "";
+  
+  // Get current filters
+  const currentFilters = getCurrentFilters();
+  const regionFilter = currentFilters.Region;
+  const monthFilter = currentFilters.Month;
+  const classFilter = currentFilters.Class;
 
-        // Filter data based on current filters
-        const pharmacyFilteredData = data.filter((row) => {
-          const regionMatch =
-            regionFilter === "all" || 
-            (row.Region && row.Region.trim().toLowerCase() === regionFilter);
-          const monthMatch =
-            monthFilter === "all" || 
-            (row.Month && row.Month.trim().toLowerCase() === monthFilter);
-          return regionMatch && monthMatch;
-        });
+  // Filter data based on current filters
+  const pharmacyFilteredData = data.filter((row) => {
+    const regionMatch =
+      regionFilter === "all" || 
+      (row.Region && row.Region.trim().toLowerCase() === regionFilter);
+    const monthMatch =
+      monthFilter === "all" || 
+      (row.Month && row.Month.trim().toLowerCase() === monthFilter);
+    const classMatch =
+      classFilter === "all" ||
+      (row.Class && row.Class.trim().toLowerCase() === classFilter);
+    return regionMatch && monthMatch && classMatch;
+  });
 
-        // Get unique pharmacies if not already cached
-        if (allPharmacies.length === 0) {
-          const pharmacySet = new Set();
-          data.forEach((row) => {
-            if (row.Pharmacy) pharmacySet.add(row.Pharmacy.trim());
-          });
-          allPharmacies = Array.from(pharmacySet).sort((a, b) =>
-            a.localeCompare(b)
-          );
-        }
+  // Get unique pharmacies if not already cached
+  if (allPharmacies.length === 0) {
+    const pharmacySet = new Set();
+    data.forEach((row) => {
+      if (row.Pharmacy) pharmacySet.add(row.Pharmacy.trim());
+    });
+    allPharmacies = Array.from(pharmacySet).sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }
 
-        // Process each pharmacy
-        allPharmacies.forEach((pharmacy) => {
-          const records = pharmacyFilteredData.filter(
-            (row) => row.Pharmacy && row.Pharmacy.trim() === pharmacy
-          );
-          
-          // Calculate total by summing only the 18 medication categories
-          const total = records.reduce((sum, row) => {
-            return sum + medicationCategories.reduce((catSum, category) => 
-              catSum + parseFloat(row[category] || 0), 0
-            );
-          }, 0);
+  // Process each pharmacy
+  allPharmacies.forEach((pharmacy) => {
+    const records = pharmacyFilteredData.filter(
+      (row) => row.Pharmacy && row.Pharmacy.trim() === pharmacy
+    );
+    
+    // Calculate total by summing only the 18 medication categories
+    const total = records.reduce((sum, row) => {
+      return sum + medicationCategories.reduce((catSum, category) => 
+        catSum + parseFloat(row[category] || 0), 0
+      );
+    }, 0);
 
-          // Only show pharmacies with values greater than zero
-          if (total > 0) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${pharmacy}</td>
-                           <td class="pharmacy-total-positive">${total.toFixed(3)}</td>`;
-            tbody.appendChild(tr);
-          }
-        });
-      };
+    // Only show pharmacies with zero values
+    if (total === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${pharmacy}</td>
+                     <td class="pharmacy-total-zero">0.000</td>`;
+      tbody.appendChild(tr);
+    }
+  });
+
+  // Update the results count to show number of zero-value pharmacies
+  document.getElementById("resultsCount").textContent = 
+    `Showing ${tbody.children.length} pharmacies with zero values`;
+};
+
+// Make sure the classFilter is properly initialized in the HTML
 
       // Apply filters to generate filteredData array (case-insensitive)
       const applyFilters = () => {
