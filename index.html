@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,358 +8,343 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
-:root {
-    --primary-color: #3f51b5;
-    --primary-light: #757de8;
-    --primary-dark: #002984;
-    --text-color: #333;
-    --background-color: #f5f5f5;
-    --card-background: #ffffff;
-    --hover-color: #e8eaf6;
-    --shadow: 0 2px 4px rgba(0,0,0,0.1);
-    --total-card-background: #3f51b5;
-    --total-card-text: #ffffff;
-    --positive-change: #4caf50;
-    --negative-change: #f44336;
-    --neutral-change: #9e9e9e;
-}
-
-body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 24px;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-}
-
-.dashboard-header h1 {
-    color: var(--primary-color);
-    font-weight: 500;
-    font-size: 28px;
-}
-
-.filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-}
-
-.filter-select {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    background-color: var(--card-background);
-    font-size: 16px;
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-.filter-select:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
-}
-
-.filter-select.highlighted {
-    background-color: var(--hover-color);
-    border-color: var(--primary-color);
-}
-
-.button-group {
-    display: flex;
-    gap: 16px;
-}
-
-.reset-button, .explore-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-}
-
-.explore-button {
-    background-color: var(--primary-light);
-}
-
-.reset-button:hover, .explore-button:hover {
-    background-color: var(--primary-dark);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.controls-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-}
-
-.stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
-}
-
-.stat-card {
-    background-color: var(--card-background);
-    border-radius: 10px;
-    padding: 24px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.stat-value {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 8px;
-}
-
-.stat-label {
-    font-size: 16px;
-    color: var(--text-color);
-    opacity: 0.8;
-}
-
-.total-card {
-    background-color: var(--total-card-background);
-    color: var(--total-card-text);
-    grid-column: 1 / -1;
-}
-
-.total-card .stat-value,
-.total-card .stat-label {
-    color: var(--total-card-text);
-}
-
-.total-card .stat-value {
-    font-size: 36px;
-}
-
-.total-card .stat-label {
-    font-size: 18px;
-    font-weight: 500;
-    opacity: 0.9;
-}
-
-.chart-container {
-    background-color: var(--card-background);
-    border-radius: 10px;
-    padding: 24px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    height: 400px;
-    min-height: 300px;
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-#resultsCount {
-    color: var(--primary-color);
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.explore-table-container {
-    background-color: var(--card-background);
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-    margin-top: 32px;
-    overflow-x: auto;
-}
-
-.explore-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 16px;
-    color: var(--text-color);
-}
-
-.explore-table th,
-.explore-table td {
-    padding: 16px 24px;
-    text-align: right;
-    border-bottom: 1px solid #e0e0e0;
-    white-space: nowrap;
-    line-height: 1.8;
-}
-
-.explore-table th:first-child,
-.explore-table td:first-child {
-    text-align: left;
-    position: sticky;
-    left: 0;
-    background-color: var(--card-background);
-    z-index: 1;
-    border-right: 2px solid #e0e0e0;
-    font-weight: 500;
-}
-
-.explore-table th {
-    background-color: var(--background-color);
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    color: var(--primary-color);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.explore-table th:first-child {
-    z-index: 3;
-}
-
-.explore-table tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-.explore-table tr:hover td {
-    background-color: var(--hover-color);
-}
-
-.trend-indicator {
-    display: inline-block;
-    margin-left: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 4px 10px;
-    border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.trend-up {
-    color: var(--positive-change);
-    background-color: rgba(76, 175, 80, 0.15);
-}
-
-.trend-down {
-    color: var(--negative-change);
-    background-color: rgba(244, 67, 54, 0.15);
-}
-
-.trend-neutral {
-    color: var(--neutral-change);
-    background-color: rgba(158, 158, 158, 0.15);
-}
-
-.dashboard-view, .explore-view {
-    transition: opacity 0.3s ease;
-}
-
-.hidden {
-    display: none;
-    opacity: 0;
-}
-
-.export-button {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-}
-
-.export-button:hover {
-    background-color: #45a049;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 600px) {
-    .button-group {
-        flex-wrap: wrap;
-    }
-
-    .reset-button, .explore-button, .export-button {
-        flex: 1 0 calc(50% - 8px);
-        margin-bottom: 16px;
-    }
-}
-
-@media (max-width: 1200px) {
-    .explore-table th,
-    .explore-table td {
-        padding: 14px 20px;
-        font-size: 15px;
-    }
-}
-
-@media (max-width: 900px) {
-    .chart-container {
-        height: 350px;
-    }
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 16px;
-    }
-
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-
-    .filters {
-        grid-template-columns: 1fr;
-    }
-
-    .button-group {
-        width: 100%;
-    }
-
-    .reset-button, .explore-button {
-        flex: 1;
-    }
-
-    .chart-container {
-        height: 300px;
-        padding: 16px;
-    }
-
-    .explore-table th,
-    .explore-table td {
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 400px) {
-    .chart-container {
-        height: 250px;
-    }
-}
+        :root {
+            --primary-color: #3f51b5;
+            --primary-light: #757de8;
+            --primary-dark: #002984;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+            --card-background: #ffffff;
+            --hover-color: #e8eaf6;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --total-card-background: #3f51b5;
+            --total-card-text: #ffffff;
+            --positive-change: #4caf50;
+            --negative-change: #f44336;
+            --neutral-change: #9e9e9e;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 24px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .dashboard-header h1 {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 28px;
+        }
+        
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: var(--card-background);
+            font-size: 16px;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
+        }
+        
+        .filter-select.highlighted {
+            background-color: var(--hover-color);
+            border-color: var(--primary-color);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .reset-button, .explore-button, .export-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .explore-button {
+            background-color: var(--primary-light);
+        }
+        
+        .export-button {
+            background-color: #4caf50;
+        }
+        
+        .reset-button:hover, .explore-button:hover, .export-button:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        
+        .total-card {
+            background-color: var(--total-card-background);
+            color: var(--total-card-text);
+            grid-column: 1 / -1;
+        }
+        
+        .total-card .stat-value,
+        .total-card .stat-label {
+            color: var(--total-card-text);
+        }
+        
+        .total-card .stat-value {
+            font-size: 36px;
+        }
+        
+        .total-card .stat-label {
+            font-size: 18px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: 400px;
+            min-height: 300px;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        #resultsCount {
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .explore-table-container {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            margin-top: 32px;
+            overflow-x: auto;
+        }
+        
+        .explore-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+        
+        .explore-table th,
+        .explore-table td {
+            padding: 16px 24px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+            line-height: 1.8;
+        }
+        
+        .explore-table th:first-child,
+        .explore-table td:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            background-color: var(--card-background);
+            z-index: 1;
+            border-right: 2px solid #e0e0e0;
+            font-weight: 500;
+        }
+        
+        .explore-table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .explore-table th:first-child {
+            z-index: 3;
+        }
+        
+        .explore-table tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .explore-table tr:hover td {
+            background-color: var(--hover-color);
+        }
+        
+        .trend-indicator {
+            display: inline-block;
+            margin-left: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .trend-up {
+            color: var(--positive-change);
+            background-color: rgba(76, 175, 80, 0.15);
+        }
+        
+        .trend-down {
+            color: var(--negative-change);
+            background-color: rgba(244, 67, 54, 0.15);
+        }
+        
+        .trend-neutral {
+            color: var(--neutral-change);
+            background-color: rgba(158, 158, 158, 0.15);
+        }
+        
+        .dashboard-view, .explore-view {
+            transition: opacity 0.3s ease;
+        }
+        
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        
+        @media (max-width: 600px) {
+            .button-group {
+                flex-wrap: wrap;
+            }
+        
+            .reset-button, .explore-button, .export-button {
+                flex: 1 0 calc(50% - 8px);
+                margin-bottom: 16px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .explore-table th,
+            .explore-table td {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 16px;
+            }
+        
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        
+            .filters {
+                grid-template-columns: 1fr;
+            }
+        
+            .button-group {
+                width: 100%;
+            }
+        
+            .reset-button, .explore-button {
+                flex: 1;
+            }
+        
+            .chart-container {
+                height: 300px;
+                padding: 16px;
+            }
+        
+            .explore-table th,
+            .explore-table td {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -401,7 +384,7 @@ body {
             <canvas id="medicationChart"></canvas>
         </div>
     </div>
-
+    
     <div class="explore-view hidden">
         <div class="explore-table-container">
             <table class="explore-table" id="exploreTable">
@@ -417,413 +400,419 @@ body {
             </table>
         </div>
     </div>
-
-<script>
-const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-
-let data = [];
-let filteredData = [];
-let medicationCategories = ['المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن', 'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية', 'عيون و رمد', 'انف و اذن', 'مضادات تقلصات', 'اورام', 'فيتامينات', 'مختلفة'];
-let currentChart = null;
-let isExploreMode = false;
-
-const monthOrder = {
-    'July': 1, 'August': 2, 'September': 3, 'October': 4, 'November': 5, 'December': 6,
-    'January': 7, 'February': 8, 'March': 9, 'April': 10, 'May': 11, 'June': 12,
-    // Add Arabic month names with the same order
-    'يوليو': 1, 'أغسطس': 2, 'سبتمبر': 3, 'أكتوبر': 4, 'نوفمبر': 5, 'ديسمبر': 6,
-    'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12
-};
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+    
+    <script>
+        // Keeping your original month order as intended
+        const monthOrder = {
+            'July': 1, 'August': 2, 'September': 3, 'October': 4, 'November': 5, 'December': 6,
+            'January': 7, 'February': 8, 'March': 9, 'April': 10, 'May': 11, 'June': 12,
+            // Arabic month names with same order
+            'يوليو': 1, 'أغسطس': 2, 'سبتمبر': 3, 'أكتوبر': 4, 'نوفمبر': 5, 'ديسمبر': 6,
+            'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function getAvailableOptions(field, currentFilters) {
-    const uniqueValues = new Set();
-    for (const row of data) {
-        if (Object.entries(currentFilters).every(([key, value]) => value === 'all' || key === field || row[key] === value)) {
-            uniqueValues.add(row[field]);
-        }
-    }
-    return Array.from(uniqueValues).filter(Boolean).sort((a, b) => {
-        if (field === 'Month') {
-            return monthOrder[a] - monthOrder[b];
-        }
-        return a.localeCompare(b);
-    });
-}
-
-function getCurrentFilters() {
-    return {
-        Region: document.getElementById('regionFilter').value,
-        Pharmacy: document.getElementById('pharmacyFilter').value,
-        Month: document.getElementById('monthFilter').value,
-        Class: document.getElementById('classFilter').value
-    };
-}
-
-function toggleExploreMode() {
-    isExploreMode = !isExploreMode;
-    const exploreButton = document.querySelector('.explore-button');
-    const dashboardView = document.querySelector('.dashboard-view');
-    const exploreView = document.querySelector('.explore-view');
-
-    if (isExploreMode) {
-        exploreButton.textContent = 'Back';
-        dashboardView.classList.add('hidden');
-        exploreView.classList.remove('hidden');
-        updateExploreView();
-    } else {
-        exploreButton.textContent = 'Explore';
-        dashboardView.classList.remove('hidden');
-        exploreView.classList.add('hidden');
-    }
-}
-
-function getTrendIndicator(current , previous) {
-    if (previous === null) return '';
-    if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
-    return current > previous 
-        ? '<span class="trend-indicator trend-up">↑</span>' 
-        : '<span class="trend-indicator trend-down">↓</span>';
-}
-
-function updateExploreView() {
-    const table = document.getElementById('exploreTable');
-    const thead = table.querySelector('thead tr');
-    const tbody = table.querySelector('tbody');
-    
-    // Get unique months from filtered data and sort them
-    const months = Array.from(new Set(filteredData.map(row => row.Month)))
-        .sort((a, b) => monthOrder[a] - monthOrder[b]);
-    
-    // Update header
-    thead.innerHTML = '<th>Metric</th>';
-    months.forEach(month => {
-        thead.innerHTML += `<th>${month}</th>`;
-    });
-    
-    // Calculate metrics for each month
-    const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
-    const monthlyData = {};
-    
-    months.forEach(month => {
-        const monthData = filteredData.filter(row => row.Month === month);
-        monthlyData[month] = {
-            'Total': medicationCategories.reduce((sum, category) => 
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
-            'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
-            'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
-            'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
-            ...Object.fromEntries(medicationCategories.map(category => [
-                category,
-                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-            ]))
-        };
-    });
-    
-    // Generate table rows
-    tbody.innerHTML = '';
-    metrics.forEach(metric => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${metric}</td>`;
         
-        let previousValue = null;
-        months.forEach((month) => {
-            const value = monthlyData[month][metric];
-            const trend = getTrendIndicator(value, previousValue);
+        // Use the provided month order to sort values
+        function getMonthOrderValue(month) {
+            return monthOrder[month.trim()] || 99;
+        }
+        
+        let data = [];
+        let filteredData = [];
+        let medicationCategories = ['المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن', 'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية', 'عيون و رمد', 'انف و اذن', 'مضادات تقلصات', 'اورام', 'فيتامينات', 'مختلفة'];
+        let currentChart = null;
+        let isExploreMode = false;
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        function getAvailableOptions(field, currentFilters) {
+            const uniqueValues = new Set();
+            for (const row of data) {
+                if (Object.entries(currentFilters).every(([key, value]) => value === 'all' || key === field || row[key] === value)) {
+                    // Always trim the value for consistency
+                    uniqueValues.add(row[field] ? row[field].trim() : row[field]);
+                }
+            }
+            return Array.from(uniqueValues).filter(Boolean).sort((a, b) => {
+                if (field === 'Month') {
+                    return getMonthOrderValue(a) - getMonthOrderValue(b);
+                }
+                return a.localeCompare(b);
+            });
+        }
+        
+        function getCurrentFilters() {
+            return {
+                Region: document.getElementById('regionFilter').value,
+                Pharmacy: document.getElementById('pharmacyFilter').value,
+                Month: document.getElementById('monthFilter').value,
+                Class: document.getElementById('classFilter').value
+            };
+        }
+        
+        function toggleExploreMode() {
+            isExploreMode = !isExploreMode;
+            const exploreButton = document.querySelector('.explore-button');
+            const dashboardView = document.querySelector('.dashboard-view');
+            const exploreView = document.querySelector('.explore-view');
+        
+            if (isExploreMode) {
+                exploreButton.textContent = 'Back';
+                dashboardView.classList.add('hidden');
+                exploreView.classList.remove('hidden');
+                updateExploreView();
+            } else {
+                exploreButton.textContent = 'Explore';
+                dashboardView.classList.remove('hidden');
+                exploreView.classList.add('hidden');
+            }
+        }
+        
+        function getTrendIndicator(current , previous) {
+            if (previous === null) return '';
+            if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
+            return current > previous 
+                ? '<span class="trend-indicator trend-up">↑</span>' 
+                : '<span class="trend-indicator trend-down">↓</span>';
+        }
+        
+        function updateExploreView() {
+            const table = document.getElementById('exploreTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
             
-            row.innerHTML += `
-                <td>
-                    ${typeof value === 'number' ? value.toFixed(3) : value}
-                    ${trend}
-                </td>
-            `;
-            previousValue = value;
-        });
+            // Get unique months from filtered data and sort them
+            const months = Array.from(new Set(filteredData.map(row => row.Month ? row.Month.trim() : row.Month)))
+                .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+            
+            // Update header
+            thead.innerHTML = '<th>Metric</th>';
+            months.forEach(month => {
+                thead.innerHTML += `<th>${month}</th>`;
+            });
+            
+            // Calculate metrics for each month
+            const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
+            const monthlyData = {};
+            
+            months.forEach(month => {
+                const monthData = filteredData.filter(row => (row.Month ? row.Month.trim() : row.Month) === month);
+                monthlyData[month] = {
+                    'Total': medicationCategories.reduce((sum, category) => 
+                        sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
+                    'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
+                    'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
+                    'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
+                    ...Object.fromEntries(medicationCategories.map(category => [
+                        category,
+                        monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+                    ]))
+                };
+            });
+            
+            // Generate table rows
+            tbody.innerHTML = '';
+            metrics.forEach(metric => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${metric}</td>`;
+                
+                let previousValue = null;
+                months.forEach((month) => {
+                    const value = monthlyData[month][metric];
+                    const trend = getTrendIndicator(value, previousValue);
+                    
+                    row.innerHTML += `
+                        <td>
+                            ${typeof value === 'number' ? value.toFixed(3) : value}
+                            ${trend}
+                        </td>
+                    `;
+                    previousValue = value;
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
         
-        tbody.appendChild(row);
-    });
-}
-
-function initializeFilters() {
-    const filters = ['region', 'pharmacy', 'month', 'class'];
-    
-    filters.forEach(filter => {
-        const filterElement = document.getElementById(`${filter}Filter`);
-        filterElement.addEventListener('change', () => {
+        function initializeFilters() {
+            const filters = ['region', 'pharmacy', 'month', 'class'];
+            
+            filters.forEach(filter => {
+                const filterElement = document.getElementById(`${filter}Filter`);
+                filterElement.addEventListener('change', () => {
+                    updateFilterHighlights();
+                    
+                    const currentFilters = getCurrentFilters();
+                    filters.forEach(otherFilter => {
+                        if (otherFilter !== filter) {
+                            updateFilterOptions(otherFilter, currentFilters);
+                        }
+                    });
+                    
+                    updateDashboard();
+                });
+            });
+        
+            const currentFilters = getCurrentFilters();
+            filters.forEach(filter => updateFilterOptions(filter, currentFilters));
             updateFilterHighlights();
+        }
+        
+        function updateFilterHighlights() {
+            const currentFilters = getCurrentFilters();
+            Object.entries(currentFilters).forEach(([key, value]) => {
+                const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
+                if (value !== 'all') {
+                    filterElement.classList.add('highlighted');
+                } else {
+                    filterElement.classList.remove('highlighted');
+                }
+            });
+        }
+        
+        function updateFilterOptions(filterName, currentFilters) {
+            const select = document.getElementById(`${filterName}Filter`);
+            const currentValue = select.value;
+            const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
+            const availableOptions = getAvailableOptions(fieldName, currentFilters);
+            
+            select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
+            availableOptions.forEach(option => {
+                const optElement = document.createElement('option');
+                optElement.value = option;
+                optElement.textContent = option;
+                select.appendChild(optElement);
+            });
+        
+            select.value = currentValue === 'all' || availableOptions.includes(currentValue) ? currentValue : 'all';
+        }
+        
+        const updateDashboard = debounce(() => {
+            console.time('updateDashboard');
+            applyFilters();
+            updateStats();
+            updateResultsCount();
+            updateMedicationChart();
+            if (isExploreMode) {
+                updateExploreView();
+            }
+            console.timeEnd('updateDashboard');
+        }, 100);
+        
+        function applyFilters() {
+            const currentFilters = getCurrentFilters();
+            filteredData = data.filter(row => 
+                Object.entries(currentFilters).every(([key, value]) => value === 'all' || row[key] === value)
+            );
+        }
+        
+        function updateStats() {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = '';
+        
+            const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
+            const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
+            const activePharmacies = new Set(filteredData.map(row => row.Pharmacy).filter(Boolean)).size;
+            const totalMedications = medicationCategories.reduce((sum, category) => 
+                sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0);
+        
+            addStatCard('Total', totalMedications.toFixed(3), true);
+            addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
+            addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
+            addStatCard('Active Pharmacies', activePharmacies);
+        
+            medicationCategories.forEach(category => {
+                const total = filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0);
+                addStatCard(category, total.toFixed(3));
+            });
+        }
+        
+        function addStatCard(label, value, isTotal = false) {
+            const statsContainer = document.getElementById('statsContainer');
+            const card = document.createElement('div');
+            card.className = isTotal ? 'stat-card total-card' : 'stat-card';
+            card.innerHTML = `
+                <div class="stat-value">${Number(value).toLocaleString(undefined, {maximumFractionDigits: 3})}</div>
+                <div class="stat-label">${label}</div>
+            `;
+            statsContainer.appendChild(card);
+        }
+        
+        function updateResultsCount() {
+            document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
+        }
+        
+        function updateMedicationChart() {
+            const ctx = document.getElementById('medicationChart').getContext('2d');
+            
+            if (currentChart) {
+                currentChart.destroy();
+            }
+        
+            const medicationData = medicationCategories.map(category => 
+                filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+            );
+        
+            currentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: medicationCategories,
+                    datasets: [{
+                        label: 'Medication Distribution',
+                        data: medicationData,
+                        backgroundColor: 'rgba(63, 81, 181, 0.7)',
+                        borderColor: '#3f51b5',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Medication Distribution',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function resetFilters() {
+            document.querySelectorAll('.filter-select').forEach(select => {
+                select.value = 'all';
+                select.classList.remove('highlighted');
+            });
             
             const currentFilters = getCurrentFilters();
-            filters.forEach(otherFilter => {
-                if (otherFilter !== filter) {
-                    updateFilterOptions(otherFilter, currentFilters);
-                }
+            ['region', 'pharmacy', 'month', 'class'].forEach(filter => {
+                updateFilterOptions(filter, currentFilters);
             });
             
             updateDashboard();
-        });
-    });
-
-    const currentFilters = getCurrentFilters();
-    filters.forEach(filter => updateFilterOptions(filter, currentFilters));
-    updateFilterHighlights();
-}
-
-function updateFilterHighlights() {
-    const currentFilters = getCurrentFilters();
-    Object.entries(currentFilters).forEach(([key, value]) => {
-        const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
-        if (value !== 'all') {
-            filterElement.classList.add('highlighted');
-        } else {
-            filterElement.classList.remove('highlighted');
         }
-    });
-}
-
-function updateFilterOptions(filterName, currentFilters) {
-    const select = document.getElementById(`${filterName}Filter`);
-    const currentValue = select.value;
-    const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
-    const availableOptions = getAvailableOptions(fieldName, currentFilters);
-    
-    select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
-    availableOptions.forEach(option => {
-        const optElement = document.createElement('option');
-        optElement.value = option;
-        optElement.textContent = option;
-        select.appendChild(optElement);
-    });
-
-    select.value = currentValue === 'all' || availableOptions.includes(currentValue) ? currentValue : 'all';
-}
-
-const updateDashboard = debounce(() => {
-    console.time('updateDashboard');
-    applyFilters();
-    updateStats();
-    updateResultsCount();
-    updateMedicationChart();
-    if (isExploreMode) {
-        updateExploreView();
-    }
-    console.timeEnd('updateDashboard');
-}, 100);
-
-function applyFilters() {
-    const currentFilters = getCurrentFilters();
-    filteredData = data.filter(row => 
-        Object.entries(currentFilters).every(([key, value]) => value === 'all' || row[key] === value)
-    );
-}
-
-function updateStats() {
-    const statsContainer = document.getElementById('statsContainer');
-    statsContainer.innerHTML = '';
-
-    const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
-    const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
-    const activePharmacies = new Set(filteredData.map(row => row.Pharmacy).filter(Boolean)).size;
-    const totalMedications = medicationCategories.reduce((sum, category) => 
-        sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0);
-
-    addStatCard('Total', totalMedications.toFixed(3), true);
-    addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
-    addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
-    addStatCard('Active Pharmacies', activePharmacies);
-
-    medicationCategories.forEach(category => {
-        const total = filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0);
-        addStatCard(category, total.toFixed(3));
-    });
-}
-
-function addStatCard(label, value, isTotal = false) {
-    const statsContainer = document.getElementById('statsContainer');
-    const card = document.createElement('div');
-    card.className = isTotal ? 'stat-card total-card' : 'stat-card';
-    card.innerHTML = `
-        <div class="stat-value">${Number(value).toLocaleString(undefined, {maximumFractionDigits: 3})}</div>
-        <div class="stat-label">${label}</div>
-    `;
-    statsContainer.appendChild(card);
-}
-
-function updateResultsCount() {
-    document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
-}
-
-function updateMedicationChart() {
-    const ctx = document.getElementById('medicationChart').getContext('2d');
-    
-    if (currentChart) {
-        currentChart.destroy();
-    }
-
-    const medicationData = medicationCategories.map(category => 
-        filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-    );
-
-    currentChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: medicationCategories,
-            datasets: [{
-                label: 'Medication Distribution',
-                data: medicationData,
-                backgroundColor: 'rgba(63, 81, 181, 0.7)',
-                borderColor: '#3f51b5',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Medication Distribution',
-                    font: {
-                        size: 16,
-                        weight: 'bold'
-                    }
-                }
+        
+        function exportToExcel() {
+            if (!filteredData.length) {
+                alert('No data to export');
+                return;
+            }
+        
+            // Get unique months from filtered data and sort them
+            const months = Array.from(new Set(filteredData.map(row => row.Month ? row.Month.trim() : row.Month)))
+                .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+        
+            // Calculate metrics for each month
+            const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
+            const monthlyData = {};
+            
+            months.forEach(month => {
+                const monthData = filteredData.filter(row => (row.Month ? row.Month.trim() : row.Month) === month);
+                monthlyData[month] = {
+                    'Total': medicationCategories.reduce((sum, category) => 
+                        sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
+                    'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
+                    'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
+                    'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
+                    ...Object.fromEntries(medicationCategories.map(category => [
+                        category,
+                        monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+                    ]))
+                };
+            });
+        
+            // Prepare data for CSV
+            let csvContent = [
+                // Header row
+                ['Metric', ...months].join(',')
+            ];
+        
+            // Data rows
+            metrics.forEach(metric => {
+                let row = [
+                    metric,
+                    ...months.map(month => monthlyData[month][metric].toFixed(3))
+                ];
+                csvContent.push(row.join(','));
+            });
+        
+            // Join all rows
+            csvContent = csvContent.join('\n');
+        
+            // Add UTF-8 BOM to the beginning of the file
+            const BOM = '\uFEFF';
+            csvContent = BOM + csvContent;
+        
+            // Create Blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "pharmacy_data_export.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
-    });
-}
-
-function resetFilters() {
-    document.querySelectorAll('.filter-select').forEach(select => {
-        select.value = 'all';
-        select.classList.remove('highlighted');
-    });
-    
-    const currentFilters = getCurrentFilters();
-    ['region', 'pharmacy', 'month', 'class'].forEach(filter => {
-        updateFilterOptions(filter, currentFilters);
-    });
-    
-    updateDashboard();
-}
-
-
-function exportToExcel() {
-    if (!filteredData.length) {
-        alert('No data to export');
-        return;
-    }
-
-    // Get unique months from filtered data and sort them
-    const months = Array.from(new Set(filteredData.map(row => row.Month)))
-        .sort((a, b) => monthOrder[a] - monthOrder[b]);
-
-    // Calculate metrics for each month
-    const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
-    const monthlyData = {};
-    
-    months.forEach(month => {
-        const monthData = filteredData.filter(row => row.Month === month);
-        monthlyData[month] = {
-            'Total': medicationCategories.reduce((sum, category) => 
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
-            'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
-            'Insurance Covered': monthData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
-            'Active Pharmacies': new Set(monthData.map(row => row.Pharmacy).filter(Boolean)).size,
-            ...Object.fromEntries(medicationCategories.map(category => [
-                category,
-                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-            ]))
-        };
-    });
-
-    // Prepare data for CSV
-    let csvContent = [
-        // Header row
-        ['Metric', ...months].join(',')
-    ];
-
-    // Data rows
-    metrics.forEach(metric => {
-        let row = [
-            metric,
-            ...months.map(month => monthlyData[month][metric].toFixed(3))
-        ];
-        csvContent.push(row.join(','));
-    });
-
-    // Join all rows
-    csvContent = csvContent.join('\n');
-
-    // Add UTF-8 BOM to the beginning of the file
-    const BOM = '\uFEFF';
-    csvContent = BOM + csvContent;
-
-    // Create Blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "pharmacy_data_export.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
-// Initialize the dashboard
-fetch(SHEET_URL)
-    .then(response => response.text())
-    .then(csvText => {
-        Papa.parse(csvText, {
-            header: true,
-            encoding: "UTF-8",
-            complete: function(results) {
-                data = results.data;
-                filteredData = data;
-                initializeFilters();
-                updateDashboard();
-            }
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching or parsing data:', error);
-        document.getElementById('statsContainer').innerHTML = `
-            <div class="stat-card">
-                <div class="stat-value">Error</div>
-                <div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
-            </div>
-        `;
-    });
-</script>
+        
+        // Initialize the dashboard with data from Google Sheets CSV export
+        const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+        
+        fetch(SHEET_URL)
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    encoding: "UTF-8",
+                    complete: function(results) {
+                        data = results.data;
+                        filteredData = data;
+                        initializeFilters();
+                        updateDashboard();
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching or parsing data:', error);
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">Error</div>
+                        <div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
+                    </div>
+                `;
+            });
+    </script>
 </body>
 </html>
