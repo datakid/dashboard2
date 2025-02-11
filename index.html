@@ -441,7 +441,6 @@
           <thead>
             <tr>
               <th>Pharmacy</th>
-              <th>Count</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -677,21 +676,28 @@
         });
       };
 
-      // Update pharmacies view using region and month filters
-      const updatePharmaciesView = () => {
+         const updatePharmaciesView = () => {
         const table = document.getElementById("pharmaciesTable");
         const tbody = table.querySelector("tbody");
         tbody.innerHTML = "";
+        
+        // Get current filters
         const currentFilters = getCurrentFilters();
         const regionFilter = currentFilters.Region;
         const monthFilter = currentFilters.Month;
+
+        // Filter data based on current filters
         const pharmacyFilteredData = data.filter((row) => {
           const regionMatch =
-            regionFilter === "all" || (row.Region && row.Region.trim().toLowerCase() === regionFilter);
+            regionFilter === "all" || 
+            (row.Region && row.Region.trim().toLowerCase() === regionFilter);
           const monthMatch =
-            monthFilter === "all" || (row.Month && row.Month.trim().toLowerCase() === monthFilter);
+            monthFilter === "all" || 
+            (row.Month && row.Month.trim().toLowerCase() === monthFilter);
           return regionMatch && monthMatch;
         });
+
+        // Get unique pharmacies if not already cached
         if (allPharmacies.length === 0) {
           const pharmacySet = new Set();
           data.forEach((row) => {
@@ -701,22 +707,27 @@
             a.localeCompare(b)
           );
         }
+
+        // Process each pharmacy
         allPharmacies.forEach((pharmacy) => {
           const records = pharmacyFilteredData.filter(
             (row) => row.Pharmacy && row.Pharmacy.trim() === pharmacy
           );
-          const count = records.length;
-          const total = records.reduce(
-            (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
-            0
-          );
-          const countClass = count > 0 ? "pharmacy-count-positive" : "pharmacy-count-zero";
-          const totalClass = total > 0 ? "pharmacy-total-positive" : "pharmacy-total-zero";
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${pharmacy}</td>
-                          <td class="${countClass}">${count}</td>
-                          <td class="${totalClass}">${total.toFixed(3)}</td>`;
-          tbody.appendChild(tr);
+          
+          // Calculate total by summing only the 18 medication categories
+          const total = records.reduce((sum, row) => {
+            return sum + medicationCategories.reduce((catSum, category) => 
+              catSum + parseFloat(row[category] || 0), 0
+            );
+          }, 0);
+
+          // Only show pharmacies with values greater than zero
+          if (total > 0) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${pharmacy}</td>
+                           <td class="pharmacy-total-positive">${total.toFixed(3)}</td>`;
+            tbody.appendChild(tr);
+          }
         });
       };
 
