@@ -85,7 +85,8 @@
 
       .reset-button,
       .explore-button,
-      .export-button {
+      .export-button,
+      .pharmacies-button {
         background-color: var(--primary-color);
         color: white;
         border: none;
@@ -106,10 +107,15 @@
       .export-button {
         background-color: #4caf50;
       }
+      
+      .pharmacies-button {
+        background-color: var(--primary-light);
+      }
 
       .reset-button:hover,
       .explore-button:hover,
-      .export-button:hover {
+      .export-button:hover,
+      .pharmacies-button:hover {
         background-color: var(--primary-dark);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
@@ -279,13 +285,24 @@
       }
 
       .dashboard-view,
-      .explore-view {
+      .explore-view,
+      .pharmacies-view {
         transition: opacity 0.3s ease;
       }
 
       .hidden {
         display: none;
         opacity: 0;
+      }
+      
+      /* Styling for pharmacy count cells */
+      .pharmacy-count-positive {
+        color: var(--positive-change);
+        font-weight: bold;
+      }
+      .pharmacy-count-zero {
+        color: var(--neutral-change);
+        font-weight: bold;
       }
 
       @media (max-width: 600px) {
@@ -295,7 +312,8 @@
 
         .reset-button,
         .explore-button,
-        .export-button {
+        .export-button,
+        .pharmacies-button {
           flex: 1 0 calc(50% - 8px);
           margin-bottom: 16px;
         }
@@ -335,7 +353,9 @@
         }
 
         .reset-button,
-        .explore-button {
+        .explore-button,
+        .export-button,
+        .pharmacies-button {
           flex: 1;
         }
 
@@ -384,6 +404,7 @@
       <div class="button-group">
         <button class="reset-button" id="resetFiltersBtn">Reset Filters</button>
         <button class="explore-button" id="toggleExploreBtn">Explore</button>
+        <button class="pharmacies-button" id="pharmaciesBtn">Pharmacies</button>
         <button class="export-button" id="exportExcelBtn">Export to Excel</button>
       </div>
       <div id="resultsCount"></div>
@@ -411,6 +432,22 @@
         </table>
       </div>
     </div>
+    
+    <div class="pharmacies-view hidden">
+      <div class="explore-table-container">
+        <table class="explore-table" id="pharmaciesTable">
+          <thead>
+            <tr>
+              <th>Pharmacy</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Pharmacy rows will be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <script>
       // Keep the month order mapping as you intended.
@@ -428,47 +465,49 @@
         may: 11,
         june: 12,
         // Arabic month names with the same order in lower case
-        'يوليو': 1,
-        'أغسطس': 2,
-        'سبتمبر': 3,
-        'أكتوبر': 4,
-        'نوفمبر': 5,
-        'ديسمبر': 6,
-        'يناير': 7,
-        'فبراير': 8,
-        'مارس': 9,
-        'أبريل': 10,
-        'مايو': 11,
-        'يونيو': 12,
+        "يوليو": 1,
+        "أغسطس": 2,
+        "سبتمبر": 3,
+        "أكتوبر": 4,
+        "نوفمبر": 5,
+        "ديسمبر": 6,
+        "يناير": 7,
+        "فبراير": 8,
+        "مارس": 9,
+        "أبريل": 10,
+        "مايو": 11,
+        "يونيو": 12,
       };
 
       const getMonthOrderValue = (month) =>
         month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
       let data = [],
-        filteredData = [];
+          filteredData = [];
       const medicationCategories = [
-        'المسكنات',
-        'مضادات حيوية',
-        'كلي',
-        'نفسية و عصبية',
-        'قلب',
-        'سكر حقن',
-        'سكر فم',
-        'نسا',
-        'كبد',
-        'جهاز هضمي',
-        'جهاز تنفسي',
-        'امراض جلدية',
-        'عيون و رمد',
-        'انف و اذن',
-        'مضادات تقلصات',
-        'اورام',
-        'فيتامينات',
-        'مختلفة',
+        "المسكنات",
+        "مضادات حيوية",
+        "كلي",
+        "نفسية و عصبية",
+        "قلب",
+        "سكر حقن",
+        "سكر فم",
+        "نسا",
+        "كبد",
+        "جهاز هضمي",
+        "جهاز تنفسي",
+        "امراض جلدية",
+        "عيون و رمد",
+        "انف و اذن",
+        "مضادات تقلصات",
+        "اورام",
+        "فيتامينات",
+        "مختلفة",
       ];
       let currentChart = null;
       let isExploreMode = false;
+      let isPharmaciesMode = false;
+      let allPharmacies = [];
 
       // Debounce function remains the same.
       const debounce = (func, wait) => {
@@ -481,10 +520,10 @@
 
       // Utility functions
       const getCurrentFilters = () => ({
-        Region: document.getElementById('regionFilter').value,
-        Pharmacy: document.getElementById('pharmacyFilter').value,
-        Month: document.getElementById('monthFilter').value,
-        Class: document.getElementById('classFilter').value,
+        Region: document.getElementById("regionFilter").value,
+        Pharmacy: document.getElementById("pharmacyFilter").value,
+        Month: document.getElementById("monthFilter").value,
+        Class: document.getElementById("classFilter").value,
       });
 
       const getAvailableOptions = (field, currentFilters) => {
@@ -493,7 +532,7 @@
           if (
             Object.entries(currentFilters).every(
               ([key, value]) =>
-                value === 'all' || key === field || row[key] === value
+                value === "all" || key === field || row[key] === value
             )
           ) {
             uniqueValues.add(row[field] ? row[field].trim() : row[field]);
@@ -502,7 +541,7 @@
         return Array.from(uniqueValues)
           .filter(Boolean)
           .sort((a, b) => {
-            if (field === 'Month') {
+            if (field === "Month") {
               return getMonthOrderValue(a) - getMonthOrderValue(b);
             }
             return a.localeCompare(b);
@@ -513,8 +552,8 @@
         const currentFilters = getCurrentFilters();
         Object.entries(currentFilters).forEach(([key, value]) => {
           const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
-          if (value !== 'all') filterElement.classList.add('highlighted');
-          else filterElement.classList.remove('highlighted');
+          if (value !== "all") filterElement.classList.add("highlighted");
+          else filterElement.classList.remove("highlighted");
         });
       };
 
@@ -525,27 +564,30 @@
         const availableOptions = getAvailableOptions(fieldName, currentFilters);
         select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
         availableOptions.forEach((option) => {
-          const optElement = document.createElement('option');
+          const optElement = document.createElement("option");
           optElement.value = option;
           optElement.textContent = option;
           select.appendChild(optElement);
         });
-        select.value = currentValue === 'all' || availableOptions.includes(currentValue)
-          ? currentValue
-          : 'all';
+        select.value =
+          currentValue === "all" || availableOptions.includes(currentValue)
+            ? currentValue
+            : "all";
       };
 
       const initializeFilters = () => {
-        const filters = ['region', 'pharmacy', 'month', 'class'];
+        const filters = ["region", "pharmacy", "month", "class"];
         filters.forEach((filter) => {
           const filterElement = document.getElementById(`${filter}Filter`);
-          filterElement.addEventListener('change', () => {
+          filterElement.addEventListener("change", () => {
             updateFilterHighlights();
             const currentFilters = getCurrentFilters();
             filters.forEach((otherFilter) => {
               if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
             });
+            // When filters change, update whichever view is active.
             updateDashboard();
+            if (isPharmaciesMode) updatePharmaciesView();
           });
         });
         const currentFilters = getCurrentFilters();
@@ -555,52 +597,68 @@
 
       // Explore view update functions
       const getTrendIndicator = (current, previous) => {
-        if (previous === null) return '';
-        if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
+        if (previous === null) return "";
+        if (current === previous)
+          return '<span class="trend-indicator trend-neutral">→</span>';
         return current > previous
           ? '<span class="trend-indicator trend-up">↑</span>'
           : '<span class="trend-indicator trend-down">↓</span>';
       };
 
       const updateExploreView = () => {
-        const table = document.getElementById('exploreTable');
-        const thead = table.querySelector('thead tr');
-        const tbody = table.querySelector('tbody');
+        const table = document.getElementById("exploreTable");
+        const thead = table.querySelector("thead tr");
+        const tbody = table.querySelector("tbody");
 
         const months = Array.from(
-          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
+          new Set(
+            filteredData.map((row) =>
+              row.Month ? row.Month.trim() : row.Month
+            )
+          )
         ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
-        thead.innerHTML = '<th>Metric</th>';
-        months.forEach((month) => { thead.innerHTML += `<th>${month}</th>`; });
+        thead.innerHTML = "<th>Metric</th>";
+        months.forEach((month) => {
+          thead.innerHTML += `<th>${month}</th>`;
+        });
 
         const metrics = [
-          'Total',
-          'Total Prescriptions',
-          'Insurance Covered',
-          'Active Pharmacies',
+          "Total",
+          "Total Prescriptions",
+          "Insurance Covered",
+          "Active Pharmacies",
           ...medicationCategories,
         ];
         const monthlyData = {};
         months.forEach((month) => {
-          const monthData = filteredData.filter((row) =>
-            (row.Month ? row.Month.trim() : row.Month) === month
+          const monthData = filteredData.filter(
+            (row) =>
+              (row.Month ? row.Month.trim() : row.Month) === month
           );
           monthlyData[month] = {
             Total: medicationCategories.reduce(
               (sum, category) =>
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+                sum +
+                monthData.reduce(
+                  (catSum, row) =>
+                    catSum + parseFloat(row[category] || 0),
+                  0
+                ),
               0
             ),
-            'Total Prescriptions': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+            "Total Prescriptions": monthData.reduce(
+              (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
               0
             ),
-            'Insurance Covered': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+            "Insurance Covered": monthData.reduce(
+              (sum, row) =>
+                sum + parseFloat(row["Insurance Covered Prescription"] || 0),
               0
             ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
+            "Active Pharmacies": new Set(
+              monthData.map((row) => row.Pharmacy).filter(Boolean)
+            ).size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
@@ -612,9 +670,9 @@
             ),
           };
         });
-        tbody.innerHTML = '';
+        tbody.innerHTML = "";
         metrics.forEach((metric) => {
-          const row = document.createElement('tr');
+          const row = document.createElement("tr");
           row.innerHTML = `<td>${metric}</td>`;
           let previousValue = null;
           months.forEach((month) => {
@@ -622,7 +680,11 @@
             const trend = getTrendIndicator(value, previousValue);
             row.innerHTML += `
               <td>
-                ${typeof value === 'number' ? value.toFixed(3) : value} ${trend}
+                ${
+                  typeof value === "number"
+                    ? value.toFixed(3)
+                    : value
+                } ${trend}
               </td>
             `;
             previousValue = value;
@@ -631,26 +693,74 @@
         });
       };
 
+      // Pharmacies view update function
+      const updatePharmaciesView = () => {
+        const table = document.getElementById("pharmaciesTable");
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+        // Use only Region and Month filters for this view.
+        const currentFilters = getCurrentFilters();
+        const regionFilter = currentFilters.Region;
+        const monthFilter = currentFilters.Month;
+        // Filter data only by Region and Month.
+        const pharmacyFilteredData = data.filter((row) => {
+          const regionMatch =
+            regionFilter === "all" || row.Region === regionFilter;
+          const monthMatch =
+            monthFilter === "all" ||
+            (row.Month && row.Month.trim() === monthFilter);
+          return regionMatch && monthMatch;
+        });
+        // Get the full list of pharmacies from overall data (initialized once).
+        if (allPharmacies.length === 0) {
+          const pharmacySet = new Set();
+          data.forEach((row) => {
+            if (row.Pharmacy) pharmacySet.add(row.Pharmacy.trim());
+          });
+          allPharmacies = Array.from(pharmacySet).sort((a, b) =>
+            a.localeCompare(b)
+          );
+        }
+
+        // For each pharmacy, count the number of records in the filtered data.
+        allPharmacies.forEach((pharmacy) => {
+          const count = pharmacyFilteredData.filter(
+            (row) =>
+              row.Pharmacy &&
+              row.Pharmacy.trim() === pharmacy
+          ).length;
+          const tr = document.createElement("tr");
+          const countClass =
+            count > 0 ? "pharmacy-count-positive" : "pharmacy-count-zero";
+          tr.innerHTML = `
+            <td>${pharmacy}</td>
+            <td class="${countClass}">${count}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      };
+
       // Dashboard update functions
       const applyFilters = () => {
         const currentFilters = getCurrentFilters();
         filteredData = data.filter((row) =>
           Object.entries(currentFilters).every(
-            ([key, value]) => value === 'all' || row[key] === value
+            ([key, value]) => value === "all" || row[key] === value
           )
         );
       };
 
       const updateStats = () => {
-        const statsContainer = document.getElementById('statsContainer');
-        statsContainer.innerHTML = '';
+        const statsContainer = document.getElementById("statsContainer");
+        statsContainer.innerHTML = "";
 
         const totalPrescriptions = filteredData.reduce(
-          (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+          (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
           0
         );
         const insuranceCovered = filteredData.reduce(
-          (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+          (sum, row) =>
+            sum + parseFloat(row["Insurance Covered Prescription"] || 0),
           0
         );
         const activePharmacies = new Set(
@@ -658,14 +768,19 @@
         ).size;
         const totalMedications = medicationCategories.reduce(
           (sum, category) =>
-            sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+            sum +
+            filteredData.reduce(
+              (catSum, row) =>
+                catSum + parseFloat(row[category] || 0),
+              0
+            ),
           0
         );
 
-        addStatCard('Total', totalMedications.toFixed(3), true);
-        addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
-        addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
-        addStatCard('Active Pharmacies', activePharmacies);
+        addStatCard("Total", totalMedications.toFixed(3), true);
+        addStatCard("Total Prescriptions", totalPrescriptions.toFixed(3));
+        addStatCard("Insurance Covered", insuranceCovered.toFixed(3));
+        addStatCard("Active Pharmacies", activePharmacies);
 
         medicationCategories.forEach((category) => {
           const total = filteredData.reduce(
@@ -677,9 +792,9 @@
       };
 
       const addStatCard = (label, value, isTotal = false) => {
-        const statsContainer = document.getElementById('statsContainer');
-        const card = document.createElement('div');
-        card.className = isTotal ? 'stat-card total-card' : 'stat-card';
+        const statsContainer = document.getElementById("statsContainer");
+        const card = document.createElement("div");
+        card.className = isTotal ? "stat-card total-card" : "stat-card";
         card.innerHTML = `
           <div class="stat-value">
             ${Number(value).toLocaleString(undefined, {
@@ -692,27 +807,30 @@
       };
 
       const updateResultsCount = () => {
-        document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
+        document.getElementById("resultsCount").textContent = `Showing ${filteredData.length} results`;
       };
 
       const updateMedicationChart = () => {
-        const ctx = document.getElementById('medicationChart').getContext('2d');
+        const ctx = document.getElementById("medicationChart").getContext("2d");
         if (currentChart) {
           currentChart.destroy();
         }
         const medicationData = medicationCategories.map((category) =>
-          filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+          filteredData.reduce(
+            (sum, row) => sum + parseFloat(row[category] || 0),
+            0
+          )
         );
         currentChart = new Chart(ctx, {
-          type: 'bar',
+          type: "bar",
           data: {
             labels: medicationCategories,
             datasets: [
               {
-                label: 'Medication Distribution',
+                label: "Medication Distribution",
                 data: medicationData,
-                backgroundColor: 'rgba(63, 81, 181, 0.7)',
-                borderColor: '#3f51b5',
+                backgroundColor: "rgba(63, 81, 181, 0.7)",
+                borderColor: "#3f51b5",
                 borderWidth: 1,
               },
             ],
@@ -724,7 +842,7 @@
               y: {
                 beginAtZero: true,
                 grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
+                  color: "rgba(0, 0, 0, 0.05)",
                 },
               },
               x: {
@@ -739,10 +857,10 @@
               },
               title: {
                 display: true,
-                text: 'Medication Distribution',
+                text: "Medication Distribution",
                 font: {
                   size: 16,
-                  weight: 'bold',
+                  weight: "bold",
                 },
               },
             },
@@ -750,42 +868,74 @@
         });
       };
 
-      // Main function to update the dashboard
+      // Main function to update the dashboard.
       const updateDashboard = debounce(() => {
-        console.time('updateDashboard');
+        console.time("updateDashboard");
         applyFilters();
         updateStats();
         updateResultsCount();
         updateMedicationChart();
         if (isExploreMode) updateExploreView();
-        console.timeEnd('updateDashboard');
+        console.timeEnd("updateDashboard");
       }, 100);
 
       const toggleExploreMode = () => {
         isExploreMode = !isExploreMode;
-        const exploreButton = document.getElementById('toggleExploreBtn');
-        const dashboardView = document.querySelector('.dashboard-view');
-        const exploreView = document.querySelector('.explore-view');
+        // Reset pharmacies view if active.
+        if (isPharmaciesMode) {
+          isPharmaciesMode = false;
+          document.getElementById("pharmaciesBtn").textContent = "Pharmacies";
+          document.querySelector(".pharmacies-view").classList.add("hidden");
+          document.querySelector(".dashboard-view").classList.remove("hidden");
+        }
+        const exploreButton = document.getElementById("toggleExploreBtn");
+        const dashboardView = document.querySelector(".dashboard-view");
+        const exploreView = document.querySelector(".explore-view");
 
         if (isExploreMode) {
-          exploreButton.textContent = 'Back';
-          dashboardView.classList.add('hidden');
-          exploreView.classList.remove('hidden');
+          exploreButton.textContent = "Back";
+          dashboardView.classList.add("hidden");
+          exploreView.classList.remove("hidden");
           updateExploreView();
         } else {
-          exploreButton.textContent = 'Explore';
-          dashboardView.classList.remove('hidden');
-          exploreView.classList.add('hidden');
+          exploreButton.textContent = "Explore";
+          dashboardView.classList.remove("hidden");
+          exploreView.classList.add("hidden");
+        }
+      };
+
+      const togglePharmaciesMode = () => {
+        isPharmaciesMode = !isPharmaciesMode;
+        // Reset explore view if active.
+        if (isExploreMode) {
+          isExploreMode = false;
+          document.getElementById("toggleExploreBtn").textContent = "Explore";
+          document.querySelector(".explore-view").classList.add("hidden");
+          document.querySelector(".dashboard-view").classList.remove("hidden");
+        }
+        const pharmaciesButton = document.getElementById("pharmaciesBtn");
+        const dashboardView = document.querySelector(".dashboard-view");
+        const pharmaciesView = document.querySelector(".pharmacies-view");
+
+        if (isPharmaciesMode) {
+          pharmaciesButton.textContent = "Back";
+          dashboardView.classList.add("hidden");
+          pharmaciesView.classList.remove("hidden");
+          updatePharmaciesView();
+        } else {
+          pharmaciesButton.textContent = "Pharmacies";
+          dashboardView.classList.remove("hidden");
+          pharmaciesView.classList.add("hidden");
         }
       };
 
       const resetFilters = () => {
-        document.querySelectorAll('.filter-select').forEach((select) => {
-          select.value = 'all';
-          select.classList.remove('highlighted');
+        document.querySelectorAll(".filter-select").forEach((select) => {
+          select.value = "all";
+          select.classList.remove("highlighted");
         });
         const currentFilters = getCurrentFilters();
-        ['region', 'pharmacy', 'month', 'class'].forEach((filter) =>
+        ["region", "pharmacy", "month", "class"].forEach((filter) =>
           updateFilterOptions(filter, currentFilters)
         );
         updateDashboard();
@@ -793,67 +943,82 @@
 
       const exportToExcel = () => {
         if (!filteredData.length) {
-          alert('No data to export');
+          alert("No data to export");
           return;
         }
 
         const months = Array.from(
-          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
+          new Set(
+            filteredData.map((row) =>
+              row.Month ? row.Month.trim() : row.Month
+            )
+          )
         ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
         const metrics = [
-          'Total',
-          'Total Prescriptions',
-          'Insurance Covered',
-          'Active Pharmacies',
+          "Total",
+          "Total Prescriptions",
+          "Insurance Covered",
+          "Active Pharmacies",
           ...medicationCategories,
         ];
         const monthlyData = {};
         months.forEach((month) => {
-          const monthData = filteredData.filter((row) =>
-            (row.Month ? row.Month.trim() : row.Month) === month
+          const monthData = filteredData.filter(
+            (row) =>
+              (row.Month ? row.Month.trim() : row.Month) === month
           );
           monthlyData[month] = {
             Total: medicationCategories.reduce(
               (sum, category) =>
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+                sum +
+                monthData.reduce(
+                  (catSum, row) =>
+                    catSum + parseFloat(row[category] || 0),
+                  0
+                ),
               0
             ),
-            'Total Prescriptions': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+            "Total Prescriptions": monthData.reduce(
+              (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
               0
             ),
-            'Insurance Covered': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+            "Insurance Covered": monthData.reduce(
+              (sum, row) =>
+                sum + parseFloat(row["Insurance Covered Prescription"] || 0),
               0
             ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean))
-              .size,
+            "Active Pharmacies": new Set(
+              monthData.map((row) => row.Pharmacy).filter(Boolean)
+            ).size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
-                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
+                monthData.reduce(
+                  (sum, row) => sum + parseFloat(row[category] || 0),
+                  0
+                ),
               ])
             ),
           };
         });
 
-        let csvContent = [['Metric', ...months].join(',')];
+        let csvContent = [["Metric", ...months].join(",")];
         metrics.forEach((metric) => {
           let row = [metric, ...months.map((month) => monthlyData[month][metric].toFixed(3))];
-          csvContent.push(row.join(','));
+          csvContent.push(row.join(","));
         });
-        csvContent = csvContent.join('\n');
+        csvContent = csvContent.join("\n");
 
-        const BOM = '\uFEFF';
+        const BOM = "\uFEFF";
         csvContent = BOM + csvContent;
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
         if (link.download !== undefined) {
           const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', 'pharmacy_data_export.csv');
-          link.style.visibility = 'hidden';
+          link.setAttribute("href", url);
+          link.setAttribute("download", "pharmacy_data_export.csv");
+          link.style.visibility = "hidden";
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -861,27 +1026,28 @@
       };
 
       // Initialize event listeners and load data when DOM is loaded
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener("DOMContentLoaded", () => {
         // Attach event listeners for buttons
-        document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
-        document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
-        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
+        document.getElementById("toggleExploreBtn").addEventListener("click", toggleExploreMode);
+        document.getElementById("pharmaciesBtn").addEventListener("click", togglePharmaciesMode);
+        document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
 
         // Fetch CSV data from Google Sheets
-        const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
+        const SHEET_ID = "122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg";
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
         fetch(SHEET_URL)
           .then((response) => {
             if (!response.ok) {
-              throw new Error('Network response was not ok');
+              throw new Error("Network response was not ok");
             }
             return response.text();
           })
           .then((csvText) => {
             Papa.parse(csvText, {
               header: true,
-              encoding: 'UTF-8',
+              encoding: "UTF-8",
               complete: function (results) {
                 data = results.data;
                 filteredData = data;
@@ -889,13 +1055,13 @@
                 updateDashboard();
               },
               error: function (err) {
-                console.error('Error parsing CSV: ', err);
+                console.error("Error parsing CSV: ", err);
               },
             });
           })
           .catch((error) => {
-            console.error('Error fetching or parsing data:', error);
-            document.getElementById('statsContainer').innerHTML = `
+            console.error("Error fetching or parsing data:", error);
+            document.getElementById("statsContainer").innerHTML = `
               <div class="stat-card">
                 <div class="stat-value">Error</div>
                 <div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
