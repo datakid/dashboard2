@@ -295,12 +295,14 @@
         opacity: 0;
       }
       
-      /* Styling for pharmacy count cells */
-      .pharmacy-count-positive {
+      /* Styling for pharmacy count and total cells */
+      .pharmacy-count-positive,
+      .pharmacy-total-positive {
         color: var(--positive-change);
         font-weight: bold;
       }
-      .pharmacy-count-zero {
+      .pharmacy-count-zero,
+      .pharmacy-total-zero {
         color: var(--neutral-change);
         font-weight: bold;
       }
@@ -439,6 +441,7 @@
           <thead>
             <tr>
               <th>Pharmacy</th>
+              <th>Count</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -464,7 +467,7 @@
         april: 10,
         may: 11,
         june: 12,
-        // Arabic month names with the same order in lower case
+        // Arabic month names (in lower case) with the same order
         "يوليو": 1,
         "أغسطس": 2,
         "سبتمبر": 3,
@@ -595,7 +598,7 @@
         updateFilterHighlights();
       };
 
-      // Explore view update functions
+      // Explore view update function
       const getTrendIndicator = (current, previous) => {
         if (previous === null) return "";
         if (current === previous)
@@ -693,12 +696,12 @@
         });
       };
 
-      // Pharmacies view update function
+      // Pharmacies view update function with count and total.
       const updatePharmaciesView = () => {
         const table = document.getElementById("pharmaciesTable");
         const tbody = table.querySelector("tbody");
         tbody.innerHTML = "";
-        // Use only Region and Month filters for this view.
+        // Use Region and Month filters for this view.
         const currentFilters = getCurrentFilters();
         const regionFilter = currentFilters.Region;
         const monthFilter = currentFilters.Month;
@@ -722,19 +725,27 @@
           );
         }
 
-        // For each pharmacy, count the number of records in the filtered data.
+        // For each pharmacy, count the records and sum the Total Prescription in the filtered data.
         allPharmacies.forEach((pharmacy) => {
-          const count = pharmacyFilteredData.filter(
+          const records = pharmacyFilteredData.filter(
             (row) =>
               row.Pharmacy &&
               row.Pharmacy.trim() === pharmacy
-          ).length;
-          const tr = document.createElement("tr");
+          );
+          const count = records.length;
+          const total = records.reduce(
+            (sum, row) => sum + parseFloat(row["Total Prescription"] || 0),
+            0
+          );
           const countClass =
             count > 0 ? "pharmacy-count-positive" : "pharmacy-count-zero";
+          const totalClass =
+            total > 0 ? "pharmacy-total-positive" : "pharmacy-total-zero";
+          const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${pharmacy}</td>
             <td class="${countClass}">${count}</td>
+            <td class="${totalClass}">${total.toFixed(3)}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1033,7 +1044,7 @@
         document.getElementById("pharmaciesBtn").addEventListener("click", togglePharmaciesMode);
         document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
 
-        // Fetch CSV data from Google Sheets
+        // Fetch CSV data from Google Sheets.
         const SHEET_ID = "122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg";
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
