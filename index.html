@@ -12,15 +12,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
       :root {
-        --primary-color: #3f51b5;
-        --primary-light: #757de8;
-        --primary-dark: #002984;
-        --text-color: #333;
-        --background-color: #f5f5f5;
-        --card-background: #ffffff;
-        --hover-color: #e8eaf6;
-        --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        --total-card-background: #3f51b5;
+        /* Professional Color Theme: Primary is sleek blue; Secondary is teal */
+        --primary-color: #1976D2;         /* sleek blue */
+        --primary-light: #63A4FF;         /* light blue */
+        --primary-dark: #115293;          /* dark blue */
+        
+        --secondary-color: #009688;       /* teal */
+        --secondary-light: #4DB6AC;       /* light teal */
+        --secondary-dark: #00796B;        /* dark teal */
+        
+        --text-color: #212121;            /* dark grey text */
+        --background-color: #E3F2FD;      /* very light blue background */
+        --card-background: #ffffff;       /* crisp white cards */
+        --hover-color: #BBDEFB;           /* soft light blue for hover */
+        --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* refined shadow */
+        --total-card-background: #1976D2;
         --total-card-text: #ffffff;
         --positive-change: #4caf50;
         --negative-change: #f44336;
@@ -59,7 +65,7 @@
       .filter-select {
         width: 100%;
         padding: 14px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #b0bec5;
         border-radius: 6px;
         background-color: var(--card-background);
         font-size: 16px;
@@ -70,7 +76,7 @@
       .filter-select:focus {
         border-color: var(--primary-color);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
       }
 
       .filter-select.highlighted {
@@ -84,8 +90,7 @@
       }
 
       .reset-button,
-      .explore-button,
-      .export-button {
+      .explore-button {
         background-color: var(--primary-color);
         color: white;
         border: none;
@@ -99,18 +104,29 @@
         transition: all 0.3s ease;
       }
 
-      .explore-button {
-        background-color: var(--primary-light);
-      }
-
+      /* Export button uses the secondary color (teal) */
       .export-button {
-        background-color: #4caf50;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
       }
 
       .reset-button:hover,
-      .explore-button:hover,
-      .export-button:hover {
+      .explore-button:hover {
         background-color: var(--primary-dark);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .export-button:hover {
+        background-color: var(--secondary-dark);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
@@ -142,10 +158,13 @@
       }
 
       .stat-value {
-        font-size: 28px;
+        /* Use clamp so the font scales in a range to accommodate longer numbers */
+        font-size: clamp(20px, 4vw, 28px);
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 8px;
+        overflow-wrap: break-word;
+        word-break: break-all;
       }
 
       .stat-label {
@@ -166,7 +185,7 @@
       }
 
       .total-card .stat-value {
-        font-size: 36px;
+        font-size: clamp(28px, 5vw, 36px);
       }
 
       .total-card .stat-label {
@@ -214,7 +233,7 @@
       .explore-table td {
         padding: 16px 24px;
         text-align: right;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #b0bec5;
         white-space: nowrap;
         line-height: 1.8;
       }
@@ -226,7 +245,7 @@
         left: 0;
         background-color: var(--card-background);
         z-index: 1;
-        border-right: 2px solid #e0e0e0;
+        border-right: 2px solid #b0bec5;
         font-weight: 500;
       }
 
@@ -446,7 +465,7 @@
         month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
       let data = [],
-        filteredData = [];
+          filteredData = [];
       const medicationCategories = [
         'المسكنات',
         'مضادات حيوية',
@@ -711,8 +730,8 @@
               {
                 label: 'Medication Distribution',
                 data: medicationData,
-                backgroundColor: 'rgba(63, 81, 181, 0.7)',
-                borderColor: '#3f51b5',
+                backgroundColor: 'rgba(25, 118, 210, 0.7)',
+                borderColor: 'var(--primary-color)',
                 borderWidth: 1,
               },
             ],
