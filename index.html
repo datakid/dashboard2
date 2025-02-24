@@ -170,16 +170,17 @@
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: visible;
+        /* Allow wrapping so numbers don't overflow */
+        white-space: normal;
+        word-wrap: break-word;
       }
 
       .stat-label {
         font-size: 14px;
         color: var(--text-color);
         opacity: 0.85;
-        white-space: nowrap;
-        overflow: visible;
+        white-space: normal;
+        word-wrap: break-word;
       }
 
       /* Special styling for the Total card */
@@ -187,18 +188,21 @@
         background-color: var(--total-card-background);
         color: var(--total-card-text);
         padding: 30px 20px;
-        border-top: 4px solid var(--accent-color);
-        position: relative;
       }
 
       .total-card .stat-value {
         font-size: 36px;
         font-weight: 700;
+        /* Ensure long numbers wrap or shrink */
+        white-space: normal;
+        word-wrap: break-word;
       }
 
       .total-card .stat-label {
         font-size: 18px;
         font-weight: 500;
+        white-space: normal;
+        word-wrap: break-word;
       }
 
       .chart-container {
@@ -407,7 +411,7 @@
     </div>
 
     <script>
-      // Keep the month order mapping as you intended.
+      // Month order mapping as provided.
       const monthOrder = {
         july: 1,
         august: 2,
@@ -421,7 +425,7 @@
         april: 10,
         may: 11,
         june: 12,
-        // Arabic month names with the same order in lower case
+        // Arabic month names with the same order
         'يوليو': 1,
         'أغسطس': 2,
         'سبتمبر': 3,
@@ -464,7 +468,7 @@
       let currentChart = null;
       let isExploreMode = false;
 
-      // Debounce function remains the same.
+      // Debounce function remains unchanged.
       const debounce = (func, wait) => {
         let timeout;
         return (...args) => {
@@ -473,7 +477,7 @@
         };
       };
 
-      // Utility functions
+      // Get current filters.
       const getCurrentFilters = () => ({
         Region: document.getElementById('regionFilter').value,
         Pharmacy: document.getElementById('pharmacyFilter').value,
@@ -486,8 +490,7 @@
         data.forEach((row) => {
           if (
             Object.entries(currentFilters).every(
-              ([key, value]) =>
-                value === 'all' || key === field || row[key] === value
+              ([key, value]) => value === 'all' || key === field || row[key] === value
             )
           ) {
             uniqueValues.add(row[field] ? row[field].trim() : row[field]);
@@ -547,7 +550,7 @@
         updateFilterHighlights();
       };
 
-      // Explore view update functions
+      // Update explore view.
       const getTrendIndicator = (current, previous) => {
         if (previous === null) return '';
         if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
@@ -598,10 +601,7 @@
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
-                monthData.reduce(
-                  (sum, row) => sum + parseFloat(row[category] || 0),
-                  0
-                ),
+                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
               ])
             ),
           };
@@ -625,7 +625,7 @@
         });
       };
 
-      // Dashboard update functions
+      // Dashboard update functions.
       const applyFilters = () => {
         const currentFilters = getCurrentFilters();
         filteredData = data.filter((row) =>
@@ -656,7 +656,7 @@
           0
         );
 
-        // Use a special Total card for the overall medications total
+        // Render the special Total card.
         addStatCard('Total', totalMedications.toFixed(3), true);
         addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
         addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
@@ -674,7 +674,6 @@
       const addStatCard = (label, value, isTotal = false) => {
         const statsContainer = document.getElementById('statsContainer');
         const card = document.createElement('div');
-        // For the Total card, add the additional "total-card" styling.
         card.className = isTotal ? 'stat-card total-card' : 'stat-card';
         card.innerHTML = `
           <div class="stat-value">
@@ -746,7 +745,6 @@
         });
       };
 
-      // Main function to update the dashboard
       const updateDashboard = debounce(() => {
         console.time('updateDashboard');
         applyFilters();
@@ -855,13 +853,11 @@
         }
       };
 
-      // Initialize event listeners and load data when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
         document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
-        // Fetch CSV data from Google Sheets
         const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
