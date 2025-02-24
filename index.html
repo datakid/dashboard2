@@ -147,6 +147,7 @@
         margin-bottom: 32px;
       }
 
+      /* Base card style for all stat cards */
       .stat-card {
         background-color: var(--card-background);
         border-radius: 10px;
@@ -170,8 +171,7 @@
         color: var(--primary-color);
         margin-bottom: 4px;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
       }
 
       .stat-label {
@@ -179,22 +179,26 @@
         color: var(--text-color);
         opacity: 0.85;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
       }
 
+      /* Special styling for the Total card */
       .total-card {
         background-color: var(--total-card-background);
         color: var(--total-card-text);
-      }
-
-      .total-card .stat-value,
-      .total-card .stat-label {
-        color: var(--total-card-text);
+        padding: 30px 20px;
+        border-top: 4px solid var(--accent-color);
+        position: relative;
       }
 
       .total-card .stat-value {
-        font-size: 30px;
+        font-size: 36px;
+        font-weight: 700;
+      }
+
+      .total-card .stat-label {
+        font-size: 18px;
+        font-weight: 500;
       }
 
       .chart-container {
@@ -436,7 +440,7 @@
         month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
       let data = [],
-        filteredData = [];
+          filteredData = [];
       const medicationCategories = [
         'المسكنات',
         'مضادات حيوية',
@@ -652,6 +656,7 @@
           0
         );
 
+        // Use a special Total card for the overall medications total
         addStatCard('Total', totalMedications.toFixed(3), true);
         addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
         addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
@@ -669,6 +674,7 @@
       const addStatCard = (label, value, isTotal = false) => {
         const statsContainer = document.getElementById('statsContainer');
         const card = document.createElement('div');
+        // For the Total card, add the additional "total-card" styling.
         card.className = isTotal ? 'stat-card total-card' : 'stat-card';
         card.innerHTML = `
           <div class="stat-value">
@@ -817,8 +823,7 @@
               (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
               0
             ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean))
-              .size,
+            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
