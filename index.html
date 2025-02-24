@@ -12,26 +12,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
       :root {
-        /* Refined modern color palette */
-        --primary-color: #1976d2;
-        --primary-light: #63a4ff;
-        --primary-dark: #004ba0;
-        --accent-color: #009688;
-        --text-color: #424242;
-        --background-color: #f0f2f5;
+        --primary-color: #3f51b5;
+        --primary-light: #757de8;
+        --primary-dark: #002984;
+        --text-color: #333;
+        --background-color: #f5f5f5;
         --card-background: #ffffff;
-        --hover-color: #e3f2fd;
-        --shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        --total-card-background: #1976d2;
+        --hover-color: #e8eaf6;
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --total-card-background: #3f51b5;
         --total-card-text: #ffffff;
-        --positive-change: #388e3c;
-        --negative-change: #d32f2f;
-        --neutral-change: #757575;
-      }
-
-      /* Global reset and smoother scaling */
-      * {
-        box-sizing: border-box;
+        --positive-change: #4caf50;
+        --negative-change: #f44336;
+        --neutral-change: #9e9e9e;
       }
 
       body {
@@ -41,7 +34,6 @@
         background-color: var(--background-color);
         color: var(--text-color);
         transition: all 0.3s ease;
-        line-height: 1.5;
       }
 
       .dashboard-header {
@@ -55,7 +47,6 @@
         color: var(--primary-color);
         font-weight: 500;
         font-size: 28px;
-        margin: 0;
       }
 
       .filters {
@@ -67,8 +58,8 @@
 
       .filter-select {
         width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #ccc;
+        padding: 14px;
+        border: 1px solid #e0e0e0;
         border-radius: 6px;
         background-color: var(--card-background);
         font-size: 16px;
@@ -79,7 +70,7 @@
       .filter-select:focus {
         border-color: var(--primary-color);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+        box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
       }
 
       .filter-select.highlighted {
@@ -90,16 +81,15 @@
       .button-group {
         display: flex;
         gap: 16px;
-        flex-wrap: wrap;
       }
 
       .reset-button,
       .explore-button,
       .export-button {
         background-color: var(--primary-color);
-        color: #fff;
+        color: white;
         border: none;
-        padding: 12px 24px;
+        padding: 14px 28px;
         border-radius: 6px;
         cursor: pointer;
         font-weight: 500;
@@ -115,14 +105,13 @@
       }
 
       .export-button {
-        background-color: var(--accent-color);
+        background-color: var(--primary-dark);
       }
 
       .reset-button:hover,
       .explore-button:hover,
       .export-button:hover {
-        background-color: var(--primary-dark);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        opacity: 0.9;
       }
 
       .controls-container {
@@ -147,7 +136,6 @@
         margin-bottom: 32px;
       }
 
-      /* Base card style for all stat cards */
       .stat-card {
         background-color: var(--card-background);
         border-radius: 10px;
@@ -170,39 +158,28 @@
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 4px;
-        /* Allow wrapping so numbers don't overflow */
-        white-space: normal;
-        word-wrap: break-word;
       }
 
       .stat-label {
         font-size: 14px;
         color: var(--text-color);
         opacity: 0.85;
-        white-space: normal;
-        word-wrap: break-word;
       }
 
-      /* Special styling for the Total card */
+      /* Total card style stays the same as other cards */
       .total-card {
         background-color: var(--total-card-background);
         color: var(--total-card-text);
-        padding: 30px 20px;
+        padding: 20px;
       }
 
       .total-card .stat-value {
-        font-size: 36px;
-        font-weight: 700;
-        /* Ensure long numbers wrap or shrink */
-        white-space: normal;
-        word-wrap: break-word;
+        font-size: 24px;
+        font-weight: 600;
       }
 
       .total-card .stat-label {
-        font-size: 18px;
-        font-weight: 500;
-        white-space: normal;
-        word-wrap: break-word;
+        font-size: 14px;
       }
 
       .chart-container {
@@ -297,17 +274,17 @@
 
       .trend-up {
         color: var(--positive-change);
-        background-color: rgba(56, 142, 60, 0.15);
+        background-color: rgba(76, 175, 80, 0.15);
       }
 
       .trend-down {
         color: var(--negative-change);
-        background-color: rgba(211, 47, 47, 0.15);
+        background-color: rgba(244, 67, 54, 0.15);
       }
 
       .trend-neutral {
         color: var(--neutral-change);
-        background-color: rgba(117, 117, 117, 0.15);
+        background-color: rgba(158, 158, 158, 0.15);
       }
 
       @media (max-width: 600px) {
@@ -411,7 +388,7 @@
     </div>
 
     <script>
-      // Month order mapping as provided.
+      // Month order mapping.
       const monthOrder = {
         july: 1,
         august: 2,
@@ -468,7 +445,7 @@
       let currentChart = null;
       let isExploreMode = false;
 
-      // Debounce function remains unchanged.
+      // Debounce function.
       const debounce = (func, wait) => {
         let timeout;
         return (...args) => {
@@ -477,7 +454,7 @@
         };
       };
 
-      // Get current filters.
+      // Return current filters.
       const getCurrentFilters = () => ({
         Region: document.getElementById('regionFilter').value,
         Pharmacy: document.getElementById('pharmacyFilter').value,
@@ -656,7 +633,7 @@
           0
         );
 
-        // Render the special Total card.
+        // Render the Total card as normal.
         addStatCard('Total', totalMedications.toFixed(3), true);
         addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
         addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
@@ -706,8 +683,8 @@
               {
                 label: 'Medication Distribution',
                 data: medicationData,
-                backgroundColor: 'rgba(25, 118, 210, 0.7)',
-                borderColor: '#1976d2',
+                backgroundColor: 'rgba(63, 81, 181, 0.7)',
+                borderColor: '#3f51b5',
                 borderWidth: 1,
               },
             ],
