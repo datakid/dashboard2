@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
       :root {
-        --primary-color: #1565C0;      
+        --primary-color: #1565C0;       
         --primary-light: #5E92F3;       
         --primary-dark: #003c8f;        
         
@@ -20,10 +20,10 @@
         --secondary-light: #4DB6AC;
         --secondary-dark: #00796B;
         
-        --text-color: #212121;        
+        --text-color: #212121;          
         --background-color: #F7F7F7;
-        --card-background: #ffffff;    
-        --hover-color: #BBDEFB;
+        --card-background: #ffffff;     
+        --hover-color: #E3F2FD;
         --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         --total-card-background: var(--primary-color);
         --total-card-text: #ffffff;
@@ -156,11 +156,12 @@
       }
 
       .stat-value {
-        font-size: clamp(20px, 4vw, 28px);
+        /* Reduced font size to ensure larger numbers fit on one line */
+        font-size: clamp(18px, 3.5vw, 24px);
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 8px;
-        /* Removed text wrapping properties so the entire number is visible in one row */
+        white-space: nowrap; /* ensure number is on one line */
       }
 
       .stat-label {
@@ -181,7 +182,7 @@
       }
 
       .total-card .stat-value {
-        font-size: clamp(28px, 5vw, 36px);
+        font-size: clamp(26px, 4.5vw, 32px);
       }
 
       .total-card .stat-label {
