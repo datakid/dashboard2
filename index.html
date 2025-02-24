@@ -12,21 +12,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
       :root {
-        /* Professional Color Theme: Primary is sleek blue; Secondary is teal */
-        --primary-color: #1976D2;         
-        --primary-light: #63A4FF;        
-        --primary-dark: #115293;         
+        --primary-color: #1565C0;      
+        --primary-light: #5E92F3;       
+        --primary-dark: #003c8f;        
         
-        --secondary-color: #009688;       
-        --secondary-light: #4DB6AC;       
-        --secondary-dark: #00796B;      
+        --secondary-color: #009688;     
+        --secondary-light: #4DB6AC;
+        --secondary-dark: #00796B;
         
-        --text-color: #212121;            
+        --text-color: #212121;        
         --background-color: #F7F7F7;
-        --card-background: #ffffff;       
-        --hover-color: #BBDEFB;           
-        --shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
-        --total-card-background: #1976D2;
+        --card-background: #ffffff;    
+        --hover-color: #BBDEFB;
+        --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        --total-card-background: var(--primary-color);
         --total-card-text: #ffffff;
         --positive-change: #4caf50;
         --negative-change: #f44336;
@@ -76,7 +75,7 @@
       .filter-select:focus {
         border-color: var(--primary-color);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+        box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.2);
       }
 
       .filter-select.highlighted {
@@ -104,7 +103,6 @@
         transition: all 0.3s ease;
       }
 
-      /* Export button uses the secondary color (teal) */
       .export-button {
         background-color: var(--secondary-color);
         color: white;
@@ -158,14 +156,11 @@
       }
 
       .stat-value {
-        /* Ensure the stat's value fits in one row for readability */
         font-size: clamp(20px, 4vw, 28px);
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 8px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        /* Removed text wrapping properties so the entire number is visible in one row */
       }
 
       .stat-label {
@@ -731,7 +726,7 @@
               {
                 label: 'Medication Distribution',
                 data: medicationData,
-                backgroundColor: 'rgba(25, 118, 210, 0.7)',
+                backgroundColor: 'rgba(21, 101, 192, 0.7)',
                 borderColor: 'var(--primary-color)',
                 borderWidth: 1,
               },
@@ -882,12 +877,10 @@
 
       // Initialize event listeners and load data when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
-        // Attach event listeners for buttons
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
         document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
-        // Fetch CSV data from Google Sheets
         const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
