@@ -13,19 +13,19 @@
     <style>
       :root {
         /* Professional Color Theme: Primary is sleek blue; Secondary is teal */
-        --primary-color: #1976D2;         /* sleek blue */
-        --primary-light: #63A4FF;         /* light blue */
-        --primary-dark: #115293;          /* dark blue */
+        --primary-color: #1976D2;         
+        --primary-light: #63A4FF;        
+        --primary-dark: #115293;         
         
-        --secondary-color: #009688;       /* teal */
-        --secondary-light: #4DB6AC;       /* light teal */
-        --secondary-dark: #00796B;        /* dark teal */
+        --secondary-color: #009688;       
+        --secondary-light: #4DB6AC;       
+        --secondary-dark: #00796B;      
         
-        --text-color: #212121;            /* dark grey text */
-        --background-color: #E3F2FD;      /* very light blue background */
-        --card-background: #ffffff;       /* crisp white cards */
-        --hover-color: #BBDEFB;           /* soft light blue for hover */
-        --shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* refined shadow */
+        --text-color: #212121;            
+        --background-color: #F7F7F7;
+        --card-background: #ffffff;       
+        --hover-color: #BBDEFB;           
+        --shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
         --total-card-background: #1976D2;
         --total-card-text: #ffffff;
         --positive-change: #4caf50;
@@ -158,13 +158,14 @@
       }
 
       .stat-value {
-        /* Use clamp so the font scales in a range to accommodate longer numbers */
+        /* Ensure the stat's value fits in one row for readability */
         font-size: clamp(20px, 4vw, 28px);
         font-weight: 600;
         color: var(--primary-color);
         margin-bottom: 8px;
-        overflow-wrap: break-word;
-        word-break: break-all;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .stat-label {
