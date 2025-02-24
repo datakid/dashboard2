@@ -97,7 +97,6 @@
         letter-spacing: 0.5px;
         box-shadow: var(--shadow);
         transition: all 0.3s ease;
-        font-size: 14px;
       }
 
       .explore-button {
@@ -105,28 +104,21 @@
       }
 
       .export-button {
-        background-color: var(--primary-dark);
+        background-color: #4caf50;
       }
 
       .reset-button:hover,
       .explore-button:hover,
       .export-button:hover {
-        opacity: 0.9;
+        background-color: var(--primary-dark);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
       .controls-container {
         display: flex;
-        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 32px;
-      }
-
-      #resultsCount {
-        color: var(--primary-color);
-        font-size: 16px;
-        font-weight: 500;
-        margin-top: 8px;
       }
 
       .stats {
@@ -139,54 +131,55 @@
       .stat-card {
         background-color: var(--card-background);
         border-radius: 10px;
-        padding: 20px;
-        box-shadow: var(--shadow);
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        min-height: 100px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
       }
 
       .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
       }
 
       .stat-value {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: 600;
         color: var(--primary-color);
-        margin-bottom: 4px;
+        margin-bottom: 8px;
       }
 
       .stat-label {
-        font-size: 14px;
+        font-size: 16px;
         color: var(--text-color);
-        opacity: 0.85;
+        opacity: 0.8;
       }
 
-      /* Total card style stays the same as other cards */
       .total-card {
         background-color: var(--total-card-background);
         color: var(--total-card-text);
-        padding: 20px;
+        grid-column: 1 / -1;
+      }
+
+      .total-card .stat-value,
+      .total-card .stat-label {
+        color: var(--total-card-text);
       }
 
       .total-card .stat-value {
-        font-size: 24px;
-        font-weight: 600;
+        font-size: 36px;
       }
 
       .total-card .stat-label {
-        font-size: 14px;
+        font-size: 18px;
+        font-weight: 500;
+        opacity: 0.9;
       }
 
       .chart-container {
         background-color: var(--card-background);
         border-radius: 10px;
-        padding: 20px;
-        box-shadow: var(--shadow);
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         height: 400px;
         min-height: 300px;
         width: 100%;
@@ -194,20 +187,17 @@
         overflow-y: hidden;
       }
 
-      .explore-view {
-        transition: opacity 0.3s ease;
-      }
-
-      .hidden {
-        display: none;
-        opacity: 0;
+      #resultsCount {
+        color: var(--primary-color);
+        font-size: 16px;
+        font-weight: 500;
       }
 
       .explore-table-container {
         background-color: var(--card-background);
         border-radius: 12px;
-        padding: 20px;
-        box-shadow: var(--shadow);
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
         margin-top: 32px;
         overflow-x: auto;
       }
@@ -216,16 +206,17 @@
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: 14px;
+        font-size: 16px;
         color: var(--text-color);
       }
 
       .explore-table th,
       .explore-table td {
-        padding: 14px 20px;
+        padding: 16px 24px;
         text-align: right;
         border-bottom: 1px solid #e0e0e0;
         white-space: nowrap;
+        line-height: 1.8;
       }
 
       .explore-table th:first-child,
@@ -264,10 +255,10 @@
 
       .trend-indicator {
         display: inline-block;
-        margin-left: 8px;
-        font-size: 16px;
+        margin-left: 12px;
+        font-size: 18px;
         font-weight: bold;
-        padding: 2px 8px;
+        padding: 4px 10px;
         border-radius: 6px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
@@ -287,6 +278,16 @@
         background-color: rgba(158, 158, 158, 0.15);
       }
 
+      .dashboard-view,
+      .explore-view {
+        transition: opacity 0.3s ease;
+      }
+
+      .hidden {
+        display: none;
+        opacity: 0;
+      }
+
       @media (max-width: 600px) {
         .button-group {
           flex-wrap: wrap;
@@ -297,9 +298,24 @@
         .export-button {
           flex: 1 0 calc(50% - 8px);
           margin-bottom: 16px;
-          font-size: 13px;
         }
+      }
 
+      @media (max-width: 1200px) {
+        .explore-table th,
+        .explore-table td {
+          padding: 14px 20px;
+          font-size: 15px;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .chart-container {
+          height: 350px;
+        }
+      }
+
+      @media (max-width: 600px) {
         body {
           padding: 16px;
         }
@@ -314,6 +330,15 @@
           grid-template-columns: 1fr;
         }
 
+        .button-group {
+          width: 100%;
+        }
+
+        .reset-button,
+        .explore-button {
+          flex: 1;
+        }
+
         .chart-container {
           height: 300px;
           padding: 16px;
@@ -322,7 +347,7 @@
         .explore-table th,
         .explore-table td {
           padding: 12px 16px;
-          font-size: 13px;
+          font-size: 14px;
         }
       }
 
@@ -388,7 +413,7 @@
     </div>
 
     <script>
-      // Month order mapping.
+      // Keep the month order mapping as you intended.
       const monthOrder = {
         july: 1,
         august: 2,
@@ -402,7 +427,7 @@
         april: 10,
         may: 11,
         june: 12,
-        // Arabic month names with the same order
+        // Arabic month names with the same order in lower case
         'يوليو': 1,
         'أغسطس': 2,
         'سبتمبر': 3,
@@ -421,7 +446,7 @@
         month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
       let data = [],
-          filteredData = [];
+        filteredData = [];
       const medicationCategories = [
         'المسكنات',
         'مضادات حيوية',
@@ -445,7 +470,7 @@
       let currentChart = null;
       let isExploreMode = false;
 
-      // Debounce function.
+      // Debounce function remains the same.
       const debounce = (func, wait) => {
         let timeout;
         return (...args) => {
@@ -454,7 +479,7 @@
         };
       };
 
-      // Return current filters.
+      // Utility functions
       const getCurrentFilters = () => ({
         Region: document.getElementById('regionFilter').value,
         Pharmacy: document.getElementById('pharmacyFilter').value,
@@ -467,7 +492,8 @@
         data.forEach((row) => {
           if (
             Object.entries(currentFilters).every(
-              ([key, value]) => value === 'all' || key === field || row[key] === value
+              ([key, value]) =>
+                value === 'all' || key === field || row[key] === value
             )
           ) {
             uniqueValues.add(row[field] ? row[field].trim() : row[field]);
@@ -527,7 +553,7 @@
         updateFilterHighlights();
       };
 
-      // Update explore view.
+      // Explore view update functions
       const getTrendIndicator = (current, previous) => {
         if (previous === null) return '';
         if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
@@ -578,7 +604,10 @@
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
-                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
+                monthData.reduce(
+                  (sum, row) => sum + parseFloat(row[category] || 0),
+                  0
+                ),
               ])
             ),
           };
@@ -602,7 +631,7 @@
         });
       };
 
-      // Dashboard update functions.
+      // Dashboard update functions
       const applyFilters = () => {
         const currentFilters = getCurrentFilters();
         filteredData = data.filter((row) =>
@@ -633,7 +662,6 @@
           0
         );
 
-        // Render the Total card as normal.
         addStatCard('Total', totalMedications.toFixed(3), true);
         addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
         addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
@@ -722,6 +750,7 @@
         });
       };
 
+      // Main function to update the dashboard
       const updateDashboard = debounce(() => {
         console.time('updateDashboard');
         applyFilters();
@@ -798,7 +827,8 @@
               (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
               0
             ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
+            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean))
+              .size,
             ...Object.fromEntries(
               medicationCategories.map((category) => [
                 category,
@@ -830,11 +860,14 @@
         }
       };
 
+      // Initialize event listeners and load data when DOM is loaded
       document.addEventListener('DOMContentLoaded', () => {
+        // Attach event listeners for buttons
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
         document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
+        // Fetch CSV data from Google Sheets
         const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
