@@ -13,7 +13,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
 :root {
-  /* Eye-friendly color palette with reduced blue light */
   --primary-color: #3b82f6;
   --primary-light: #60a5fa;
   --primary-dark: #2563eb;
@@ -23,7 +22,6 @@
   --secondary-dark: #0284c7;
   --secondary-ultra-light: #f0f9ff;
   
-  /* Softer eye-friendly background and text colors */
   --text-color: #334155;
   --text-muted: #64748b;
   --text-light: #94a3b8;
@@ -31,17 +29,14 @@
   --card-background: #ffffff;
   --hover-color: #f5f9ff;
   
-  /* Subtle soft shadows for reduced eye strain */
   --card-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(59, 130, 246, 0.08);
   --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   --button-hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
   
-  /* Softer gradients for reduced eye strain */
   --total-card-background: linear-gradient(135deg, #3b82f6, #2563eb);
   --total-card-text: #ffffff;
   
-  /* Muted status colors */
   --positive-change: #10b981;
   --positive-light: rgba(16, 185, 129, 0.08);
   --negative-change: #ef4444;
@@ -49,20 +44,16 @@
   --neutral-change: #64748b;
   --neutral-light: rgba(100, 116, 139, 0.08);
   
-  /* Smooth transitions */
   --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-standard: 260ms cubic-bezier(0.4, 0, 0.2, 1);
   
-  /* Refined border radius */
   --border-radius-sm: 0.5rem;
   --border-radius-md: 0.75rem;
   --border-radius-lg: 1rem;
   
-  /* Border colors */
   --border-light: #e2e8f0;
   --border-focus: rgba(59, 130, 246, 0.2);
   
-  /* Dark mode colors */
   --dark-background: #0f172a;
   --dark-card-background: #1e293b;
   --dark-text-color: #e2e8f0;
@@ -167,7 +158,8 @@ body {
 
 .reset-button,
 .explore-button,
-.export-button {
+.export-button,
+.missing-button {
   padding: 0.875rem 1.75rem;
   border-radius: var(--border-radius-md);
   font-weight: 600;
@@ -183,7 +175,8 @@ body {
 
 .reset-button::after,
 .explore-button::after,
-.export-button::after {
+.export-button::after,
+.missing-button::after {
   content: '';
   position: absolute;
   top: 0;
@@ -205,6 +198,11 @@ body {
   color: white;
 }
 
+.missing-button {
+  background-color: var(--secondary-dark);
+  color: white;
+}
+
 .export-button {
   background-color: var(--secondary-color);
   color: white;
@@ -212,20 +210,23 @@ body {
 
 .reset-button:hover,
 .explore-button:hover,
-.export-button:hover {
+.export-button:hover,
+.missing-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--button-hover-shadow);
 }
 
 .reset-button:hover::after,
 .explore-button:hover::after,
-.export-button:hover::after {
+.export-button:hover::after,
+.missing-button:hover::after {
   transform: translateY(0);
 }
 
 .reset-button:active,
 .explore-button:active,
-.export-button:active {
+.export-button:active,
+.missing-button:active {
   transform: translateY(1px);
   box-shadow: var(--button-shadow);
 }
@@ -422,6 +423,115 @@ body {
   background-color: var(--primary-ultra-light);
 }
 
+.missing-view {
+  margin-top: 2.5rem;
+}
+
+.missing-table-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+  border: 1px solid transparent;
+  transition: all var(--transition-standard);
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.missing-table-container:hover {
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--border-light);
+}
+
+.missing-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9375rem;
+}
+
+.missing-table th,
+.missing-table td {
+  padding: 1.25rem 1.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  transition: background-color var(--transition-fast);
+}
+
+.missing-table th {
+  background-color: var(--primary-ultra-light);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  color: var(--primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.missing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.missing-table tbody tr {
+  transition: all var(--transition-fast);
+}
+
+.missing-table tbody tr:hover td {
+  background-color: var(--primary-ultra-light);
+}
+
+.missing-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--border-radius-sm);
+  min-width: 2.5rem;
+  transition: all var(--transition-standard);
+}
+
+.missing-high {
+  color: var(--negative-change);
+  background-color: var(--negative-light);
+}
+
+.missing-medium {
+  color: var(--secondary-dark);
+  background-color: var(--secondary-ultra-light);
+}
+
+.missing-low {
+  color: var(--positive-change);
+  background-color: var(--positive-light);
+}
+
+.missing-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.missing-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.missing-action-btn:hover {
+  background-color: var(--primary-ultra-light);
+}
+
 .trend-indicator {
   display: inline-flex;
   align-items: center;
@@ -464,7 +574,6 @@ body {
   transition: opacity var(--transition-standard), visibility var(--transition-standard);
 }
 
-/* Animations - softened for eye comfort */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -485,7 +594,6 @@ body {
 .stat-card:nth-child(3) { animation-delay: 0.3s; }
 .stat-card:nth-child(4) { animation-delay: 0.4s; }
 
-/* Responsive adjustments */
 @media (max-width: 1200px) {
   .stats {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -539,7 +647,8 @@ body {
 
   .reset-button,
   .explore-button,
-  .export-button {
+  .export-button,
+  .missing-button {
     flex: 1;
     min-width: 120px;
     padding: 0.875rem 1.25rem;
@@ -551,8 +660,13 @@ body {
     padding: 1.5rem;
   }
 
-  .stat-card, .explore-table-container {
+  .stat-card, .explore-table-container, .missing-table-container {
     padding: 1.5rem;
+  }
+  
+  .missing-table th,
+  .missing-table td {
+    padding: 1rem;
   }
 }
 
@@ -574,20 +688,26 @@ body {
     padding: 1.25rem;
   }
 
+  .missing-table th,
+  .missing-table td,
   .explore-table th,
   .explore-table td {
     padding: 0.875rem 1.25rem;
     font-size: 0.875rem;
   }
 
-  .trend-indicator {
+  .trend-indicator, .missing-status {
     font-size: 0.875rem;
     padding: 0.25rem 0.5rem;
     margin-left: 0.5rem;
   }
+  
+  .missing-action-btn {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+  }
 }
 
-/* Dark mode support for eye comfort */
 @media (prefers-color-scheme: dark) {
   :root {
     --background-color: var(--dark-background);
@@ -603,11 +723,11 @@ body {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
   
-  .stat-card, .chart-container, .explore-table-container {
+  .stat-card, .chart-container, .explore-table-container, .missing-table-container {
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.2);
   }
   
-  .explore-table th {
+  .explore-table th, .missing-table th {
     background-color: rgba(59, 130, 246, 0.2);
   }
   
@@ -616,12 +736,12 @@ body {
     background-color: var(--dark-card-background);
   }
   
-  .explore-table tbody tr:hover td {
+  .explore-table tbody tr:hover td,
+  .missing-table tbody tr:hover td {
     background-color: rgba(59, 130, 246, 0.15);
   }
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -632,12 +752,11 @@ body {
     scroll-behavior: auto !important;
   }
   
-  .stat-card, .chart-container, .explore-table-container {
+  .stat-card, .chart-container, .explore-table-container, .missing-table-container {
     animation: none !important;
   }
 }
 
-/* Custom color theme toggle */
 .theme-toggle {
   position: fixed;
   bottom: 2rem;
@@ -666,7 +785,6 @@ body {
   transform: scale(0.95);
 }
 
-/* Reduced blue light mode toggle class */
 .reduced-blue {
   --primary-color: #22c55e;
   --primary-light: #4ade80;
@@ -679,7 +797,6 @@ body {
   --total-card-background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
-/* High contrast mode toggle class for accessibility */
 .high-contrast {
   --text-color: #000000;
   --text-muted: #1f2937;
@@ -690,7 +807,6 @@ body {
   --border-light: #9ca3af;
 }
 
-/* Print optimizations */
 @media print {
   body {
     padding: 0;
@@ -705,7 +821,8 @@ body {
 
   .stat-card,
   .chart-container,
-  .explore-table-container {
+  .explore-table-container,
+  .missing-table-container {
     break-inside: avoid;
     box-shadow: none;
     border: 1px solid var(--border-light);
@@ -718,13 +835,13 @@ body {
   
   .stat-card:hover,
   .chart-container:hover,
-  .explore-table-container:hover {
+  .explore-table-container:hover,
+  .missing-table-container:hover {
     transform: none;
     box-shadow: none;
   }
 }
 
-/* Font loading optimization */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
@@ -756,542 +873,726 @@ body {
   font-display: swap;
   src: url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
 }
+#missingResultsCount {
+  color: var(--primary-color);
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#missingResultsCount::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.missing-table-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+  border: 1px solid transparent;
+  transition: all var(--transition-standard);
+  animation: fadeIn 0.6s ease forwards;
+  display: flex;
+  flex-direction: column;
+}
+
+.missing-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9375rem;
+  margin-top: 1.5rem; 
+}
     </style>
-  </head>
-  <body>
-    <div class="dashboard-header">
-      <h1>Dashboard</h1>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+  </div>
+  <div class="filters">
+    <select id="regionFilter" class="filter-select">
+      <option value="all">All Regions</option>
+    </select>
+    <select id="pharmacyFilter" class="filter-select">
+      <option value="all">All Pharmacies</option>
+    </select>
+    <select id="monthFilter" class="filter-select">
+      <option value="all">All Months</option>
+    </select>
+    <select id="classFilter" class="filter-select">
+      <option value="all">All Classes</option>
+      <option value="student">Student</option>
+      <option value="workforce">Workforce</option>
+    </select>
+  </div>
+  <div class="controls-container">
+    <div class="button-group">
+      <button class="reset-button" id="resetFiltersBtn">Reset Filters</button>
+      <button class="explore-button" id="toggleExploreBtn">Explore</button>
+      <button class="missing-button" id="toggleMissingBtn">Missing</button>
+      <button class="export-button" id="exportExcelBtn">Export to Excel</button>
     </div>
-
-    <div class="filters">
-      <select id="regionFilter" class="filter-select">
-        <option value="all">All Regions</option>
-      </select>
-      <select id="pharmacyFilter" class="filter-select">
-        <option value="all">All Pharmacies</option>
-      </select>
-      <select id="monthFilter" class="filter-select">
-        <option value="all">All Months</option>
-      </select>
-      <select id="classFilter" class="filter-select">
-        <option value="all">All Classes</option>
-        <option value="student">Student</option>
-        <option value="workforce">Workforce</option>
-      </select>
-    </div>
-
-    <div class="controls-container">
-      <div class="button-group">
-        <button class="reset-button" id="resetFiltersBtn">Reset Filters</button>
-        <button class="explore-button" id="toggleExploreBtn">Explore</button>
-        <button class="export-button" id="exportExcelBtn">Export to Excel</button>
-      </div>
+    <div class="results-info">
       <div id="resultsCount"></div>
+      <div id="missingResultsCount"></div>
     </div>
-
-    <div class="dashboard-view">
-      <div class="stats" id="statsContainer"></div>
-      <div class="chart-container">
-        <canvas id="medicationChart"></canvas>
-      </div>
+  </div>
+  <div class="dashboard-view">
+    <div class="stats" id="statsContainer"></div>
+    <div class="chart-container">
+      <canvas id="medicationChart"></canvas>
     </div>
-
-    <div class="explore-view hidden">
-      <div class="explore-table-container">
-        <table class="explore-table" id="exploreTable">
-          <thead>
-            <tr>
-              <th>Metric</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+  </div>
+  <div class="explore-view hidden">
+    <div class="explore-table-container">
+      <table class="explore-table" id="exploreTable">
+        <thead>
+          <tr>
+            <th>Metric</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
+  </div>
+  <div class="missing-view hidden">
+    <div class="missing-table-container">
+      <table class="missing-table" id="missingTable">
+        <thead>
+          <tr>
+            <th>Region</th>
+            <th>Pharmacy</th>
+            <th>Month</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  
+  <script>
+const monthOrder = {
+  july: 1,
+  august: 2,
+  september: 3,
+  october: 4,
+  november: 5,
+  december: 6,
+  january: 7,
+  february: 8,
+  march: 9,
+  april: 10,
+  may: 11,
+  june: 12,
 
-    <script>
+  'يوليو': 1,
+  'أغسطس': 2,
+  'سبتمبر': 3,
+  'أكتوبر': 4,
+  'نوفمبر': 5,
+  'ديسمبر': 6,
+  'يناير': 7,
+  'فبراير': 8,
+  'مارس': 9,
+  'أبريل': 10,
+  'مايو': 11,
+  'يونيو': 12,
+};
 
-      const monthOrder = {
-        july: 1,
-        august: 2,
-        september: 3,
-        october: 4,
-        november: 5,
-        december: 6,
-        january: 7,
-        february: 8,
-        march: 9,
-        april: 10,
-        may: 11,
-        june: 12,
+const getMonthOrderValue = (month) =>
+  month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
 
-        'يوليو': 1,
-        'أغسطس': 2,
-        'سبتمبر': 3,
-        'أكتوبر': 4,
-        'نوفمبر': 5,
-        'ديسمبر': 6,
-        'يناير': 7,
-        'فبراير': 8,
-        'مارس': 9,
-        'أبريل': 10,
-        'مايو': 11,
-        'يونيو': 12,
-      };
+let data = [],
+    filteredData = [],
+    missingData = [];
+const medicationCategories = [
+  'المسكنات',
+  'مضادات حيوية',
+  'كلي',
+  'نفسية و عصبية',
+  'قلب',
+  'سكر حقن',
+  'سكر فم',
+  'نسا',
+  'كبد',
+  'جهاز هضمي',
+  'جهاز تنفسي',
+  'امراض جلدية',
+  'عيون و رمد',
+  'انف و اذن',
+  'مضادات تقلصات',
+  'اورام',
+  'فيتامينات',
+  'مختلفة',
+];
+let currentChart = null;
+let isExploreMode = false;
+let isMissingMode = false;
 
-      const getMonthOrderValue = (month) =>
-        month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
 
-      let data = [],
-          filteredData = [];
-      const medicationCategories = [
-        'المسكنات',
-        'مضادات حيوية',
-        'كلي',
-        'نفسية و عصبية',
-        'قلب',
-        'سكر حقن',
-        'سكر فم',
-        'نسا',
-        'كبد',
-        'جهاز هضمي',
-        'جهاز تنفسي',
-        'امراض جلدية',
-        'عيون و رمد',
-        'انف و اذن',
-        'مضادات تقلصات',
-        'اورام',
-        'فيتامينات',
-        'مختلفة',
-      ];
-      let currentChart = null;
-      let isExploreMode = false;
+const getCurrentFilters = () => ({
+  Region: document.getElementById('regionFilter').value,
+  Pharmacy: document.getElementById('pharmacyFilter').value,
+  Month: document.getElementById('monthFilter').value,
+  Class: document.getElementById('classFilter').value,
+});
 
-      const debounce = (func, wait) => {
-        let timeout;
-        return (...args) => {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => func(...args), wait);
-        };
-      };
+const getAvailableOptions = (field, currentFilters) => {
+  const uniqueValues = new Set();
+  data.forEach((row) => {
+    if (
+      Object.entries(currentFilters).every(
+        ([key, value]) =>
+          value === 'all' || key === field || row[key] === value
+      )
+    ) {
+      uniqueValues.add(row[field] ? row[field].trim() : row[field]);
+    }
+  });
+  return Array.from(uniqueValues)
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (field === 'Month') {
+        return getMonthOrderValue(a) - getMonthOrderValue(b);
+      }
+      return a.localeCompare(b);
+    });
+};
 
-      const getCurrentFilters = () => ({
-        Region: document.getElementById('regionFilter').value,
-        Pharmacy: document.getElementById('pharmacyFilter').value,
-        Month: document.getElementById('monthFilter').value,
-        Class: document.getElementById('classFilter').value,
+const updateFilterHighlights = () => {
+  const currentFilters = getCurrentFilters();
+  Object.entries(currentFilters).forEach(([key, value]) => {
+    const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
+    if (value !== 'all') filterElement.classList.add('highlighted');
+    else filterElement.classList.remove('highlighted');
+  });
+};
+
+const updateFilterOptions = (filterName, currentFilters) => {
+  const select = document.getElementById(`${filterName}Filter`);
+  const currentValue = select.value;
+  const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
+  const availableOptions = getAvailableOptions(fieldName, currentFilters);
+  select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
+  availableOptions.forEach((option) => {
+    const optElement = document.createElement('option');
+    optElement.value = option;
+    optElement.textContent = option;
+    select.appendChild(optElement);
+  });
+  select.value = currentValue === 'all' || availableOptions.includes(currentValue)
+    ? currentValue
+    : 'all';
+};
+
+const initializeFilters = () => {
+  const filters = ['region', 'pharmacy', 'month', 'class'];
+  filters.forEach((filter) => {
+    const filterElement = document.getElementById(`${filter}Filter`);
+    filterElement.addEventListener('change', () => {
+      updateFilterHighlights();
+      const currentFilters = getCurrentFilters();
+      filters.forEach((otherFilter) => {
+        if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
       });
+      updateDashboard();
+    });
+  });
+  const currentFilters = getCurrentFilters();
+  filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
+  updateFilterHighlights();
+};
 
-      const getAvailableOptions = (field, currentFilters) => {
-        const uniqueValues = new Set();
-        data.forEach((row) => {
-          if (
-            Object.entries(currentFilters).every(
-              ([key, value]) =>
-                value === 'all' || key === field || row[key] === value
-            )
-          ) {
-            uniqueValues.add(row[field] ? row[field].trim() : row[field]);
-          }
-        });
-        return Array.from(uniqueValues)
-          .filter(Boolean)
-          .sort((a, b) => {
-            if (field === 'Month') {
-              return getMonthOrderValue(a) - getMonthOrderValue(b);
-            }
-            return a.localeCompare(b);
-          });
-      };
+const getTrendIndicator = (current, previous) => {
+  if (previous === null) return '';
+  if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
+  return current > previous
+    ? '<span class="trend-indicator trend-up">↑</span>'
+    : '<span class="trend-indicator trend-down">↓</span>';
+};
 
-      const updateFilterHighlights = () => {
-        const currentFilters = getCurrentFilters();
-        Object.entries(currentFilters).forEach(([key, value]) => {
-          const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
-          if (value !== 'all') filterElement.classList.add('highlighted');
-          else filterElement.classList.remove('highlighted');
-        });
-      };
+const updateExploreView = () => {
+  const table = document.getElementById('exploreTable');
+  const thead = table.querySelector('thead tr');
+  const tbody = table.querySelector('tbody');
 
-      const updateFilterOptions = (filterName, currentFilters) => {
-        const select = document.getElementById(`${filterName}Filter`);
-        const currentValue = select.value;
-        const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
-        const availableOptions = getAvailableOptions(fieldName, currentFilters);
-        select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
-        availableOptions.forEach((option) => {
-          const optElement = document.createElement('option');
-          optElement.value = option;
-          optElement.textContent = option;
-          select.appendChild(optElement);
-        });
-        select.value = currentValue === 'all' || availableOptions.includes(currentValue)
-          ? currentValue
-          : 'all';
-      };
+  const months = Array.from(
+    new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
+  ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
-      const initializeFilters = () => {
-        const filters = ['region', 'pharmacy', 'month', 'class'];
-        filters.forEach((filter) => {
-          const filterElement = document.getElementById(`${filter}Filter`);
-          filterElement.addEventListener('change', () => {
-            updateFilterHighlights();
-            const currentFilters = getCurrentFilters();
-            filters.forEach((otherFilter) => {
-              if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
-            });
-            updateDashboard();
-          });
-        });
-        const currentFilters = getCurrentFilters();
-        filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
-        updateFilterHighlights();
-      };
+  thead.innerHTML = '<th>Metric</th>';
+  months.forEach((month) => { thead.innerHTML += `<th>${month}</th>`; });
 
-      const getTrendIndicator = (current, previous) => {
-        if (previous === null) return '';
-        if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
-        return current > previous
-          ? '<span class="trend-indicator trend-up">↑</span>'
-          : '<span class="trend-indicator trend-down">↓</span>';
-      };
-
-      const updateExploreView = () => {
-        const table = document.getElementById('exploreTable');
-        const thead = table.querySelector('thead tr');
-        const tbody = table.querySelector('tbody');
-
-        const months = Array.from(
-          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
-        ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-
-        thead.innerHTML = '<th>Metric</th>';
-        months.forEach((month) => { thead.innerHTML += `<th>${month}</th>`; });
-
-        const metrics = [
-          'Total',
-          'Total Prescriptions',
-          'Insurance Covered',
-          'Active Pharmacies',
-          ...medicationCategories,
-        ];
-        const monthlyData = {};
-        months.forEach((month) => {
-          const monthData = filteredData.filter((row) =>
-            (row.Month ? row.Month.trim() : row.Month) === month
-          );
-          monthlyData[month] = {
-            Total: medicationCategories.reduce(
-              (sum, category) =>
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
-              0
-            ),
-            'Total Prescriptions': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
-              0
-            ),
-            'Insurance Covered': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
-              0
-            ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
-            ...Object.fromEntries(
-              medicationCategories.map((category) => [
-                category,
-                monthData.reduce(
-                  (sum, row) => sum + parseFloat(row[category] || 0),
-                  0
-                ),
-              ])
-            ),
-          };
-        });
-        tbody.innerHTML = '';
-        metrics.forEach((metric) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `<td>${metric}</td>`;
-          let previousValue = null;
-          months.forEach((month) => {
-            const value = monthlyData[month][metric];
-            const trend = getTrendIndicator(value, previousValue);
-            row.innerHTML += `
-              <td>
-                ${typeof value === 'number' ? value.toFixed(3) : value} ${trend}
-              </td>
-            `;
-            previousValue = value;
-          });
-          tbody.appendChild(row);
-        });
-      };
-
-      const applyFilters = () => {
-        const currentFilters = getCurrentFilters();
-        filteredData = data.filter((row) =>
-          Object.entries(currentFilters).every(
-            ([key, value]) => value === 'all' || row[key] === value
-          )
-        );
-      };
-
-      const updateStats = () => {
-        const statsContainer = document.getElementById('statsContainer');
-        statsContainer.innerHTML = '';
-
-        const totalPrescriptions = filteredData.reduce(
-          (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
-          0
-        );
-        const insuranceCovered = filteredData.reduce(
-          (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
-          0
-        );
-        const activePharmacies = new Set(
-          filteredData.map((row) => row.Pharmacy).filter(Boolean)
-        ).size;
-        const totalMedications = medicationCategories.reduce(
-          (sum, category) =>
-            sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
-          0
-        );
-
-        addStatCard('Total', totalMedications.toFixed(3), true);
-        addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
-        addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
-        addStatCard('Active Pharmacies', activePharmacies);
-
-        medicationCategories.forEach((category) => {
-          const total = filteredData.reduce(
+  const metrics = [
+    'Total',
+    'Total Prescriptions',
+    'Insurance Covered',
+    'Active Pharmacies',
+    ...medicationCategories,
+  ];
+  const monthlyData = {};
+  months.forEach((month) => {
+    const monthData = filteredData.filter((row) =>
+      (row.Month ? row.Month.trim() : row.Month) === month
+    );
+    monthlyData[month] = {
+      Total: medicationCategories.reduce(
+        (sum, category) =>
+          sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+        0
+      ),
+      'Total Prescriptions': monthData.reduce(
+        (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+        0
+      ),
+      'Insurance Covered': monthData.reduce(
+        (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+        0
+      ),
+      'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean)).size,
+      ...Object.fromEntries(
+        medicationCategories.map((category) => [
+          category,
+          monthData.reduce(
             (sum, row) => sum + parseFloat(row[category] || 0),
             0
-          );
-          addStatCard(category, total.toFixed(3));
+          ),
+        ])
+      ),
+    };
+  });
+  tbody.innerHTML = '';
+  metrics.forEach((metric) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${metric}</td>`;
+    let previousValue = null;
+    months.forEach((month) => {
+      const value = monthlyData[month][metric];
+      const trend = getTrendIndicator(value, previousValue);
+      row.innerHTML += `
+        <td>
+          ${typeof value === 'number' ? value.toFixed(3) : value} ${trend}
+        </td>
+      `;
+      previousValue = value;
+    });
+    tbody.appendChild(row);
+  });
+};
+
+const findMissingTotals = () => {
+  missingData = [];
+  
+  const allMonths = Array.from(
+    new Set(data.map(row => row.Month ? row.Month.trim() : row.Month))
+  ).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+  
+  const currentFilters = getCurrentFilters();
+  
+  const monthsToCheck = currentFilters.Month !== 'all' 
+    ? [currentFilters.Month] 
+    : allMonths;
+  
+  let baseDataset = data;
+  
+  if (currentFilters.Region !== 'all') {
+    baseDataset = baseDataset.filter(row => row.Region === currentFilters.Region);
+  }
+  
+  if (currentFilters.Pharmacy !== 'all') {
+    baseDataset = baseDataset.filter(row => row.Pharmacy === currentFilters.Pharmacy);
+  }
+  
+  if (currentFilters.Class !== 'all') {
+    baseDataset = baseDataset.filter(row => row.Class === currentFilters.Class);
+  }
+  
+  const eligiblePharmacies = Array.from(
+    new Set(baseDataset.map(row => row.Pharmacy))
+  ).filter(Boolean);
+  
+  const pharmacyRegions = {};
+  data.forEach(row => {
+    if (row.Pharmacy && row.Region) {
+      pharmacyRegions[row.Pharmacy] = row.Region;
+    }
+  });
+  
+  monthsToCheck.forEach(month => {
+    const monthData = baseDataset.filter(row => 
+      (row.Month ? row.Month.trim() : row.Month) === month
+    );
+    
+    const activePharmacies = new Set(
+      monthData.map(row => row.Pharmacy).filter(Boolean)
+    );
+    
+    eligiblePharmacies.forEach(pharmacy => {
+      if (!activePharmacies.has(pharmacy)) {
+        missingData.push({
+          Region: pharmacyRegions[pharmacy] || 'Unknown',
+          Pharmacy: pharmacy,
+          Month: month,
+          Status: 'Inactive'
         });
-      };
+      }
+    });
+  });
+  
+  missingData.sort((a, b) => {
+    const regionCompare = a.Region.localeCompare(b.Region);
+    if (regionCompare !== 0) return regionCompare;
+    
+    const pharmacyCompare = a.Pharmacy.localeCompare(b.Pharmacy);
+    if (pharmacyCompare !== 0) return pharmacyCompare;
+    
+    return getMonthOrderValue(a.Month) - getMonthOrderValue(b.Month);
+  });
+  
+  return missingData;
+};
 
-      const addStatCard = (label, value, isTotal = false) => {
-        const statsContainer = document.getElementById('statsContainer');
-        const card = document.createElement('div');
-        card.className = isTotal ? 'stat-card total-card' : 'stat-card';
-        card.innerHTML = `
-          <div class="stat-value">
-            ${Number(value).toLocaleString(undefined, {
-              maximumFractionDigits: 3,
-            })}
-          </div>
-          <div class="stat-label">${label}</div>
-        `;
-        statsContainer.appendChild(card);
-      };
+const updateMissingView = () => {
+  const table = document.getElementById('missingTable');
+  const tbody = table.querySelector('tbody');
+  tbody.innerHTML = '';
+  
+  const resultsCountElement = document.getElementById('missingResultsCount');
+  if (resultsCountElement) {
+    resultsCountElement.textContent = 
+      missingData.length > 0 
+        ? `Showing ${missingData.length} inactive pharmacies` 
+        : 'No inactive pharmacies for the selected filters';
+  }
+  
+  let currentRegion = '';
+  let currentPharmacy = '';
+  
+  missingData.forEach((item) => {
+    const row = document.createElement('tr');
+    
+    if (item.Region !== currentRegion) {
+      const rowspan = missingData.filter(d => d.Region === item.Region).length;
+      
+      const regionCell = document.createElement('td');
+      regionCell.textContent = item.Region;
+      regionCell.rowSpan = rowspan;
+      row.appendChild(regionCell);
+      
+      currentRegion = item.Region;
+      currentPharmacy = ''; 
+    }
+    
+    if (item.Pharmacy !== currentPharmacy) {
+      const pharmacyRowspan = missingData.filter(d => 
+        d.Region === item.Region && d.Pharmacy === item.Pharmacy
+      ).length;
+      
+      const pharmacyCell = document.createElement('td');
+      pharmacyCell.textContent = item.Pharmacy;
+      pharmacyCell.rowSpan = pharmacyRowspan;
+      row.appendChild(pharmacyCell);
+      
+      currentPharmacy = item.Pharmacy;
+    }
+    
+    const monthCell = document.createElement('td');
+    monthCell.textContent = item.Month;
+    row.appendChild(monthCell);
+    
+    const statusCell = document.createElement('td');
+    statusCell.textContent = item.Status;
+    statusCell.className = 'inactive-status';
+    row.appendChild(statusCell);
+    
+    tbody.appendChild(row);
+  });
+  
+  if (tbody.children.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td colspan="4" class="no-data-message">All pharmacies are active for the selected filters.</td>
+    `;
+    tbody.appendChild(row);
+  }
+};
 
-      const updateResultsCount = () => {
-        document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
-      };
+const applyFilters = () => {
+  const currentFilters = getCurrentFilters();
+  filteredData = data.filter((row) =>
+    Object.entries(currentFilters).every(
+      ([key, value]) => value === 'all' || row[key] === value
+    )
+  );
+};
 
-      const updateMedicationChart = () => {
-        const ctx = document.getElementById('medicationChart').getContext('2d');
-        if (currentChart) {
-          currentChart.destroy();
-        }
-        const medicationData = medicationCategories.map((category) =>
-          filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
-        );
-        currentChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: medicationCategories,
-            datasets: [
-              {
-                label: 'Medication Distribution',
-                data: medicationData,
-                backgroundColor: 'rgba(21, 101, 192, 0.7)',
-                borderColor: 'var(--primary-color)',
-                borderWidth: 1,
-              },
-            ],
+const updateStats = () => {
+  const statsContainer = document.getElementById('statsContainer');
+  statsContainer.innerHTML = '';
+
+  const totalPrescriptions = filteredData.reduce(
+    (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
+    0
+  );
+  const insuranceCovered = filteredData.reduce(
+    (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
+    0
+  );
+  const activePharmacies = new Set(
+    filteredData.map((row) => row.Pharmacy).filter(Boolean)
+  ).size;
+  const totalMedications = medicationCategories.reduce(
+    (sum, category) =>
+      sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
+    0
+  );
+
+  addStatCard('Total', totalMedications.toFixed(3), true);
+  addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
+  addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
+  addStatCard('Active Pharmacies', activePharmacies);
+
+  medicationCategories.forEach((category) => {
+    const total = filteredData.reduce(
+      (sum, row) => sum + parseFloat(row[category] || 0),
+      0
+    );
+    addStatCard(category, total.toFixed(3));
+  });
+};
+
+const addStatCard = (label, value, isTotal = false) => {
+  const statsContainer = document.getElementById('statsContainer');
+  const card = document.createElement('div');
+  card.className = isTotal ? 'stat-card total-card' : 'stat-card';
+  card.innerHTML = `
+    <div class="stat-value">
+      ${Number(value).toLocaleString(undefined, {
+        maximumFractionDigits: 3,
+      })}
+    </div>
+    <div class="stat-label">${label}</div>
+  `;
+  statsContainer.appendChild(card);
+};
+
+const updateResultsCount = () => {
+  // Update results count for both main view and missing view
+  document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
+  
+  // Always calculate missing data when filters change
+  findMissingTotals();
+  
+  // Update the missing results count
+  const missingResultsElement = document.getElementById('missingResultsCount');
+  if (missingResultsElement) {
+    missingResultsElement.textContent = 
+      missingData.length > 0 
+        ? `Showing ${missingData.length} inactive pharmacies` 
+        : 'No inactive pharmacies for the selected filters';
+  }
+};
+
+const updateMedicationChart = () => {
+  const ctx = document.getElementById('medicationChart').getContext('2d');
+  if (currentChart) {
+    currentChart.destroy();
+  }
+  const medicationData = medicationCategories.map((category) =>
+    filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+  );
+  currentChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: medicationCategories,
+      datasets: [
+        {
+          label: 'Medication Distribution',
+          data: medicationData,
+          backgroundColor: 'rgba(21, 101, 192, 0.7)',
+          borderColor: 'var(--primary-color)',
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)',
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
-                },
-              },
-              x: {
-                grid: {
-                  display: false,
-                },
-              },
-            },
-            plugins: {
-              legend: {
-                display: false,
-              },
-              title: {
-                display: true,
-                text: 'Medication Distribution',
-                font: {
-                  size: 16,
-                  weight: 'bold',
-                },
-              },
-            },
+        },
+        x: {
+          grid: {
+            display: false,
           },
-        });
-      };
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        title: {
+          display: true,
+          text: 'Medication Distribution',
+          font: {
+            size: 16,
+            weight: 'bold',
+          },
+        },
+      },
+    },
+  });
+};
 
-      const updateDashboard = debounce(() => {
-        console.time('updateDashboard');
-        applyFilters();
-        updateStats();
-        updateResultsCount();
-        updateMedicationChart();
-        if (isExploreMode) updateExploreView();
-        console.timeEnd('updateDashboard');
-      }, 100);
+const updateDashboard = debounce(() => {
+  console.time('updateDashboard');
+  applyFilters();
+  updateStats();
+  updateResultsCount();
+  updateMedicationChart();
+  if (isExploreMode) updateExploreView();
+  if (isMissingMode) updateMissingView();
+  console.timeEnd('updateDashboard');
+}, 100);
 
-      const toggleExploreMode = () => {
-        isExploreMode = !isExploreMode;
-        const exploreButton = document.getElementById('toggleExploreBtn');
-        const dashboardView = document.querySelector('.dashboard-view');
-        const exploreView = document.querySelector('.explore-view');
+const toggleExploreMode = () => {
+  isExploreMode = !isExploreMode;
+  const exploreButton = document.getElementById('toggleExploreBtn');
+  const dashboardView = document.querySelector('.dashboard-view');
+  const exploreView = document.querySelector('.explore-view');
+  const missingView = document.querySelector('.missing-view');
+  const missingButton = document.getElementById('toggleMissingBtn');
 
-        if (isExploreMode) {
-          exploreButton.textContent = 'Back';
-          dashboardView.classList.add('hidden');
-          exploreView.classList.remove('hidden');
-          updateExploreView();
-        } else {
-          exploreButton.textContent = 'Explore';
-          dashboardView.classList.remove('hidden');
-          exploreView.classList.add('hidden');
-        }
-      };
+  if (isExploreMode) {
+    exploreButton.textContent = 'Back';
+    dashboardView.classList.add('hidden');
+    missingView.classList.add('hidden');
+    exploreView.classList.remove('hidden');
+    missingButton.textContent = 'Missing'; // Reset missing button text
+    isMissingMode = false;
+    updateExploreView();
+  } else {
+    exploreButton.textContent = 'Explore';
+    dashboardView.classList.remove('hidden');
+    exploreView.classList.add('hidden');
+  }
+};
 
-      const resetFilters = () => {
-        document.querySelectorAll('.filter-select').forEach((select) => {
-          select.value = 'all';
-          select.classList.remove('highlighted');
-        });
-        const currentFilters = getCurrentFilters();
-        ['region', 'pharmacy', 'month', 'class'].forEach((filter) =>
-          updateFilterOptions(filter, currentFilters)
-        );
-        updateDashboard();
-      };
+const toggleMissingMode = () => {
+  isMissingMode = !isMissingMode;
+  const missingButton = document.getElementById('toggleMissingBtn');
+  const dashboardView = document.querySelector('.dashboard-view');
+  const exploreView = document.querySelector('.explore-view');
+  const missingView = document.querySelector('.missing-view');
+  const exploreButton = document.getElementById('toggleExploreBtn');
+  
+  if (isMissingMode) {
+    missingButton.textContent = 'Back';
+    dashboardView.classList.add('hidden');
+    exploreView.classList.add('hidden');
+    missingView.classList.remove('hidden');
+    exploreButton.textContent = 'Explore'; // Reset explore button text
+    isExploreMode = false;
+    updateMissingView();
+  } else {
+    missingButton.textContent = 'Missing';
+    dashboardView.classList.remove('hidden');
+    missingView.classList.add('hidden');
+  }
+};
 
-      const exportToExcel = () => {
-        if (!filteredData.length) {
-          alert('No data to export');
-          return;
-        }
+const resetFilters = () => {
+  const filters = ['region', 'pharmacy', 'month', 'class'];
+  filters.forEach((filter) => {
+    document.getElementById(`${filter}Filter`).value = 'all';
+  });
+  const currentFilters = getCurrentFilters();
+  filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
+  updateFilterHighlights();
+  updateDashboard();
+};
 
-        const months = Array.from(
-          new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month))
-        ).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+const exportToExcel = () => {
+  const wb = XLSX.utils.book_new();
+  
+  let dataToExport;
+  
+  if (isMissingMode) {
+    dataToExport = missingData;
+  } else {
+    dataToExport = filteredData;
+  }
+  
+  const ws = XLSX.utils.json_to_sheet(dataToExport);
+  
+  XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
+  
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  XLSX.writeFile(wb, `pharmacy_dashboard_export_${timestamp}.xlsx`);
+};
 
-        const metrics = [
-          'Total',
-          'Total Prescriptions',
-          'Insurance Covered',
-          'Active Pharmacies',
-          ...medicationCategories,
-        ];
-        const monthlyData = {};
-        months.forEach((month) => {
-          const monthData = filteredData.filter((row) =>
-            (row.Month ? row.Month.trim() : row.Month) === month
-          );
-          monthlyData[month] = {
-            Total: medicationCategories.reduce(
-              (sum, category) =>
-                sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0),
-              0
-            ),
-            'Total Prescriptions': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Total Prescription'] || 0),
-              0
-            ),
-            'Insurance Covered': monthData.reduce(
-              (sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0),
-              0
-            ),
-            'Active Pharmacies': new Set(monthData.map((row) => row.Pharmacy).filter(Boolean))
-              .size,
-            ...Object.fromEntries(
-              medicationCategories.map((category) => [
-                category,
-                monthData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0),
-              ])
-            ),
-          };
-        });
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
+  document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
+  document.getElementById('toggleMissingBtn').addEventListener('click', toggleMissingMode);
+  document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
-        let csvContent = [['Metric', ...months].join(',')];
-        metrics.forEach((metric) => {
-          let row = [metric, ...months.map((month) => monthlyData[month][metric].toFixed(3))];
-          csvContent.push(row.join(','));
-        });
-        csvContent = csvContent.join('\n');
+  const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
+  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-        const BOM = '\uFEFF';
-        csvContent = BOM + csvContent;
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob);
-          link.setAttribute('href', url);
-          link.setAttribute('download', 'pharmacy_data_export.csv');
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      };
-
-      document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
-        document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
-        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
-
-        const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-
-        fetch(SHEET_URL)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.text();
-          })
-          .then((csvText) => {
-            Papa.parse(csvText, {
-              header: true,
-              encoding: 'UTF-8',
-              complete: function (results) {
-                data = results.data;
-                filteredData = data;
-                initializeFilters();
-                updateDashboard();
-              },
-              error: function (err) {
-                console.error('Error parsing CSV: ', err);
-              },
-            });
-          })
-          .catch((error) => {
-            console.error('Error fetching or parsing data:', error);
-            document.getElementById('statsContainer').innerHTML = `
-              <div class="stat-card">
-                <div class="stat-value">Error</div>
-                <div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
-              </div>
-            `;
-          });
+  fetch(SHEET_URL)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then((csvText) => {
+      Papa.parse(csvText, {
+        header: true,
+        encoding: 'UTF-8',
+        complete: function (results) {
+          data = results.data;
+          filteredData = data;
+          initializeFilters();
+          updateDashboard();
+        },
+        error: function (err) {
+          console.error('Error parsing CSV: ', err);
+        },
       });
-    </script>
-  </body>
+    })
+    .catch((error) => {
+      console.error('Error fetching or parsing data:', error);
+      document.getElementById('statsContainer').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">Error</div>
+          <div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
+        </div>
+      `;
+    });
+});
+  </script>
+</body>
 </html>
