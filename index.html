@@ -429,12 +429,23 @@ body {
 .danger-card .stat-value {
   color: var(--danger-color);
 }
+@keyframes subtleScale {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
 .total-card {
   background: var(--total-card-background);
   color: var(--total-card-text);
   grid-column: 1 / -1;
   border: none;
+  animation: subtleScale 0.7s ease forwards;
 }
 
 .total-card::before {
@@ -444,11 +455,14 @@ body {
 .total-card .stat-value,
 .total-card .stat-label {
   color: var(--total-card-text);
+    animation: none !important;
+  transform: none !important;
 }
 
 .total-card .stat-value {
   font-size: 2.25rem;
   margin-bottom: 1rem;
+  
 }
 
 .total-card .stat-label {
