@@ -1783,7 +1783,9 @@ const exportData = () => {
   
   try {
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const ws = XLSX.utils.json_to_sheet(dataToExport, {
+      codepage: 65001
+    });
     XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
     
     try {
@@ -1825,10 +1827,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
   document.getElementById('toggleMissingBtn').addEventListener('click', toggleMissingMode);
   document.getElementById('exportExcelBtn').addEventListener('click', exportData);
-
   const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
   const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-
   fetch(SHEET_URL)
     .then((response) => {
       if (!response.ok) {
