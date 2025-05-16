@@ -394,37 +394,18 @@ opacity: 0.7;
 display: flex;
 flex-direction: column;
 flex-grow: 1;
-margin-bottom: 1rem;
-}
-
-.stat-value-wrapper {
-display: flex;
-align-items: baseline;
-width: 100%;
-margin-bottom: 0.25rem;
 }
 
 .stat-value {
 font-size: 1.75rem;
 font-weight: 700;
 color: var(--primary-color);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
 letter-spacing: -0.02em;
 transition: color var(--transition-standard), transform var(--transition-standard);
-margin-bottom: 0;
-flex-grow: 1;
-min-width: 0;
-margin-right: var(--spacing-sm);
-}
-
-.stat-percentage {
-font-size: 0.9rem;
-font-weight: 700;
-color: var(--text-muted);
-line-height: 1;
-flex-shrink: 0;
+margin-bottom: 0.25rem;
+overflow-wrap: break-word;
+word-break: break-word;
+line-height: 1.2;
 }
 
 .stat-card:hover .stat-value {
@@ -437,6 +418,24 @@ font-size: 1rem;
 color: var(--text-muted);
 font-weight: 500;
 transition: color var(--transition-standard);
+margin-bottom: var(--spacing-md);
+}
+
+.stat-card-footer {
+margin-top: auto;
+}
+
+.stat-percentage {
+font-size: 0.9rem;
+font-weight: 600;
+color: var(--primary-color);
+line-height: 1;
+margin-bottom: var(--spacing-xs);
+display: block;
+}
+
+.teal-card .stat-percentage {
+    color: var(--secondary-dark);
 }
 
 .stat-progress-container {
@@ -445,13 +444,11 @@ height: 8px;
 background-color: var(--border-light);
 border-radius: var(--border-radius-pill);
 overflow: hidden;
-margin-top: auto;
 }
 
 .stat-progress-bar {
 height: 100%;
 width: 0%;
-background-color: var(--primary-color);
 border-radius: var(--border-radius-pill);
 transition: width 0.7s ease-out, background-color var(--transition-standard);
 }
@@ -496,8 +493,8 @@ background-color: var(--card-background);
 border-radius: var(--border-radius-lg);
 padding: 1.75rem;
 box-shadow: var(--card-shadow);
-height: 480px;
-min-height: 350px;
+height: 580px;
+min-height: 400px;
 width: 100%;
 overflow: hidden;
 transition: all var(--transition-standard);
@@ -571,6 +568,44 @@ transition: transform var(--transition-fast);
 #resultsCount:hover::before {
 transform: scale(1.5);
 }
+
+.results-count-area {
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary-ultra-light);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-standard);
+    margin-bottom: 1.5rem;
+}
+
+.results-count-area::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    transition: transform var(--transition-fast);
+}
+
+.results-count-area:hover::before {
+    transform: scale(1.5);
+}
+
+.results-count-area.no-data {
+    background-color: var(--card-background);
+    color: var(--text-muted);
+    border: 1px dashed var(--border-light);
+}
+.results-count-area.no-data::before {
+    background-color: var(--text-muted);
+}
+
 
 .explore-table-container {
 background-color: var(--card-background);
@@ -1549,28 +1584,36 @@ const addStatCard = (label, value, options = {}) => {
     const numericValue = Number(value);
     const formattedValue = numericValue.toLocaleString(undefined, { maximumFractionDigits: 3 });
 
-    let percentageHTML = '';
-    let progressBarHTML = '';
+    let footerHTML = '';
+    let progressBarColor = 'var(--primary-color)';
+    let percentageColor = 'var(--primary-color)';
+
+    if (options.cardType === 'teal') {
+        progressBarColor = 'var(--secondary-dark)';
+        percentageColor = 'var(--secondary-dark)';
+    }
+
 
     if (options.cardType === 'medication' && options.percentage !== undefined) {
         const displayPercentage = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
-        percentageHTML = `<div class="stat-percentage">${displayPercentage.toFixed(0)}%</div>`;
-        progressBarHTML = `
-            <div class="stat-progress-container">
-                <div class="stat-progress-bar" style="width: ${displayPercentage}%; background-color: var(--primary-color);"></div>
+        footerHTML = `
+            <div class="stat-card-footer">
+                <div class="stat-percentage" style="color: ${percentageColor};">${displayPercentage.toFixed(0)}%</div>
+                <div class="stat-progress-container">
+                    <div class="stat-progress-bar" style="width: ${displayPercentage}%; background-color: ${progressBarColor};"></div>
+                </div>
             </div>`;
+    } else if ((options.cardType === 'teal' && (label === 'Total Prescriptions' || label === 'Insurance Covered')) ) {
+         footerHTML = `<div class="stat-card-footer"></div>`;
     }
 
 
     card.innerHTML = `
         <div class="stat-card-content">
-            <div class="stat-value-wrapper">
-                <div class="stat-value">${formattedValue}</div>
-                ${percentageHTML}
-            </div>
+            <div class="stat-value">${formattedValue}</div>
             <div class="stat-label">${label}</div>
         </div>
-        ${progressBarHTML}`;
+        ${footerHTML}`;
     statsContainer.appendChild(card);
 };
 
@@ -1584,9 +1627,13 @@ const exploreResultsCountElement = document.getElementById('exploreResultsCount'
 
 if (isMissingMode && missingViewResultsCount) {
      missingViewResultsCount.textContent = missingData.length > 0 ? `Missing view: ${missingData.length} inactive pharmacy instance(s) found.` : 'Missing view: No inactive pharmacies for the selected filters.';
+     if (missingData.length === 0) missingViewResultsCount.classList.add('no-data'); else missingViewResultsCount.classList.remove('no-data');
 } else if (isExploreMode && exploreResultsCountElement) {
     const months = Array.from(new Set(filteredData.map((row) => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean);
-    exploreResultsCountElement.textContent = months.length > 0 ? `Explore view: Metrics across ${months.length} month(s).` : 'Explore view: No data to display for current filters.';
+    const tableBody = document.getElementById('exploreTable')?.querySelector('tbody');
+    const displayedMetricsCount = tableBody ? tableBody.rows.length : 0;
+    exploreResultsCountElement.textContent = months.length > 0 ? `Explore view: Showing ${displayedMetricsCount} metrics across ${months.length} month(s).` : 'Explore view: No data to display for current filters.';
+    if (months.length === 0 || displayedMetricsCount === 0) exploreResultsCountElement.classList.add('no-data'); else exploreResultsCountElement.classList.remove('no-data');
 } else {
     missingResultsCountElement.textContent = missingData.length > 0 ? `${missingData.length} Inactive` : '';
     if (missingData.length === 0) {
@@ -1612,9 +1659,9 @@ const borderLightColor = rootStyles.getPropertyValue('--border-light').trim();
 const cardBgColor = rootStyles.getPropertyValue('--card-background').trim();
 const textColor = rootStyles.getPropertyValue('--text-color').trim();
 
-const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-gradient.addColorStop(0, primaryColor || 'rgba(59, 130, 246, 0.8)');
-gradient.addColorStop(1, primaryLight || 'rgba(96, 165, 250, 0.8)');
+const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+gradient.addColorStop(0, primaryLight || 'rgba(96, 165, 250, 0.8)');
+gradient.addColorStop(1, primaryColor || 'rgba(59, 130, 246, 0.8)');
 
 
 const medicationData = medicationCategories.map((category) =>
@@ -1631,15 +1678,22 @@ currentChart = new Chart(ctx, {
             backgroundColor: gradient,
             borderColor: primaryDark,
             borderWidth: 0,
-            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8 }, // For fully rounded bars
+            borderRadius: 6,
             borderSkipped: false,
             hoverBackgroundColor: primaryDark,
+            barPercentage: 0.7,
+            categoryPercentage: 0.75
         }],
     },
     options: {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+            padding: {
+                right: 60
+            }
+        },
         scales: {
             y: {
                 grid: {
@@ -1649,21 +1703,22 @@ currentChart = new Chart(ctx, {
                 ticks: {
                     color: textMutedColor,
                     font: { family: chartFontFamily, size: 11, weight: '500' },
-                    padding: 8,
+                    padding: 10,
                 }
             },
             x: {
                 beginAtZero: true,
                 grid: {
-                    color: borderLightColor ? borderLightColor + '80' : 'rgba(226, 232, 240, 0.5)',
+                    color: borderLightColor ? borderLightColor + '60' : 'rgba(226, 232, 240, 0.4)',
                     borderColor: borderLightColor,
                     drawBorder: false,
+                    borderDash: [3, 3],
                 },
                 ticks: {
                     color: textMutedColor,
                     font: { family: chartFontFamily, size: 11 },
                     padding: 8,
-                    maxTicksLimit: 6,
+                    maxTicksLimit: 7,
                     callback: function(value) {
                         if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
                         if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
@@ -1687,7 +1742,7 @@ currentChart = new Chart(ctx, {
                 },
                 padding: {
                     top: 5,
-                    bottom: 20
+                    bottom: 25
                 }
             },
             tooltip: {
@@ -1719,8 +1774,11 @@ currentChart = new Chart(ctx, {
             afterDraw: (chartInstance) => {
                 const chartCtx = chartInstance.ctx;
                 chartCtx.save();
-                chartCtx.font = `600 10px ${chartFontFamily}`;
+                chartCtx.font = `500 11px ${chartFontFamily}`;
                 chartCtx.textBaseline = 'middle';
+                chartCtx.textAlign = 'left';
+                chartCtx.fillStyle = textColor;
+                const padding = 8;
 
                 chartInstance.data.datasets.forEach((dataset, i) => {
                     const meta = chartInstance.getDatasetMeta(i);
@@ -1729,40 +1787,15 @@ currentChart = new Chart(ctx, {
                             const dataValue = dataset.data[index];
                             if (dataValue == null || dataValue === 0) return;
 
-                            const displayValue = Number(dataValue).toLocaleString(undefined, { maximumFractionDigits: 1 });
+                            const displayValue = Number(dataValue).toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 0 });
                             const textWidth = chartCtx.measureText(displayValue).width;
-                            const barEndPosition = bar.x;
-                            const barStartPosition = bar.base;
-                            const barHeight = bar.height;
-                            const padding = 5;
-                            let textX, textColorValue;
-
-                            if (barEndPosition - barStartPosition > textWidth + padding * 2) {
-                                textX = barEndPosition - padding;
-                                chartCtx.textAlign = 'right';
-                                textColorValue = cardBgColor; 
-                            } else { 
-                                textX = barEndPosition + padding;
-                                chartCtx.textAlign = 'left';
-                                textColorValue = primaryDark; 
-                            }
                             
-                            if (chartCtx.textAlign === 'left' && textX + textWidth + padding > chartInstance.chartArea.right) {
-                                textX = barEndPosition - padding;
-                                chartCtx.textAlign = 'right';
-                                textColorValue = cardBgColor;
-                                if (barEndPosition - barStartPosition < textWidth + padding) {
-                                     chartCtx.fillStyle = 'transparent'; // Hide if no fit
-                                }
-                            } else if (chartCtx.textAlign === 'right' && textX - textWidth - padding < chartInstance.chartArea.left) {
-                                textX = barEndPosition + padding;
-                                chartCtx.textAlign = 'left';
-                                textColorValue = primaryDark;
+                            const textX = bar.x + padding;
+                            const textY = bar.y;
+                            
+                            if (textX + textWidth <= chartInstance.chartArea.right) {
+                                chartCtx.fillText(displayValue, textX, textY);
                             }
-
-
-                            chartCtx.fillStyle = textColorValue;
-                            chartCtx.fillText(displayValue, textX, bar.y);
                         });
                     }
                 });
@@ -1787,10 +1820,14 @@ currentChart = new Chart(ctx, {
 const updateDashboard = debounce(() => {
 applyFilters();
 updateStats();
-updateResultsCount();
 updateMedicationChart();
-if (isExploreMode) updateExploreView();
-if (isMissingMode) updateMissingView();
+if (isExploreMode) {
+    updateExploreView();
+}
+if (isMissingMode) {
+    updateMissingView();
+}
+updateResultsCount();
 }, 150);
 
 const toggleExploreMode = () => {
@@ -1823,7 +1860,6 @@ if (isExploreMode) {
     dashboardView.classList.remove('hidden');
     exploreView.classList.add('hidden');
     if(exploreResultsCountElement) exploreResultsCountElement.classList.add('hidden');
-    if(missingResultsCountElement && missingData.length > 0) missingResultsCountElement.classList.remove('hidden');
 
 }
 updateResultsCount();
@@ -1858,7 +1894,7 @@ if (isMissingMode) {
     dashboardView.classList.remove('hidden');
     missingView.classList.add('hidden');
     if(missingViewResultsCountElement) missingViewResultsCountElement.classList.add('hidden');
-    if(missingResultsCountElement && missingData.length > 0) missingResultsCountElement.classList.remove('hidden');
+
 }
 updateResultsCount();
 };
@@ -1942,7 +1978,7 @@ if (isExploreMode) {
             row[month] = monthlyData[month][metric];
         });
         return row;
-    }).filter(row => { 
+    }).filter(row => {
         if (['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies'].includes(row.Metric)) return true;
         return Object.values(row).slice(1).some(val => val !== 0 && val !== undefined);
     });
@@ -2027,13 +2063,13 @@ Papa.parse(csvText, {
     },
     error: function (err) {
         console.error('Error parsing CSV: ', err);
-        document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value-wrapper"><div class="stat-value">Error</div></div><div class="stat-label">Failed to parse CSV data.</div></div></div>`;
+        document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value">Error</div><div class="stat-label">Failed to parse CSV data.</div></div></div>`;
     },
 });
 })
 .catch((error) => {
 console.error('Error fetching or parsing data:', error);
-document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value-wrapper"><div class="stat-value">Error</div></div><div class="stat-label">Failed to load data. Check connection & refresh.</div></div></div>`;
+document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value">Error</div><div class="stat-label">Failed to load data. Check connection & refresh.</div></div></div>`;
 });
 });
 </script>
