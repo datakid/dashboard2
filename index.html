@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>Lx Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -18,7 +17,6 @@
 --primary-ultra-light: #f0f7ff;
 --primary-hover: #4f8df7;
 --primary-focus: #3478f5;
-
 
 --secondary-color: #0ea5e9;
 --secondary-light: #38bdf8;
@@ -252,7 +250,7 @@ flex-wrap: wrap;
 .explore-button,
 .export-button,
 .missing-button {
-padding: 0.875rem 1.75rem;
+padding: 0.875rem 1.25rem;
 border-radius: var(--border-radius-md);
 font-weight: 600;
 font-size: 0.9375rem;
@@ -266,8 +264,15 @@ overflow: hidden;
 display: inline-flex;
 align-items: center;
 justify-content: center;
-gap: 0.5rem;
+gap: 0.65rem;
 }
+.reset-button span,
+.explore-button span,
+.export-button span,
+.missing-button span {
+    line-height: 1;
+}
+
 
 .reset-button::after,
 .explore-button::after,
@@ -328,16 +333,17 @@ box-shadow: var(--button-shadow);
 }
 
 .button-icon {
-width: 1.25rem;
-height: 1.25rem;
+width: 1.1rem;
+height: 1.1rem;
 transition: transform var(--transition-standard);
+vertical-align: middle;
 }
 
 .reset-button:hover .button-icon,
 .explore-button:hover .button-icon,
 .export-button:hover .button-icon,
 .missing-button:hover .button-icon {
-transform: scale(1.2);
+transform: scale(1.15);
 }
 
 .stats {
@@ -384,16 +390,41 @@ transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s
 opacity: 0.7;
 }
 
+.stat-card-content {
+display: flex;
+flex-direction: column;
+flex-grow: 1;
+margin-bottom: 1rem;
+}
+
+.stat-value-wrapper {
+display: flex;
+align-items: baseline;
+width: 100%;
+margin-bottom: 0.25rem;
+}
+
 .stat-value {
 font-size: 1.75rem;
 font-weight: 700;
 color: var(--primary-color);
-margin-bottom: 0.75rem;
 white-space: nowrap;
 overflow: hidden;
 text-overflow: ellipsis;
 letter-spacing: -0.02em;
 transition: color var(--transition-standard), transform var(--transition-standard);
+margin-bottom: 0;
+flex-grow: 1;
+min-width: 0;
+margin-right: var(--spacing-sm);
+}
+
+.stat-percentage {
+font-size: 0.9rem;
+font-weight: 700;
+color: var(--text-muted);
+line-height: 1;
+flex-shrink: 0;
 }
 
 .stat-card:hover .stat-value {
@@ -408,36 +439,35 @@ font-weight: 500;
 transition: color var(--transition-standard);
 }
 
-.success-card::before {
-background: linear-gradient(90deg, var(--success-light), var(--success-color));
+.stat-progress-container {
+width: 100%;
+height: 8px;
+background-color: var(--border-light);
+border-radius: var(--border-radius-pill);
+overflow: hidden;
+margin-top: auto;
 }
 
-.success-card .stat-value {
-color: var(--success-color);
+.stat-progress-bar {
+height: 100%;
+width: 0%;
+background-color: var(--primary-color);
+border-radius: var(--border-radius-pill);
+transition: width 0.7s ease-out, background-color var(--transition-standard);
 }
 
-.warning-card::before {
-background: linear-gradient(90deg, var(--warning-light), var(--warning-color));
+.teal-card .stat-value { color: var(--secondary-dark); }
+.teal-card::before {
+    background: linear-gradient(90deg, var(--secondary-light), var(--secondary-color));
 }
 
-.warning-card .stat-value {
-color: var(--warning-color);
-}
-
-.danger-card::before {
-background: linear-gradient(90deg, var(--danger-light), var(--danger-color));
-}
-
-.danger-card .stat-value {
-color: var(--danger-color);
-}
 
 .total-card {
 background: var(--total-card-background);
 color: var(--total-card-text);
 grid-column: 1 / -1;
 border: none;
-animation: subtleScale 0.7s ease forwards;
+animation: subtleScale 0.7s ease-out forwards;
 }
 
 .total-card::before {
@@ -450,11 +480,9 @@ color: var(--total-card-text);
 animation: none !important;
 transform: none !important;
 }
-
 .total-card .stat-value {
 font-size: 2.25rem;
-margin-bottom: 1rem;
-
+margin-right: 0;
 }
 
 .total-card .stat-label {
@@ -468,14 +496,14 @@ background-color: var(--card-background);
 border-radius: var(--border-radius-lg);
 padding: 1.75rem;
 box-shadow: var(--card-shadow);
-height: 450px;
-min-height: 320px;
+height: 480px;
+min-height: 350px;
 width: 100%;
 overflow: hidden;
 transition: all var(--transition-standard);
 border: 1px solid transparent;
 position: relative;
-animation: fadeIn 0.8s ease forwards;
+animation: fadeIn 0.8s ease-out forwards;
 }
 
 .chart-container:hover {
@@ -569,7 +597,7 @@ font-size: 0.9375rem;
 
 .explore-table th,
 .explore-table td {
-padding: 1.25rem 1.75rem;
+padding: 1rem 1.25rem;
 text-align: right;
 border-bottom: 1px solid var(--border-light);
 white-space: nowrap;
@@ -583,8 +611,9 @@ position: sticky;
 left: 0;
 background-color: var(--card-background);
 z-index: 1;
-border-right: 2px solid var(--border-light);
+border-right: 1px solid var(--border-light);
 font-weight: 600;
+box-shadow: 2px 0 3px -1px rgba(0,0,0,0.03);
 }
 
 .explore-table th {
@@ -597,9 +626,13 @@ color: var(--primary-dark);
 text-transform: uppercase;
 letter-spacing: 0.05em;
 font-size: 0.875rem;
-padding-top: 1rem;
-padding-bottom: 1rem;
+padding-top: 0.875rem;
+padding-bottom: 0.875rem;
 }
+.explore-table th:first-child {
+    z-index: 3;
+}
+
 
 .explore-table tr:last-child td {
 border-bottom: none;
@@ -610,11 +643,17 @@ transition: all var(--transition-fast);
 }
 
 .explore-table tbody tr:hover td {
-background-color: var(--primary-ultra-light);
+background-color: var(--hover-color);
+color: var(--primary-dark);
 }
+.explore-table tbody tr:hover td:first-child {
+    background-color: var(--hover-color);
+}
+
 .explore-table tbody tr:hover {
-transform: translateX(5px);
+transform: translateX(3px);
 }
+
 
 .numeric-cell {
 font-variant-numeric: tabular-nums;
@@ -663,7 +702,7 @@ box-shadow: var(--card-shadow);
 overflow-x: auto;
 border: 1px solid transparent;
 transition: all var(--transition-standard);
-animation: fadeIn 0.6s ease forwards;
+animation: fadeIn 0.6s ease-out forwards;
 display: flex;
 flex-direction: column;
 }
@@ -683,7 +722,7 @@ margin-top: 1.5rem;
 
 .missing-table th,
 .missing-table td {
-padding: 1.25rem 1.75rem;
+padding: 1rem 1.25rem;
 text-align: left;
 border-bottom: 1px solid var(--border-light);
 white-space: nowrap;
@@ -700,8 +739,8 @@ color: var(--primary-dark);
 text-transform: uppercase;
 letter-spacing: 0.05em;
 font-size: 0.875rem;
-padding-top: 1rem;
-padding-bottom: 1rem;
+padding-top: 0.875rem;
+padding-bottom: 0.875rem;
 }
 
 .missing-table tr:last-child td {
@@ -710,14 +749,15 @@ border-bottom: none;
 
 .missing-table tbody tr {
 transition: all var(--transition-fast);
-cursor: pointer;
+cursor: default;
 }
 
 .missing-table tbody tr:hover td {
-background-color: var(--primary-ultra-light);
+background-color: var(--hover-color);
+color: var(--primary-dark);
 }
 .missing-table tbody tr:hover {
-transform: translateX(5px);
+transform: translateX(3px);
 }
 
 .missing-status {
@@ -967,19 +1007,20 @@ background-position: 1000px 0;
 }
 
 .stat-card:nth-child(odd) {
-animation: slideInLeft 0.6s ease forwards;
+animation: slideInLeft 0.6s ease-out forwards;
 }
 
 .stat-card:nth-child(even) {
-animation: slideInRight 0.6s ease forwards;
+animation: slideInRight 0.6s ease-out forwards;
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-.stat-card:nth-child(5) { animation-delay: 0.5s; }
-.stat-card:nth-child(6) { animation-delay: 0.6s; }
+.stat-card:nth-child(2) { animation-delay: 0.15s; }
+.stat-card:nth-child(3) { animation-delay: 0.2s; }
+.stat-card:nth-child(4) { animation-delay: 0.25s; }
+.stat-card:nth-child(5) { animation-delay: 0.3s; }
+.stat-card:nth-child(6) { animation-delay: 0.35s; }
+
 
 .loading {
 position: relative;
@@ -1048,8 +1089,9 @@ body,
 .missing-table td,
 .trend-indicator,
 .missing-status {
-transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+transition: background-color 0.3s ease-out, color 0.3s ease-out, border-color 0.3s ease-out, box-shadow 0.3s ease-out;
 }
+
 
 @media (prefers-reduced-motion: reduce) {
 *,
@@ -1083,32 +1125,59 @@ animation: none !important;
 <h1>Dashboard</h1>
 </div>
 <div class="filters">
+<div class="filter-group">
+<label for="regionFilter" class="filter-label">Region</label>
 <select id="regionFilter" class="filter-select">
 <option value="all">All Regions</option>
 </select>
+</div>
+<div class="filter-group">
+<label for="pharmacyFilter" class="filter-label">Pharmacy</label>
 <select id="pharmacyFilter" class="filter-select">
 <option value="all">All Pharmacies</option>
 </select>
+</div>
+<div class="filter-group">
+<label for="monthFilter" class="filter-label">Month</label>
 <select id="monthFilter" class="filter-select">
 <option value="all">All Months</option>
 </select>
+</div>
+<div class="filter-group">
+<label for="classFilter" class="filter-label">Class</label>
 <select id="classFilter" class="filter-select">
 <option value="all">All Classes</option>
 <option value="student">Student</option>
 <option value="workforce">Workforce</option>
 </select>
 </div>
+</div>
 <div class="controls-container">
 <div class="button-group">
-<button class="reset-button" id="resetFiltersBtn">Reset Filters</button>
-<button class="explore-button" id="toggleExploreBtn">Explore</button>
-<button class="missing-button" id="toggleMissingBtn">Missing</button>
-<button class="export-button" id="exportExcelBtn">Export to Excel</button>
-<button class="explore-button" id="import" onclick="window.open('https://josn.vercel.app/', '_blank')">import JSON</button>
+<button class="reset-button" id="resetFiltersBtn">
+<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor"  aria-hidden="true"><path fill-rule="evenodd" d="M15.322 15.322C13.94 16.704 12.008 17.5 10 17.5C6.005 17.5 2.764 14.547 2.515 10.623A.5.5 0 013 10.5H4.568a.5.5 0 01.494.563C5.251 13.46 7.378 15.5 10 15.5c1.603 0 3.07-.774 4.006-2.022a.5.5 0 01.758-.098l1.267 1.014a.5.5 0 01-.099.758zm-10.644-10.644C6.06 3.296 7.992 2.5 10 2.5c3.995 0 7.236 2.953 7.485 6.877a.5.5 0 01-.492.623H15.432a.5.5 0 01-.494-.563C14.749 6.54 12.622 4.5 10 4.5c-1.603 0-3.07.774-4.006 2.022a.5.5 0 01-.758.098L4.029 5.606a.5.5 0 01.099-.758z" clip-rule="evenodd" /></svg>
+<span>Reset Filters</span>
+</button>
+<button class="explore-button" id="toggleExploreBtn">
+<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+<span>Explore</span>
+</button>
+<button class="missing-button" id="toggleMissingBtn">
+<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+<span>Missing</span>
+</button>
+<button class="export-button" id="exportExcelBtn">
+<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+<span>Export to Excel</span>
+</button>
+<button class="explore-button" id="import" onclick="window.open('https://josn.vercel.app/', '_blank')">
+<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.707 8.293a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 6.414V13a1 1 0 11-2 0V6.414L7.707 8.293a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+<span>Import JSON</span>
+</button>
 </div>
 <div class="results-info">
 <div id="resultsCount"></div>
-<div id="missingResultsCount"></div>
+<div id="missingResultsCount" class="hidden"></div>
 </div>
 </div>
 <div class="dashboard-view">
@@ -1118,6 +1187,7 @@ animation: none !important;
 </div>
 </div>
 <div class="explore-view hidden">
+<div id="exploreResultsCount" class="results-count-area"></div>
 <div class="explore-table-container">
 <table class="explore-table" id="exploreTable">
 <thead>
@@ -1130,6 +1200,7 @@ animation: none !important;
 </div>
 </div>
 <div class="missing-view hidden">
+<div id="missingViewResultsCount" class="results-count-area"></div>
 <div class="missing-table-container">
 <table class="missing-table" id="missingTable">
 <thead>
@@ -1153,9 +1224,10 @@ january: 7, february: 8, march: 9, april: 10, may: 11, june: 12,
 'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12,
 };
 
-const getMonthOrderValue = (month) => month ? monthOrder[month.trim().toLowerCase()] || 99 : 99;
+const getMonthOrderValue = (month) => month ? monthOrder[String(month).trim().toLowerCase()] || 99 : 99;
 
 let data = [], filteredData = [], missingData = [];
+let totalUniquePharmaciesAllData = 0;
 const medicationCategories = [
 'المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن',
 'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية',
@@ -1185,12 +1257,12 @@ const uniqueValues = new Set();
 data.forEach((row) => {
 if (Object.entries(currentFilters).every(([key, value]) =>
 value === 'all' || key === field || row[key] === value)) {
-uniqueValues.add(row[field] ? row[field].trim() : row[field]);
+uniqueValues.add(row[field] ? String(row[field]).trim() : row[field]);
 }
 });
-return Array.from(uniqueValues).filter(Boolean).sort((a, b) => {
+return Array.from(uniqueValues).filter(val => val !== null && val !== undefined && String(val).trim() !== '').sort((a, b) => {
 if (field === 'Month') return getMonthOrderValue(a) - getMonthOrderValue(b);
-return a.localeCompare(b);
+return String(a).localeCompare(String(b));
 });
 };
 
@@ -1198,13 +1270,17 @@ const updateFilterHighlights = () => {
 const currentFilters = getCurrentFilters();
 Object.entries(currentFilters).forEach(([key, value]) => {
 const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
-if (value !== 'all') filterElement.classList.add('highlighted');
-else filterElement.classList.remove('highlighted');
+if (filterElement) {
+    if (value !== 'all') filterElement.classList.add('highlighted');
+    else filterElement.classList.remove('highlighted');
+}
 });
 };
 
+
 const updateFilterOptions = (filterName, currentFilters) => {
 const select = document.getElementById(`${filterName}Filter`);
+if (!select) return;
 const currentValue = select.value;
 const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
 const availableOptions = getAvailableOptions(fieldName, currentFilters);
@@ -1215,30 +1291,41 @@ optElement.value = option;
 optElement.textContent = option;
 select.appendChild(optElement);
 });
-select.value = currentValue === 'all' || availableOptions.includes(currentValue)
-? currentValue : 'all';
+
+const currentSelectedValueStillAvailable = availableOptions.includes(currentValue);
+if (currentValue !== 'all' && currentSelectedValueStillAvailable) {
+    select.value = currentValue;
+} else if (currentValue !== 'all' && !currentSelectedValueStillAvailable) {
+    select.value = 'all';
+} else {
+    select.value = 'all';
+}
 };
+
 
 const initializeFilters = () => {
 const filters = ['region', 'pharmacy', 'month', 'class'];
 filters.forEach((filter) => {
 const filterElement = document.getElementById(`${filter}Filter`);
-filterElement.addEventListener('change', () => {
-updateFilterHighlights();
+if (filterElement) {
+    filterElement.addEventListener('change', () => {
+        updateFilterHighlights();
+        const currentFilters = getCurrentFilters();
+        filters.forEach((otherFilter) => {
+             if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
+        });
+        updateFilterOptions(filter, {});
+        updateDashboard();
+    });
+}
+});
 const currentFilters = getCurrentFilters();
-filters.forEach((otherFilter) => {
-if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
-});
-updateDashboard();
-});
-});
-const currentFilters = getCurrentFilters();
-filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
+filters.forEach((filter) => updateFilterOptions(filter, {}));
 updateFilterHighlights();
 };
 
 const getTrendIndicator = (current, previous) => {
-if (previous === null) return '';
+if (previous === null || current === null || isNaN(current) || isNaN(previous)) return '';
 if (current === previous) return '<span class="trend-indicator trend-neutral">→</span>';
 return current > previous
 ? '<span class="trend-indicator trend-up">↑</span>'
@@ -1249,17 +1336,21 @@ const updateExploreView = () => {
 const table = document.getElementById('exploreTable');
 const thead = table.querySelector('thead tr');
 const tbody = table.querySelector('tbody');
+const resultsCountElement = document.getElementById('exploreResultsCount');
 
-const months = Array.from(new Set(filteredData.map((row) => row.Month ? row.Month.trim() : row.Month)))
-.sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+
+const months = Array.from(new Set(filteredData.map((row) => row.Month ? String(row.Month).trim() : row.Month)))
+    .filter(Boolean)
+    .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
 thead.innerHTML = '<th>Metric</th>';
-months.forEach((month) => { thead.innerHTML += `<th>${month}</th>`; });
+months.forEach((month) => { thead.innerHTML += `<th class="numeric-cell">${month}</th>`; });
 
 const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
 const monthlyData = {};
+
 months.forEach((month) => {
-const monthData = filteredData.filter((row) => (row.Month ? row.Month.trim() : row.Month) === month);
+const monthData = filteredData.filter((row) => (row.Month ? String(row.Month).trim() : row.Month) === month);
 monthlyData[month] = {
 Total: medicationCategories.reduce((sum, category) => sum + monthData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
 'Total Prescriptions': monthData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
@@ -1269,136 +1360,240 @@ Total: medicationCategories.reduce((sum, category) => sum + monthData.reduce((ca
 };
 });
 tbody.innerHTML = '';
+let displayedMetricsCount = 0;
 metrics.forEach((metric) => {
 const row = document.createElement('tr');
 row.innerHTML = `<td>${metric}</td>`;
 let previousValue = null;
+let hasData = false;
 months.forEach((month) => {
 const value = monthlyData[month][metric];
+if (value !== 0 && value !== undefined) hasData = true;
 const trend = getTrendIndicator(value, previousValue);
-row.innerHTML += `<td>${typeof value === 'number' ? value.toFixed(3) : value} ${trend}</td>`;
+row.innerHTML += `<td class="numeric-cell">${typeof value === 'number' ? value.toLocaleString(undefined, {maximumFractionDigits:3}) : value} ${trend}</td>`;
 previousValue = value;
 });
-tbody.appendChild(row);
+if(hasData || metric === 'Active Pharmacies' || metric === 'Total Prescriptions' || metric === 'Insurance Covered' || metric === 'Total') {
+    tbody.appendChild(row);
+    displayedMetricsCount++;
+}
 });
+ if (resultsCountElement) {
+    resultsCountElement.textContent = months.length > 0 ? `Explore view: Showing ${displayedMetricsCount} metrics across ${months.length} month(s).` : 'Explore view: No data to display for current filters.';
+    resultsCountElement.className = 'results-count-area';
+    if (months.length === 0) resultsCountElement.classList.add('no-data');
+}
 };
 
 const findMissingTotals = () => {
 missingData = [];
-const allMonths = Array.from(new Set(data.map(row => row.Month ? row.Month.trim() : row.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+const allMonthsOriginal = Array.from(new Set(data.map(row => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 const currentFilters = getCurrentFilters();
-const monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonths;
+
+let monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonthsOriginal;
+
 let baseDataset = data;
 if (currentFilters.Region !== 'all') baseDataset = baseDataset.filter(row => row.Region === currentFilters.Region);
 if (currentFilters.Pharmacy !== 'all') baseDataset = baseDataset.filter(row => row.Pharmacy === currentFilters.Pharmacy);
 if (currentFilters.Class !== 'all') baseDataset = baseDataset.filter(row => row.Class === currentFilters.Class);
+
 const eligiblePharmacies = Array.from(new Set(baseDataset.map(row => row.Pharmacy))).filter(Boolean);
 const pharmacyRegions = {};
-data.forEach(row => { if (row.Pharmacy && row.Region) pharmacyRegions[row.Pharmacy] = row.Region; });
+data.forEach(row => { if (row.Pharmacy && row.Region) pharmacyRegions[String(row.Pharmacy).trim()] = String(row.Region).trim(); });
+
 monthsToCheck.forEach(month => {
-const monthData = baseDataset.filter(row => (row.Month ? row.Month.trim() : row.Month) === month);
-const activePharmacies = new Set(monthData.map(row => row.Pharmacy).filter(Boolean));
-eligiblePharmacies.forEach(pharmacy => {
-if (!activePharmacies.has(pharmacy)) {
-missingData.push({ Region: pharmacyRegions[pharmacy] || 'Unknown', Pharmacy: pharmacy, Month: month, Status: 'Inactive' });
-}
+    const monthDataForEligible = baseDataset.filter(row => (row.Month ? String(row.Month).trim() : row.Month) === month);
+    const activePharmaciesInMonth = new Set(monthDataForEligible.map(row => String(row.Pharmacy).trim()).filter(Boolean));
+
+    eligiblePharmacies.forEach(pharmacy => {
+        if (!activePharmaciesInMonth.has(String(pharmacy).trim())) {
+            missingData.push({
+                Region: pharmacyRegions[String(pharmacy).trim()] || 'Unknown',
+                Pharmacy: pharmacy,
+                Month: month,
+                Status: 'Inactive'
+            });
+        }
+    });
 });
-});
+
 missingData.sort((a, b) => {
-const regionCompare = a.Region.localeCompare(b.Region);
+const regionCompare = String(a.Region).localeCompare(String(b.Region));
 if (regionCompare !== 0) return regionCompare;
-const pharmacyCompare = a.Pharmacy.localeCompare(b.Pharmacy);
+const pharmacyCompare = String(a.Pharmacy).localeCompare(String(b.Pharmacy));
 if (pharmacyCompare !== 0) return pharmacyCompare;
 return getMonthOrderValue(a.Month) - getMonthOrderValue(b.Month);
 });
 return missingData;
 };
 
+
 const updateMissingView = () => {
 const table = document.getElementById('missingTable');
 const tbody = table.querySelector('tbody');
 tbody.innerHTML = '';
-const resultsCountElement = document.getElementById('missingResultsCount');
+const resultsCountElement = document.getElementById('missingViewResultsCount');
+
 if (resultsCountElement) {
-resultsCountElement.textContent = missingData.length > 0 ? `Showing ${missingData.length} inactive pharmacies` : 'No inactive pharmacies for the selected filters';
+    resultsCountElement.textContent = missingData.length > 0 ? `Missing view: ${missingData.length} inactive pharmacy instance(s) found.` : 'Missing view: No inactive pharmacies for the selected filters.';
+    resultsCountElement.className = 'results-count-area';
+     if (missingData.length === 0) resultsCountElement.classList.add('no-data');
 }
-let currentRegion = '';
-let currentPharmacy = '';
-missingData.forEach((item) => {
-const row = document.createElement('tr');
-if (item.Region !== currentRegion) {
-const rowspan = missingData.filter(d => d.Region === item.Region).length;
-const regionCell = document.createElement('td');
-regionCell.textContent = item.Region;
-regionCell.rowSpan = rowspan;
-row.appendChild(regionCell);
-currentRegion = item.Region;
-currentPharmacy = '';
-}
-if (item.Pharmacy !== currentPharmacy) {
-const pharmacyRowspan = missingData.filter(d => d.Region === item.Region && d.Pharmacy === item.Pharmacy).length;
-const pharmacyCell = document.createElement('td');
-pharmacyCell.textContent = item.Pharmacy;
-pharmacyCell.rowSpan = pharmacyRowspan;
-row.appendChild(pharmacyCell);
-currentPharmacy = item.Pharmacy;
-}
-const monthCell = document.createElement('td');
-monthCell.textContent = item.Month;
-row.appendChild(monthCell);
-const statusCell = document.createElement('td');
-statusCell.textContent = item.Status;
-statusCell.className = 'inactive-status';
-row.appendChild(statusCell);
-tbody.appendChild(row);
+
+let currentRegion = null;
+let currentPharmacy = null;
+
+missingData.forEach((item, index) => {
+    const row = document.createElement('tr');
+    let regionDisplay = item.Region;
+    let pharmacyDisplay = item.Pharmacy;
+
+    if (item.Region !== currentRegion) {
+        let rowspanRegion = 1;
+        for (let i = index + 1; i < missingData.length; i++) {
+            if (missingData[i].Region === item.Region) rowspanRegion++;
+            else break;
+        }
+        const regionCell = document.createElement('td');
+        regionCell.textContent = regionDisplay;
+        regionCell.rowSpan = rowspanRegion;
+        row.appendChild(regionCell);
+        currentRegion = item.Region;
+        currentPharmacy = null;
+    }
+
+    if (item.Pharmacy !== currentPharmacy || item.Region !== (missingData[index-1] ? missingData[index-1].Region : null) ) {
+         let rowspanPharmacy = 1;
+         for (let i = index + 1; i < missingData.length; i++) {
+             if (missingData[i].Pharmacy === item.Pharmacy && missingData[i].Region === item.Region) rowspanPharmacy++;
+             else break;
+         }
+        const pharmacyCell = document.createElement('td');
+        pharmacyCell.textContent = pharmacyDisplay;
+        pharmacyCell.rowSpan = rowspanPharmacy;
+        row.appendChild(pharmacyCell);
+        currentPharmacy = item.Pharmacy;
+    }
+
+    const monthCell = document.createElement('td');
+    monthCell.textContent = item.Month;
+    row.appendChild(monthCell);
+
+    const statusCell = document.createElement('td');
+    const statusSpan = document.createElement('span');
+    statusSpan.className = 'missing-status missing-high';
+    statusSpan.textContent = item.Status;
+    statusCell.appendChild(statusSpan);
+    row.appendChild(statusCell);
+
+    tbody.appendChild(row);
 });
-if (tbody.children.length === 0) {
-const row = document.createElement('tr');
-row.innerHTML = `<td colspan="4" class="no-data-message">All pharmacies are active for the selected filters.</td>`;
-tbody.appendChild(row);
+
+if (tbody.children.length === 0 && resultsCountElement && !resultsCountElement.classList.contains('no-data')) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 4;
+    cell.textContent = 'All pharmacies are active for the selected filters.';
+    cell.style.textAlign = 'center';
+    row.appendChild(cell);
+    tbody.appendChild(row);
 }
 };
+
 
 const applyFilters = () => {
 const currentFilters = getCurrentFilters();
 filteredData = data.filter((row) =>
-Object.entries(currentFilters).every(([key, value]) => value === 'all' || row[key] === value)
+Object.entries(currentFilters).every(([key, value]) => {
+    if (value === 'all') return true;
+    const rowValue = row[key] ? String(row[key]).trim() : null;
+    return rowValue === value;
+})
 );
 };
 
 const updateStats = () => {
 const statsContainer = document.getElementById('statsContainer');
 statsContainer.innerHTML = '';
+
 const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
 const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
 const activePharmacies = new Set(filteredData.map((row) => row.Pharmacy).filter(Boolean)).size;
-const totalMedications = medicationCategories.reduce((sum, category) => sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0);
-addStatCard('Total', totalMedications.toFixed(3), true);
-addStatCard('Total Prescriptions', totalPrescriptions.toFixed(3));
-addStatCard('Insurance Covered', insuranceCovered.toFixed(3));
-addStatCard('Active Pharmacies', activePharmacies);
+const totalMedicationsValue = medicationCategories.reduce((sum, category) => sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0);
+
+addStatCard('Total Medications Value', totalMedicationsValue, { cardType: 'total' });
+addStatCard('Total Prescriptions', totalPrescriptions, { cardType: 'teal' });
+addStatCard('Insurance Covered', insuranceCovered, { cardType: 'teal' });
+addStatCard('Active Pharmacies', activePharmacies, {
+    cardType: 'medication',
+    percentage: totalUniquePharmaciesAllData > 0 ? (activePharmacies / totalUniquePharmaciesAllData) * 100 : 0
+});
+
 medicationCategories.forEach((category) => {
-const total = filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0);
-addStatCard(category, total.toFixed(3));
+    const total = filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0);
+    addStatCard(category, total, {
+        cardType: 'medication',
+        percentage: totalMedicationsValue > 0 ? (total / totalMedicationsValue) * 100 : 0
+    });
 });
 };
 
-const addStatCard = (label, value, isTotal = false) => {
-const statsContainer = document.getElementById('statsContainer');
-const card = document.createElement('div');
-card.className = isTotal ? 'stat-card total-card' : 'stat-card';
-card.innerHTML = `
-<div class="stat-value">${Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 })}</div>
-<div class="stat-label">${label}</div>`;
-statsContainer.appendChild(card);
+const addStatCard = (label, value, options = {}) => {
+    const statsContainer = document.getElementById('statsContainer');
+    const card = document.createElement('div');
+    let cardClasses = 'stat-card';
+    if (options.cardType === 'total') cardClasses += ' total-card';
+    if (options.cardType === 'teal') cardClasses += ' teal-card';
+    card.className = cardClasses;
+
+    const numericValue = Number(value);
+    const formattedValue = numericValue.toLocaleString(undefined, { maximumFractionDigits: 3 });
+
+    let percentageHTML = '';
+    let progressBarHTML = '';
+
+    if (options.cardType === 'medication' && options.percentage !== undefined) {
+        const displayPercentage = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
+        percentageHTML = `<div class="stat-percentage">${displayPercentage.toFixed(0)}%</div>`;
+        progressBarHTML = `
+            <div class="stat-progress-container">
+                <div class="stat-progress-bar" style="width: ${displayPercentage}%; background-color: var(--primary-color);"></div>
+            </div>`;
+    }
+
+
+    card.innerHTML = `
+        <div class="stat-card-content">
+            <div class="stat-value-wrapper">
+                <div class="stat-value">${formattedValue}</div>
+                ${percentageHTML}
+            </div>
+            <div class="stat-label">${label}</div>
+        </div>
+        ${progressBarHTML}`;
+    statsContainer.appendChild(card);
 };
+
 
 const updateResultsCount = () => {
 document.getElementById('resultsCount').textContent = `Showing ${filteredData.length} results`;
 findMissingTotals();
-const missingResultsElement = document.getElementById('missingResultsCount');
-if (missingResultsElement) {
-missingResultsElement.textContent = missingData.length > 0 ? `Showing ${missingData.length} inactive pharmacies` : 'No inactive pharmacies for the selected filters';
+const missingResultsCountElement = document.getElementById('missingResultsCount');
+const missingViewResultsCount = document.getElementById('missingViewResultsCount');
+const exploreResultsCountElement = document.getElementById('exploreResultsCount');
+
+if (isMissingMode && missingViewResultsCount) {
+     missingViewResultsCount.textContent = missingData.length > 0 ? `Missing view: ${missingData.length} inactive pharmacy instance(s) found.` : 'Missing view: No inactive pharmacies for the selected filters.';
+} else if (isExploreMode && exploreResultsCountElement) {
+    const months = Array.from(new Set(filteredData.map((row) => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean);
+    exploreResultsCountElement.textContent = months.length > 0 ? `Explore view: Metrics across ${months.length} month(s).` : 'Explore view: No data to display for current filters.';
+} else {
+    missingResultsCountElement.textContent = missingData.length > 0 ? `${missingData.length} Inactive` : '';
+    if (missingData.length === 0) {
+         missingResultsCountElement.classList.add('hidden');
+    } else {
+         missingResultsCountElement.classList.remove('hidden');
+    }
 }
 };
 
@@ -1417,120 +1612,174 @@ const borderLightColor = rootStyles.getPropertyValue('--border-light').trim();
 const cardBgColor = rootStyles.getPropertyValue('--card-background').trim();
 const textColor = rootStyles.getPropertyValue('--text-color').trim();
 
-const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
-gradient.addColorStop(0, primaryLight || 'rgba(96, 165, 250, 0.8)');
-gradient.addColorStop(1, primaryColor || 'rgba(59, 130, 246, 0.8)');
+const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+gradient.addColorStop(0, primaryColor || 'rgba(59, 130, 246, 0.8)');
+gradient.addColorStop(1, primaryLight || 'rgba(96, 165, 250, 0.8)');
+
 
 const medicationData = medicationCategories.map((category) =>
-filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
+    filteredData.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)
 );
 
 currentChart = new Chart(ctx, {
-type: 'bar',
-data: {
-labels: medicationCategories,
-datasets: [{
-label: 'Medication Distribution',
-data: medicationData,
-backgroundColor: gradient,
-borderColor: primaryDark,
-borderWidth: 1.5,
-borderRadius: 6,
-hoverBackgroundColor: primaryDark,
-hoverBorderColor: primaryDark,
-}],
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-scales: {
-y: {
-beginAtZero: true,
-grid: {
-color: borderLightColor ? borderLightColor + '80' : 'rgba(226, 232, 240, 0.5)',
-borderColor: borderLightColor,
-drawBorder: false,
-},
-ticks: {
-color: textMutedColor,
-font: { family: chartFontFamily, size: 11 },
-padding: 8,
-callback: function(value) {
-if (Number.isInteger(value) || Math.abs(value) >= 1000 || value === 0) {
-return value.toLocaleString();
-}
-return value;
-}
-}
-},
-x: {
-grid: {
-display: false,
-},
-ticks: {
-color: textMutedColor,
-font: { family: chartFontFamily, size: 11 },
-maxRotation: 45,
-minRotation: 45
-}
-}
-},
-plugins: {
-legend: {
-display: false
-},
-title: {
-display: true,
-text: 'Medication Distribution',
-color: primaryDark,
-font: {
-size: 18,
-weight: '600',
-family: chartFontFamily
-},
-padding: {
-top: 5,
-bottom: 25
-}
-},
-tooltip: {
-enabled: true,
-backgroundColor: cardBgColor,
-titleColor: primaryColor,
-titleFont: { family: chartFontFamily, weight: '600', size: 14 },
-bodyColor: textColor,
-bodyFont: { family: chartFontFamily, size: 12 },
-borderColor: primaryLight,
-borderWidth: 1,
-padding: 12,
-cornerRadius: 8,
-usePointStyle: true,
-boxPadding: 3,
-callbacks: {
-label: function(context) {
-let label = context.dataset.label || '';
-if (label) {
-label += ': ';
-}
-if (context.parsed.y !== null) {
-label += Number(context.parsed.y).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 3});
-}
-return label;
-}
-}
-}
-},
-animation: {
-duration: 700,
-easing: 'easeOutQuart'
-},
-onHover: (event, chartElement) => {
-const canvas = event.native ? event.native.target : event.target;
-if (canvas) {
-canvas.style.cursor = chartElement.length ? 'pointer' : 'default';
-}
-}
-},
+    type: 'bar',
+    data: {
+        labels: medicationCategories,
+        datasets: [{
+            label: 'Medication Distribution',
+            data: medicationData,
+            backgroundColor: gradient,
+            borderColor: primaryDark,
+            borderWidth: 0,
+            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8 }, // For fully rounded bars
+            borderSkipped: false,
+            hoverBackgroundColor: primaryDark,
+        }],
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                grid: {
+                    display: false,
+                    drawBorder: false,
+                },
+                ticks: {
+                    color: textMutedColor,
+                    font: { family: chartFontFamily, size: 11, weight: '500' },
+                    padding: 8,
+                }
+            },
+            x: {
+                beginAtZero: true,
+                grid: {
+                    color: borderLightColor ? borderLightColor + '80' : 'rgba(226, 232, 240, 0.5)',
+                    borderColor: borderLightColor,
+                    drawBorder: false,
+                },
+                ticks: {
+                    color: textMutedColor,
+                    font: { family: chartFontFamily, size: 11 },
+                    padding: 8,
+                    maxTicksLimit: 6,
+                    callback: function(value) {
+                        if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                        if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                        return value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Medication Distribution by Category',
+                color: primaryDark,
+                font: {
+                    size: 16,
+                    weight: '600',
+                    family: chartFontFamily
+                },
+                padding: {
+                    top: 5,
+                    bottom: 20
+                }
+            },
+            tooltip: {
+                enabled: true,
+                backgroundColor: cardBgColor,
+                titleColor: primaryColor,
+                titleFont: { family: chartFontFamily, weight: '600', size: 14 },
+                bodyColor: textColor,
+                bodyFont: { family: chartFontFamily, size: 12 },
+                borderColor: primaryLight,
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                usePointStyle: true,
+                boxPadding: 3,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.x !== null) {
+                            label += Number(context.parsed.x).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 3});
+                        }
+                        return label;
+                    }
+                }
+            },
+            afterDraw: (chartInstance) => {
+                const chartCtx = chartInstance.ctx;
+                chartCtx.save();
+                chartCtx.font = `600 10px ${chartFontFamily}`;
+                chartCtx.textBaseline = 'middle';
+
+                chartInstance.data.datasets.forEach((dataset, i) => {
+                    const meta = chartInstance.getDatasetMeta(i);
+                    if (!meta.hidden) {
+                        meta.data.forEach((bar, index) => {
+                            const dataValue = dataset.data[index];
+                            if (dataValue == null || dataValue === 0) return;
+
+                            const displayValue = Number(dataValue).toLocaleString(undefined, { maximumFractionDigits: 1 });
+                            const textWidth = chartCtx.measureText(displayValue).width;
+                            const barEndPosition = bar.x;
+                            const barStartPosition = bar.base;
+                            const barHeight = bar.height;
+                            const padding = 5;
+                            let textX, textColorValue;
+
+                            if (barEndPosition - barStartPosition > textWidth + padding * 2) {
+                                textX = barEndPosition - padding;
+                                chartCtx.textAlign = 'right';
+                                textColorValue = cardBgColor; 
+                            } else { 
+                                textX = barEndPosition + padding;
+                                chartCtx.textAlign = 'left';
+                                textColorValue = primaryDark; 
+                            }
+                            
+                            if (chartCtx.textAlign === 'left' && textX + textWidth + padding > chartInstance.chartArea.right) {
+                                textX = barEndPosition - padding;
+                                chartCtx.textAlign = 'right';
+                                textColorValue = cardBgColor;
+                                if (barEndPosition - barStartPosition < textWidth + padding) {
+                                     chartCtx.fillStyle = 'transparent'; // Hide if no fit
+                                }
+                            } else if (chartCtx.textAlign === 'right' && textX - textWidth - padding < chartInstance.chartArea.left) {
+                                textX = barEndPosition + padding;
+                                chartCtx.textAlign = 'left';
+                                textColorValue = primaryDark;
+                            }
+
+
+                            chartCtx.fillStyle = textColorValue;
+                            chartCtx.fillText(displayValue, textX, bar.y);
+                        });
+                    }
+                });
+                chartCtx.restore();
+            }
+        },
+        animation: {
+            duration: 700,
+            easing: 'easeOutQuart'
+        },
+        onHover: (event, chartElement) => {
+            const canvas = event.native ? event.native.target : event.target;
+            if (canvas) {
+                canvas.style.cursor = chartElement.length ? 'pointer' : 'default';
+            }
+        }
+    },
 });
 };
 
@@ -1542,7 +1791,7 @@ updateResultsCount();
 updateMedicationChart();
 if (isExploreMode) updateExploreView();
 if (isMissingMode) updateMissingView();
-}, 100);
+}, 150);
 
 const toggleExploreMode = () => {
 isExploreMode = !isExploreMode;
@@ -1551,19 +1800,33 @@ const dashboardView = document.querySelector('.dashboard-view');
 const exploreView = document.querySelector('.explore-view');
 const missingView = document.querySelector('.missing-view');
 const missingButton = document.getElementById('toggleMissingBtn');
+const missingResultsCountElement = document.getElementById('missingResultsCount');
+const exploreResultsCountElement = document.getElementById('exploreResultsCount');
+const missingViewResultsCountElement = document.getElementById('missingViewResultsCount');
+
+
 if (isExploreMode) {
-exploreButton.textContent = 'Back';
-dashboardView.classList.add('hidden');
-missingView.classList.add('hidden');
-exploreView.classList.remove('hidden');
-missingButton.textContent = 'Missing';
-isMissingMode = false;
-updateExploreView();
+    exploreButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg><span>Back</span>`;
+    dashboardView.classList.add('hidden');
+    missingView.classList.add('hidden');
+    exploreView.classList.remove('hidden');
+    if(exploreResultsCountElement) exploreResultsCountElement.classList.remove('hidden');
+    if(missingResultsCountElement) missingResultsCountElement.classList.add('hidden');
+    if(missingViewResultsCountElement) missingViewResultsCountElement.classList.add('hidden');
+
+
+    missingButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg><span>Missing</span>`;
+    isMissingMode = false;
+    updateExploreView();
 } else {
-exploreButton.textContent = 'Explore';
-dashboardView.classList.remove('hidden');
-exploreView.classList.add('hidden');
+    exploreButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><span>Explore</span>`;
+    dashboardView.classList.remove('hidden');
+    exploreView.classList.add('hidden');
+    if(exploreResultsCountElement) exploreResultsCountElement.classList.add('hidden');
+    if(missingResultsCountElement && missingData.length > 0) missingResultsCountElement.classList.remove('hidden');
+
 }
+updateResultsCount();
 };
 
 const toggleMissingMode = () => {
@@ -1573,49 +1836,68 @@ const dashboardView = document.querySelector('.dashboard-view');
 const exploreView = document.querySelector('.explore-view');
 const missingView = document.querySelector('.missing-view');
 const exploreButton = document.getElementById('toggleExploreBtn');
+const missingResultsCountElement = document.getElementById('missingResultsCount');
+const exploreResultsCountElement = document.getElementById('exploreResultsCount');
+const missingViewResultsCountElement = document.getElementById('missingViewResultsCount');
+
 if (isMissingMode) {
-missingButton.textContent = 'Back';
-dashboardView.classList.add('hidden');
-exploreView.classList.add('hidden');
-missingView.classList.remove('hidden');
-exploreButton.textContent = 'Explore';
-isExploreMode = false;
-updateMissingView();
+    missingButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg><span>Back</span>`;
+    dashboardView.classList.add('hidden');
+    exploreView.classList.add('hidden');
+    missingView.classList.remove('hidden');
+    if(missingViewResultsCountElement) missingViewResultsCountElement.classList.remove('hidden');
+    if(exploreResultsCountElement) exploreResultsCountElement.classList.add('hidden');
+    if(missingResultsCountElement) missingResultsCountElement.classList.add('hidden');
+
+
+    exploreButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><span>Explore</span>`;
+    isExploreMode = false;
+    updateMissingView();
 } else {
-missingButton.textContent = 'Missing';
-dashboardView.classList.remove('hidden');
-missingView.classList.add('hidden');
+    missingButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg><span>Missing</span>`;
+    dashboardView.classList.remove('hidden');
+    missingView.classList.add('hidden');
+    if(missingViewResultsCountElement) missingViewResultsCountElement.classList.add('hidden');
+    if(missingResultsCountElement && missingData.length > 0) missingResultsCountElement.classList.remove('hidden');
 }
+updateResultsCount();
 };
+
 
 const resetFilters = () => {
 const filters = ['region', 'pharmacy', 'month', 'class'];
-filters.forEach((filter) => { document.getElementById(`${filter}Filter`).value = 'all'; });
-const currentFilters = getCurrentFilters();
-filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
+filters.forEach((filter) => {
+    const filterElement = document.getElementById(`${filter}Filter`);
+    if (filterElement) filterElement.value = 'all';
+});
+filters.forEach((filter) => updateFilterOptions(filter, {}));
 updateFilterHighlights();
 updateDashboard();
 };
 
+
 const exportToCSV = (dataArray, filename) => {
 const headers = [];
-dataArray.forEach(item => {
-Object.keys(item).forEach(key => {
-if (!headers.includes(key)) headers.push(key);
-});
-});
+if (dataArray.length > 0) {
+    Object.keys(dataArray[0]).forEach(key => {
+        if (!headers.includes(key)) headers.push(key);
+    });
+}
+
 let csvContent = '\ufeff';
 csvContent += headers.join(',') + '\n';
+
 dataArray.forEach(item => {
-const row = headers.map(header => {
-const value = item[header] === undefined ? '' : String(item[header]);
-if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-return `"${value.replace(/"/g, '""')}"`;
-}
-return value;
+    const row = headers.map(header => {
+        const value = item[header] === undefined || item[header] === null ? '' : String(item[header]);
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+            return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+    });
+    csvContent += row.join(',') + '\n';
 });
-csvContent += row.join(',') + '\n';
-});
+
 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 const link = document.createElement('a');
 const url = URL.createObjectURL(blob);
@@ -1629,30 +1911,79 @@ document.body.removeChild(link);
 
 const exportData = () => {
 let dataToExport;
-if (isMissingMode) dataToExport = missingData;
-else dataToExport = filteredData;
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const filename = `pharmacy_dashboard_export_${timestamp}`;
-try {
-const wb = XLSX.utils.book_new();
-const ws = XLSX.utils.json_to_sheet(dataToExport, { codepage: 65001 });
-XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
-try {
-XLSX.writeFile(wb, `${filename}.xlsx`);
-} catch (excelError) {
-exportToCSV(dataToExport, `${filename}.csv`);
-const notification = document.createElement('div');
-notification.textContent = 'Excel export failed. Data exported as CSV instead.';
-Object.assign(notification.style, { position: 'fixed', bottom: '20px', right: '20px', backgroundColor: '#f8d7da', color: '#721c24', padding: '10px 15px', borderRadius: '4px', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', zIndex: '1000' });
-document.body.appendChild(notification);
-setTimeout(() => {
-notification.style.opacity = '0';
-notification.style.transition = 'opacity 0.5s ease';
-setTimeout(() => document.body.removeChild(notification), 500);
-}, 5000);
+let sheetName = 'Dashboard Data';
+const currentFilters = getCurrentFilters();
+let filterDesc = Object.entries(currentFilters)
+    .filter(([key, value]) => value !== 'all')
+    .map(([key, value]) => `${key}=${value}`)
+    .join('_');
+if (filterDesc) filterDesc = `_${filterDesc}`;
+
+
+if (isExploreMode) {
+    const months = Array.from(new Set(filteredData.map((row) => row.Month ? String(row.Month).trim() : row.Month)))
+        .filter(Boolean)
+        .sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+    const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
+    const monthlyData = {};
+    months.forEach((month) => {
+        const monthDataFiltered = filteredData.filter((row) => (row.Month ? String(row.Month).trim() : row.Month) === month);
+        monthlyData[month] = {
+            Total: medicationCategories.reduce((sum, category) => sum + monthDataFiltered.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0),
+            'Total Prescriptions': monthDataFiltered.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0),
+            'Insurance Covered': monthDataFiltered.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0),
+            'Active Pharmacies': new Set(monthDataFiltered.map((row) => row.Pharmacy).filter(Boolean)).size,
+            ...Object.fromEntries(medicationCategories.map((category) => [category, monthDataFiltered.reduce((sum, row) => sum + parseFloat(row[category] || 0), 0)])),
+        };
+    });
+    dataToExport = metrics.map(metric => {
+        const row = { Metric: metric };
+        months.forEach(month => {
+            row[month] = monthlyData[month][metric];
+        });
+        return row;
+    }).filter(row => { 
+        if (['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies'].includes(row.Metric)) return true;
+        return Object.values(row).slice(1).some(val => val !== 0 && val !== undefined);
+    });
+    sheetName = 'Explore View';
+} else if (isMissingMode) {
+    dataToExport = missingData;
+    sheetName = 'Missing Data';
+} else {
+    dataToExport = filteredData;
+    sheetName = 'Filtered Data';
 }
+
+
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const filename = `pharmacy_export_${sheetName.replace(/\s/g, '')}${filterDesc}_${timestamp}`;
+
+if (dataToExport.length === 0) {
+    alert("No data to export for the current view/filters.");
+    return;
+}
+
+try {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(dataToExport, { codepage: 65001 });
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    try {
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+    } catch (excelError) {
+        exportToCSV(dataToExport, `${filename}.csv`);
+        const notification = document.createElement('div');
+        notification.textContent = 'Excel export failed. Data exported as CSV instead.';
+        Object.assign(notification.style, { position: 'fixed', bottom: '20px', right: '20px', backgroundColor: '#f8d7da', color: '#721c24', padding: '10px 15px', borderRadius: '4px', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', zIndex: '1000' });
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => document.body.removeChild(notification), 500);
+        }, 5000);
+    }
 } catch (error) {
-exportToCSV(dataToExport, `${filename}.csv`);
+    exportToCSV(dataToExport, `${filename}.csv`);
 }
 };
 
@@ -1661,6 +1992,7 @@ document.getElementById('resetFiltersBtn').addEventListener('click', resetFilter
 document.getElementById('toggleExploreBtn').addEventListener('click', toggleExploreMode);
 document.getElementById('toggleMissingBtn').addEventListener('click', toggleMissingMode);
 document.getElementById('exportExcelBtn').addEventListener('click', exportData);
+
 const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 fetch(SHEET_URL)
@@ -1670,23 +2002,38 @@ return response.text();
 })
 .then((csvText) => {
 Papa.parse(csvText, {
-header: true, encoding: 'UTF-8',
-complete: function (results) {
-data = results.data;
-filteredData = data;
-initializeFilters();
-updateDashboard();
-},
-error: function (err) { console.error('Error parsing CSV: ', err); },
+    header: true,
+    encoding: 'UTF-8',
+    skipEmptyLines: true,
+    complete: function (results) {
+        data = results.data.map(row => {
+            const newRow = {};
+            for (const key in row) {
+                if (Object.prototype.hasOwnProperty.call(row, key)) {
+                    const trimmedKey = String(key).trim();
+                    newRow[trimmedKey] = typeof row[key] === 'string' ? String(row[key]).trim() : row[key];
+                }
+            }
+            return newRow;
+        }).filter(row => row && Object.values(row).some(val => val !== null && val !== '' && val !== undefined));
+
+
+        const uniquePharmacies = new Set(data.map(row => row.Pharmacy).filter(Boolean));
+        totalUniquePharmaciesAllData = uniquePharmacies.size;
+
+        filteredData = [...data];
+        initializeFilters();
+        updateDashboard();
+    },
+    error: function (err) {
+        console.error('Error parsing CSV: ', err);
+        document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value-wrapper"><div class="stat-value">Error</div></div><div class="stat-label">Failed to parse CSV data.</div></div></div>`;
+    },
 });
 })
 .catch((error) => {
 console.error('Error fetching or parsing data:', error);
-document.getElementById('statsContainer').innerHTML = `
-<div class="stat-card">
-<div class="stat-value">Error</div>
-<div class="stat-label">Failed to load data. Please check your connection and refresh the page.</div>
-</div>`;
+document.getElementById('statsContainer').innerHTML = `<div class="stat-card danger-card"><div class="stat-card-content"><div class="stat-value-wrapper"><div class="stat-value">Error</div></div><div class="stat-label">Failed to load data. Check connection & refresh.</div></div></div>`;
 });
 });
 </script>
