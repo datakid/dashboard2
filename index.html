@@ -1621,8 +1621,8 @@ const missingViewResultsCount = document.getElementById('missingViewResultsCount
 const exploreResultsCountElement = document.getElementById('exploreResultsCount');
 
 if (isMissingMode && missingViewResultsCount) {
-     missingViewResultsCount.textContent = missingData.length > 0 ? `Missing view: ${missingData.length} inactive pharmacy instance(s) found.` : 'Missing view: No inactive pharmacies for the selected filters.';
-     if (missingData.length === 0) missingViewResultsCount.classList.add('no-data'); else missingViewResultsCount.classList.remove('no-data');
+     missingViewResultsCountElement.textContent = missingData.length > 0 ? `Missing view: ${missingData.length} inactive pharmacy instance(s) found.` : 'Missing view: No inactive pharmacies for the selected filters.';
+     if (missingData.length === 0) missingViewResultsCountElement.classList.add('no-data'); else missingViewResultsCountElement.classList.remove('no-data');
 } else if (isExploreMode && exploreResultsCountElement) {
     const months = Array.from(new Set(filteredData.map((row) => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean);
     const tableBody = document.getElementById('exploreTable')?.querySelector('tbody');
@@ -1813,16 +1813,17 @@ currentChart = new Chart(ctx, {
 
 
 const updateDashboard = debounce(() => {
-applyFilters();
-updateStats();
-updateMedicationChart();
-if (isExploreMode) {
-    updateExploreView();
-}
-if (isMissingMode) {
-    updateMissingView();
-}
-updateResultsCount();
+    applyFilters();
+    findMissingTotals(); 
+    updateStats();
+    updateMedicationChart();
+    if (isExploreMode) {
+        updateExploreView();
+    }
+    if (isMissingMode) {
+        updateMissingView();
+    }
+    updateResultsCount();
 }, 150);
 
 const toggleExploreMode = () => {
@@ -1883,6 +1884,7 @@ if (isMissingMode) {
 
     exploreButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><span>Explore</span>`;
     isExploreMode = false;
+    findMissingTotals();
     updateMissingView();
 } else {
     missingButton.innerHTML = `<svg class="button-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg><span>Missing</span>`;
