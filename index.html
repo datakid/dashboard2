@@ -493,8 +493,8 @@ background-color: var(--card-background);
 border-radius: var(--border-radius-lg);
 padding: 1.75rem;
 box-shadow: var(--card-shadow);
-height: 580px;
-min-height: 400px;
+height: 680px;
+min-height: 500px;
 width: 100%;
 overflow: hidden;
 transition: all var(--transition-standard);
@@ -1416,7 +1416,7 @@ if(hasData || metric === 'Active Pharmacies' || metric === 'Total Prescriptions'
  if (resultsCountElement) {
     resultsCountElement.textContent = months.length > 0 ? `Explore view: Showing ${displayedMetricsCount} metrics across ${months.length} month(s).` : 'Explore view: No data to display for current filters.';
     resultsCountElement.className = 'results-count-area';
-    if (months.length === 0) resultsCountElement.classList.add('no-data');
+    if (months.length === 0 || displayedMetricsCount === 0) resultsCountElement.classList.add('no-data'); else resultsCountElement.classList.remove('no-data');
 }
 };
 
