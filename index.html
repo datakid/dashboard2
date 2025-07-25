@@ -136,6 +136,8 @@ justify-content: space-between;
 align-items: center;
 margin-bottom: 3rem;
 position: relative;
+flex-wrap: wrap;
+gap: 1.5rem;
 }
 
 .dashboard-header h1 {
@@ -164,6 +166,49 @@ transition: width var(--transition-standard), background var(--transition-standa
 .dashboard-header h1:hover::after {
 width: 100%;
 opacity: 0.9;
+}
+
+.year-filter-container {
+    position: relative;
+}
+.year-filter-label {
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    background-color: var(--background-color);
+    padding: 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    z-index: 1;
+    transition: all var(--transition-standard);
+}
+#yearFilter {
+    width: 200px;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-background);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-color);
+    transition: all var(--transition-standard);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 3rem;
+    cursor: pointer;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+#yearFilter:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--border-focus);
+}
+#yearFilter:hover:not(:focus) {
+    border-color: var(--primary-light);
+    background-color: var(--primary-ultra-light);
 }
 
 .filters {
@@ -1152,7 +1197,11 @@ animation: none !important;
 </head>
 <body>
 <div class="dashboard-header">
-<h1>Dashboard</h1>
+    <h1>Dashboard</h1>
+    <div class="year-filter-container">
+        <label for="yearFilter" class="year-filter-label">Year</label>
+        <select id="yearFilter"></select>
+    </div>
 </div>
 <div class="filters">
 <div class="filter-group">
@@ -1258,6 +1307,9 @@ const getMonthOrderValue = (month) => month ? monthOrder[String(month).trim().to
 
 let data = [], filteredData = [], missingData = [];
 let totalUniquePharmaciesAllData = 0;
+let allYears = [];
+let defaultYear = null;
+
 const medicationCategories = [
 'المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن',
 'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية',
@@ -1276,6 +1328,7 @@ timeout = setTimeout(() => func(...args), wait);
 };
 
 const getCurrentFilters = () => ({
+Year: document.getElementById('yearFilter').value,
 Region: document.getElementById('regionFilter').value,
 Pharmacy: document.getElementById('pharmacyFilter').value,
 Month: document.getElementById('monthFilter').value,
@@ -1284,10 +1337,12 @@ Class: document.getElementById('classFilter').value,
 
 const getAvailableOptions = (field, currentFilters) => {
 const uniqueValues = new Set();
-data.forEach((row) => {
+const yearFilteredData = data.filter(row => row.Year === currentFilters.Year);
+
+yearFilteredData.forEach((row) => {
 if (Object.entries(currentFilters).every(([key, value]) =>
-value === 'all' || key === field || row[key] === value)) {
-uniqueValues.add(row[field] ? String(row[field]).trim() : row[field]);
+    key === 'Year' || value === 'all' || key === field || row[key] === value)) {
+    uniqueValues.add(row[field] ? String(row[field]).trim() : row[field]);
 }
 });
 return Array.from(uniqueValues).filter(val => val !== null && val !== undefined && String(val).trim() !== '').sort((a, b) => {
@@ -1299,11 +1354,12 @@ return String(a).localeCompare(String(b));
 const updateFilterHighlights = () => {
 const currentFilters = getCurrentFilters();
 Object.entries(currentFilters).forEach(([key, value]) => {
-const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
-if (filterElement) {
-    if (value !== 'all') filterElement.classList.add('highlighted');
-    else filterElement.classList.remove('highlighted');
-}
+    if (key === 'Year') return;
+    const filterElement = document.getElementById(`${key.toLowerCase()}Filter`);
+    if (filterElement) {
+        if (value !== 'all') filterElement.classList.add('highlighted');
+        else filterElement.classList.remove('highlighted');
+    }
 });
 };
 
@@ -1336,22 +1392,56 @@ if (currentValue !== 'all' && currentSelectedValueStillAvailable) {
 const initializeFilters = () => {
 const filters = ['region', 'pharmacy', 'month', 'class'];
 filters.forEach((filter) => {
-const filterElement = document.getElementById(`${filter}Filter`);
-if (filterElement) {
-    filterElement.addEventListener('change', () => {
-        updateFilterHighlights();
-        const currentFilters = getCurrentFilters();
-        filters.forEach((otherFilter) => {
-             if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
+    const filterElement = document.getElementById(`${filter}Filter`);
+    if (filterElement) {
+        filterElement.addEventListener('change', () => {
+            updateFilterHighlights();
+            const currentFilters = getCurrentFilters();
+            filters.forEach((otherFilter) => {
+                 if (otherFilter !== filter) updateFilterOptions(otherFilter, currentFilters);
+            });
+            updateDashboard();
         });
-        updateFilterOptions(filter, {});
-        updateDashboard();
-    });
-}
+    }
 });
 const currentFilters = getCurrentFilters();
-filters.forEach((filter) => updateFilterOptions(filter, {}));
+filters.forEach((filter) => updateFilterOptions(filter, currentFilters));
 updateFilterHighlights();
+};
+
+const populateYearFilter = () => {
+    const yearSelect = document.getElementById('yearFilter');
+    const yearContainer = document.querySelector('.year-filter-container');
+    if (!yearSelect || !yearContainer) return;
+
+    if (allYears.length === 0) {
+        yearContainer.classList.add('hidden');
+        return;
+    }
+    yearContainer.classList.remove('hidden');
+
+    yearSelect.innerHTML = '';
+    allYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `${Number(year) - 1}-${year}`;
+        yearSelect.appendChild(option);
+    });
+
+    if (defaultYear) {
+        yearSelect.value = defaultYear;
+    }
+
+    yearSelect.addEventListener('change', () => {
+        const filters = ['region', 'pharmacy', 'month', 'class'];
+        const currentFilters = getCurrentFilters();
+        filters.forEach(filter => {
+            const filterEl = document.getElementById(`${filter}Filter`);
+            if (filterEl) filterEl.value = 'all';
+            updateFilterOptions(filter, currentFilters);
+        });
+        updateDashboard();
+    });
 };
 
 const getTrendIndicator = (current, previous) => {
@@ -1417,12 +1507,13 @@ if(hasData || metric === 'Active Pharmacies' || metric === 'Total Prescriptions'
 
 const findMissingTotals = () => {
 missingData = [];
-const allMonthsOriginal = Array.from(new Set(data.map(row => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 const currentFilters = getCurrentFilters();
 
-let monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonthsOriginal;
+const allMonthsForYear = Array.from(new Set(data.filter(d => d.Year === currentFilters.Year).map(row => row.Month ? String(row.Month).trim() : row.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
-let baseDataset = data;
+let monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonthsForYear;
+
+let baseDataset = data.filter(d => d.Year === currentFilters.Year);
 if (currentFilters.Region !== 'all') baseDataset = baseDataset.filter(row => row.Region === currentFilters.Region);
 if (currentFilters.Pharmacy !== 'all') baseDataset = baseDataset.filter(row => row.Pharmacy === currentFilters.Pharmacy);
 if (currentFilters.Class !== 'all') baseDataset = baseDataset.filter(row => row.Class === currentFilters.Class);
@@ -1535,6 +1626,9 @@ const applyFilters = () => {
 const currentFilters = getCurrentFilters();
 filteredData = data.filter((row) =>
 Object.entries(currentFilters).every(([key, value]) => {
+    if (key === 'Year') {
+        return String(row.Year).trim() === String(value).trim();
+    }
     if (value === 'all') return true;
     const rowValue = row[key] ? String(row[key]).trim() : null;
     return rowValue === value;
@@ -1551,12 +1645,16 @@ const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row[
 const activePharmacies = new Set(filteredData.map((row) => row.Pharmacy).filter(Boolean)).size;
 const totalMedicationsValue = medicationCategories.reduce((sum, category) => sum + filteredData.reduce((catSum, row) => catSum + parseFloat(row[category] || 0), 0), 0);
 
+const yearPharmacies = new Set(data.filter(d => d.Year === getCurrentFilters().Year).map(row => row.Pharmacy).filter(Boolean));
+const totalUniquePharmaciesInYear = yearPharmacies.size;
+
+
 addStatCard('Total Medications Value', totalMedicationsValue, { cardType: 'total' });
 addStatCard('Total Prescriptions', totalPrescriptions, { cardType: 'teal' });
 addStatCard('Insurance Covered', insuranceCovered, { cardType: 'teal' });
 addStatCard('Active Pharmacies', activePharmacies, {
     cardType: 'medication',
-    percentage: totalUniquePharmaciesAllData > 0 ? (activePharmacies / totalUniquePharmaciesAllData) * 100 : 0
+    percentage: totalUniquePharmaciesInYear > 0 ? (activePharmacies / totalUniquePharmaciesInYear) * 100 : 0
 });
 
 medicationCategories.forEach((category) => {
@@ -1896,16 +1994,20 @@ if (isMissingMode) {
 updateResultsCount();
 };
 
-
 const resetFilters = () => {
-const filters = ['region', 'pharmacy', 'month', 'class'];
-filters.forEach((filter) => {
-    const filterElement = document.getElementById(`${filter}Filter`);
-    if (filterElement) filterElement.value = 'all';
-});
-filters.forEach((filter) => updateFilterOptions(filter, {}));
-updateFilterHighlights();
-updateDashboard();
+    const subFilters = ['region', 'pharmacy', 'month', 'class'];
+    subFilters.forEach((filter) => {
+        const filterElement = document.getElementById(`${filter}Filter`);
+        if (filterElement) {
+            filterElement.value = 'all';
+        }
+    });
+
+    const currentFilters = getCurrentFilters();
+    subFilters.forEach(filter => updateFilterOptions(filter, currentFilters));
+
+    updateFilterHighlights();
+    updateDashboard();
 };
 
 
@@ -2050,11 +2152,13 @@ Papa.parse(csvText, {
             return newRow;
         }).filter(row => row && Object.values(row).some(val => val !== null && val !== '' && val !== undefined));
 
-
-        const uniquePharmacies = new Set(data.map(row => row.Pharmacy).filter(Boolean));
-        totalUniquePharmaciesAllData = uniquePharmacies.size;
-
-        filteredData = [...data];
+        allYears = [...new Set(data.map(row => row.Year))].filter(Boolean).map(Number).sort((a,b) => a - b);
+        if (allYears.length > 0) {
+            defaultYear = Math.max(...allYears);
+        }
+        
+        populateYearFilter();
+        
         initializeFilters();
         updateDashboard();
     },
