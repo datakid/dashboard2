@@ -1193,7 +1193,7 @@ const showDuplicateDetails = (duplicates) => {
     const modalContainer = document.getElementById('modalContainer');
     const listItems = duplicates.map(d => `
         <li class="duplicate-item">
-            <span><strong>${d.Pharmacy}</strong> (${d.Region}) - ${d.Month} [${d.Class}]</span>
+            <span><strong>${d.Year}</strong> - <strong>${d.Pharmacy}</strong> (${d.Region}) - ${d.Month} [${d.Class}]</span>
             <span class="duplicate-count-badge">${d.count} entries merged</span>
         </li>
     `).join('');
@@ -1255,6 +1255,7 @@ const processDataAndHandleDuplicates = (rawData) => {
     cleanData.forEach(row => {
         if (row._duplicateCount > 1) {
             duplicateTracker.push({
+                Year: row.Year,
                 Pharmacy: row.Pharmacy,
                 Region: row.Region,
                 Month: row.Month,
