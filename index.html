@@ -240,13 +240,13 @@ color: white;
 
 .btn-missing {
 background-color: white;
-border: 1px solid var(--border-light);
-color: var(--text-color);
+border: 1px solid #fda4af;
+color: #be123c;
 }
 .btn-missing:hover {
-border-color: var(--secondary-color);
-color: var(--secondary-dark);
-background-color: var(--secondary-ultra-light);
+border-color: #f43f5e;
+color: #9f1239;
+background-color: #fff1f2;
 }
 
 .btn-import {
@@ -305,17 +305,17 @@ border-radius: 50%;
 }
 
 #missingResultsCount {
-color: var(--danger-dark);
+color: #be123c;
 font-size: 1rem;
 font-weight: 600;
 display: inline-flex;
 align-items: center;
 gap: 0.5rem;
-background-color: var(--danger-ultra-light);
+background-color: #fff1f2;
 padding: 0.5rem 1rem;
 border-radius: var(--border-radius-md);
 margin-left: 1rem;
-border: 1px solid rgba(239, 68, 68, 0.2);
+border: 1px solid #fda4af;
 cursor: pointer;
 }
 
@@ -543,7 +543,9 @@ display: flex; flex-direction: column;
 .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { margin: 0; }
 .modal-body { overflow-y: auto; padding: 0; }
-.duplicate-item { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; }
+.duplicate-item { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; flex-direction: column; gap: 0.5rem;}
+.duplicate-item-header { display: flex; justify-content: space-between; align-items: center; }
+.duplicate-rows { font-size: 0.85rem; color: var(--text-muted); background: var(--background-color); padding: 0.5rem; border-radius: 0.5rem; }
 
 .hidden { display: none !important; }
 .trend-up { color: var(--success-color); }
@@ -789,14 +791,16 @@ const rowClass = row.Class ? String(row.Class).trim() : 'Unknown';
 if (!year && !pharmacy) return;
 
 const uniqueKey = `${year}_${region}_${pharmacy}_${month}_${rowClass}`.toLowerCase();
+const currentRowNum = row._rowNum || 'Unknown';
 
 if (groupedData[uniqueKey]) {
 groupedData[uniqueKey]._duplicateCount = (groupedData[uniqueKey]._duplicateCount || 1) + 1;
+groupedData[uniqueKey]._rows.push(currentRowNum);
 categoriesToSum.forEach(cat => {
 groupedData[uniqueKey][cat] = (parseFloat(groupedData[uniqueKey][cat] || 0) + parseFloat(row[cat] || 0));
 });
 } else {
-groupedData[uniqueKey] = { ...row, _duplicateCount: 1, Year: year, Region: region, Pharmacy: pharmacy, Month: month, Class: rowClass };
+groupedData[uniqueKey] = { ...row, _duplicateCount: 1, _rows: [currentRowNum], Year: year, Region: region, Pharmacy: pharmacy, Month: month, Class: rowClass };
 categoriesToSum.forEach(cat => groupedData[uniqueKey][cat] = parseFloat(row[cat] || 0));
 }
 });
@@ -804,9 +808,18 @@ categoriesToSum.forEach(cat => groupedData[uniqueKey][cat] = parseFloat(row[cat]
 const cleanData = Object.values(groupedData);
 cleanData.forEach(row => {
 if (row._duplicateCount > 1) {
-duplicateTracker.push({ Year: row.Year, Pharmacy: row.Pharmacy, Region: row.Region, Month: row.Month, Class: row.Class, count: row._duplicateCount });
+duplicateTracker.push({
+Year: row.Year,
+Pharmacy: row.Pharmacy,
+Region: row.Region,
+Month: row.Month,
+Class: row.Class,
+count: row._duplicateCount,
+rows: row._rows.join(', ')
+});
 }
 delete row._duplicateCount;
+delete row._rows;
 });
 return { cleanData, duplicateTracker };
 };
@@ -1039,7 +1052,7 @@ modal.innerHTML = `
 <div class="modal-overlay" onclick="document.getElementById('modalContainer').classList.add('hidden')">
 <div class="modal-content" onclick="event.stopPropagation()">
 <div class="modal-header"><h3>Merged Duplicates</h3><button class="modal-close" onclick="document.getElementById('modalContainer').classList.add('hidden')">&times;</button></div>
-<div class="modal-body">${duplicates.map(d => `<div class="duplicate-item"><div><strong>${d.Year}</strong> - ${d.Pharmacy} (${d.Month})</div><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:12px;font-size:0.8em;font-weight:bold">${d.count} Merged</span></div>`).join('')}</div>
+<div class="modal-body">${duplicates.map(d => `<div class="duplicate-item"><div class="duplicate-item-header"><div><strong>${d.Year}</strong> - ${d.Pharmacy} (${d.Month})</div><span style="background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:12px;font-size:0.8em;font-weight:bold">${d.count} Merged</span></div><div class="duplicate-rows">Sheet Rows: ${d.rows}</div></div>`).join('')}</div>
 </div>
 </div>`;
 modal.classList.remove('hidden');
@@ -1089,6 +1102,7 @@ document.getElementById('exportExcelBtn').addEventListener('click', exportData);
 const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`).then(r => r.text()).then(csv => {
 Papa.parse(csv, { header: true, skipEmptyLines: true, complete: (results) => {
+results.data.forEach((row, index) => { row._rowNum = index + 2; });
 const processed = processDataAndHandleDuplicates(results.data);
 data = processed.cleanData;
 if (processed.duplicateTracker.length > 0) {
