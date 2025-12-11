@@ -82,12 +82,8 @@ transform: translateY(0);
 }
 
 @keyframes shimmer {
-0% {
-background-position: -1000px 0;
-}
-100% {
-background-position: 1000px 0;
-}
+0% { background-position: -1000px 0; }
+100% { background-position: 1000px 0; }
 }
 
 body {
@@ -622,8 +618,6 @@ box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 position: relative;
 }
 
-/* Remove idle shimmer, active shimmer is handled by ::after on hover */
-
 .total-card {
 background: var(--total-card-background);
 color: var(--total-card-text);
@@ -689,17 +683,31 @@ background: linear-gradient(90deg, var(--secondary-light), var(--secondary-color
 box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
 }
 
+/* Charts Grid Layout */
+.charts-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 1.5rem;
+margin-bottom: 2rem;
+}
+
 .chart-container {
 background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
 border-radius: var(--border-radius-lg);
-padding: 2rem;
+padding: 1.5rem;
 box-shadow: var(--card-shadow);
-height: 650px;
-width: 100%;
 position: relative;
 border: 2px solid var(--border-light);
 animation: fadeInUp 0.6s ease-out 0.35s backwards;
 overflow: hidden;
+height: 450px;
+display: flex;
+flex-direction: column;
+}
+
+.chart-container.wide {
+grid-column: 1 / -1;
+height: 600px;
 }
 
 .chart-container::before {
@@ -716,11 +724,12 @@ background: linear-gradient(90deg, var(--primary-color), var(--secondary-color))
 display: flex;
 justify-content: space-between;
 align-items: center;
-margin-bottom: 1.5rem;
+margin-bottom: 1rem;
+flex-shrink: 0;
 }
 
 .chart-title {
-font-size: 1.375rem;
+font-size: 1.125rem;
 font-weight: 700;
 color: var(--text-color);
 letter-spacing: -0.01em;
@@ -734,9 +743,9 @@ gap: 0.5rem;
 .chart-btn {
 background: white;
 border: 2px solid var(--border-light);
-padding: 0.5rem 1rem;
-border-radius: 0.625rem;
-font-size: 0.875rem;
+padding: 0.4rem 0.8rem;
+border-radius: 0.5rem;
+font-size: 0.8rem;
 font-weight: 600;
 color: var(--text-muted);
 cursor: pointer;
@@ -749,6 +758,13 @@ color: var(--primary-color);
 border-color: var(--primary-color);
 box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 transform: translateY(-1px);
+}
+
+.chart-wrapper {
+flex-grow: 1;
+position: relative;
+width: 100%;
+min-height: 0;
 }
 
 .explore-table-container, .missing-table-container {
@@ -896,7 +912,7 @@ display: flex;
 flex-direction: column;
 animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 border: 2px solid var(--border-light);
-overflow: hidden; /* Fixes corner bleeding */
+overflow: hidden;
 }
 
 @keyframes modalSlideUp {
@@ -1034,6 +1050,12 @@ font-weight: 700;
 .trend-neutral {
 color: var(--text-muted);
 }
+
+@media (max-width: 1024px) {
+.charts-grid {
+grid-template-columns: 1fr;
+}
+}
 </style>
 
 </head>
@@ -1111,7 +1133,9 @@ Export
 
 <div class="dashboard-view">
 <div class="stats" id="statsContainer"></div>
-<div class="chart-container">
+<div class="charts-grid">
+<!-- Existing Main Chart -->
+<div class="chart-container wide">
 <div class="chart-header">
 <div class="chart-title">Medication Distribution</div>
 <div class="chart-actions">
@@ -1119,8 +1143,31 @@ Export
 <button class="chart-btn" onclick="updateChartType('line')">Line</button>
 </div>
 </div>
-<div style="height: 580px; position: relative;">
+<div class="chart-wrapper">
 <canvas id="medicationChart"></canvas>
+</div>
+</div>
+
+<!-- New Chart 1: Monthly Trend -->
+
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Monthly Trend</div>
+</div>
+<div class="chart-wrapper">
+<canvas id="trendChart"></canvas>
+</div>
+</div>
+
+<!-- New Chart 2: Regional Performance -->
+
+<div class="chart-container">
+<div class="chart-header">
+<div class="chart-title">Regional Distribution</div>
+</div>
+<div class="chart-wrapper">
+<canvas id="regionChart"></canvas>
+</div>
 </div>
 </div>
 </div>
@@ -1170,6 +1217,8 @@ let data = [], filteredData = [], missingData = [];
 let allYears = [];
 let defaultYear = null;
 let currentChart = null;
+let trendChartInstance = null;
+let regionChartInstance = null;
 let currentChartType = 'bar';
 let isExploreMode = false;
 let isMissingMode = false;
@@ -1427,6 +1476,85 @@ ticks: { color: '#334155', font: { weight: '600', size: 11 } }
 });
 };
 
+const updateMonthlyTrendChart = () => {
+const ctx = document.getElementById('trendChart').getContext('2d');
+if (trendChartInstance) trendChartInstance.destroy();
+
+const months = Array.from(new Set(filteredData.map(r => r.Month)))
+.filter(Boolean)
+.sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+
+const monthlyTotals = months.map(m => {
+const monthRows = filteredData.filter(r => r.Month === m);
+return medicationCategories.reduce((sum, cat) => sum + monthRows.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
+});
+
+trendChartInstance = new Chart(ctx, {
+type: 'line',
+data: {
+labels: months,
+datasets: [{
+label: 'Total Spending',
+data: monthlyTotals,
+borderColor: '#10b981',
+backgroundColor: 'rgba(16, 185, 129, 0.1)',
+borderWidth: 2,
+fill: true,
+tension: 0.4
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: { legend: { display: false } },
+scales: {
+y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+x: { grid: { display: false } }
+}
+}
+});
+};
+
+const updateRegionChart = () => {
+const ctx = document.getElementById('regionChart').getContext('2d');
+if (regionChartInstance) regionChartInstance.destroy();
+
+const regions = {};
+filteredData.forEach(row => {
+const reg = row.Region || 'Unknown';
+const val = medicationCategories.reduce((sum, cat) => sum + parseFloat(row[cat] || 0), 0);
+regions[reg] = (regions[reg] || 0) + val;
+});
+
+const sortedRegions = Object.entries(regions).sort((a,b) => b[1] - a[1]);
+
+regionChartInstance = new Chart(ctx, {
+type: 'polarArea',
+data: {
+labels: sortedRegions.map(i => i[0]),
+datasets: [{
+data: sortedRegions.map(i => i[1]),
+backgroundColor: [
+'rgba(59, 130, 246, 0.7)',
+'rgba(14, 165, 233, 0.7)',
+'rgba(16, 185, 129, 0.7)',
+'rgba(245, 158, 11, 0.7)',
+'rgba(239, 68, 68, 0.7)'
+],
+borderWidth: 1
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+},
+scales: { r: { ticks: { display: false } } }
+}
+});
+};
+
 const findMissingTotals = () => {
 missingData = [];
 const currentFilters = getCurrentFilters();
@@ -1518,6 +1646,8 @@ document.querySelector('.missing-view').classList.add('hidden');
 document.querySelector('.dashboard-view').classList.remove('hidden');
 updateStats();
 updateMedicationChart();
+updateMonthlyTrendChart();
+updateRegionChart();
 resCount.innerHTML = `Showing <strong>${filteredData.length}</strong> Results`;
 if (missingData.length > 0) {
 misCount.classList.remove('hidden');
