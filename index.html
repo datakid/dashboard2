@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<title>Lx Dashboard</title>
+<title>Lx Dashboard Preview </title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
@@ -41,7 +40,6 @@
 --border-radius-lg: 1.125rem;
 --border-light: #e2e8f0;
 --border-focus: rgba(59, 130, 246, 0.2);
-/* Sped up transitions for snappier feel */
 --transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
 --transition-standard: 200ms cubic-bezier(0.4, 0, 0.2, 1); 
 }
@@ -140,7 +138,6 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 #yearFilter:hover { border-color: var(--primary-light); box-shadow: 0 4px 8px rgba(59, 130, 246, 0.08); }
 #yearFilter:focus { outline: none; border-color: var(--primary-color); }
 
-/* Premium Search Bar Styling */
 .search-bar-container {
 width: 100%;
 margin-bottom: 2rem;
@@ -178,9 +175,11 @@ align-items: center;
 justify-content: center;
 flex-shrink: 0;
 margin-left: 0.5rem;
+cursor: pointer;
+transition: color 0.2s;
 }
 
-.premium-search-wrapper:focus-within .search-icon-premium { color: var(--primary-color); }
+.search-icon-premium:hover { color: var(--primary-color); }
 
 .search-chips-container {
 display: flex;
@@ -250,6 +249,12 @@ margin-left: 0.25rem;
 #universalSearchInput::placeholder { color: #94a3b8; transition: color 0.2s; }
 #universalSearchInput:focus::placeholder { color: #cbd5e1; }
 
+.search-actions {
+display: flex;
+align-items: center;
+gap: 0.25rem;
+}
+
 .search-action-btn {
 background: none;
 border: none;
@@ -266,6 +271,8 @@ opacity: 0.6;
 
 .search-action-btn:hover { background-color: #f1f5f9; color: var(--text-color); opacity: 1; transform: scale(1.05); }
 .search-action-btn.danger:hover { background-color: #fef2f2; color: var(--danger-color); opacity: 1; }
+.search-action-btn.primary { color: var(--primary-color); opacity: 0.8; }
+.search-action-btn.primary:hover { background-color: var(--primary-ultra-light); opacity: 1; }
 
 .search-shortcut {
 background: #f1f5f9;
@@ -281,7 +288,6 @@ flex-shrink: 0;
 margin-right: 0.5rem;
 }
 
-/* Search Dropdown Results */
 .universal-search-results {
 position: absolute;
 top: calc(100% + 0.6rem);
@@ -394,14 +400,12 @@ gap: 1.5rem;
 .search-hint span { display: flex; align-items: center; gap: 0.25rem; }
 .kbd-key { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0 4px; font-family: monospace; font-size: 0.8em; color: var(--text-color); }
 
-/* Category Colors */
 .cat-region { color: #3b82f6; }
 .cat-pharmacy { color: #8b5cf6; }
 .cat-month { color: #10b981; }
 .cat-class { color: #f59e0b; }
 .cat-medication { color: #ec4899; }
 
-/* Filters */
 .filters {
 display: grid;
 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -592,7 +596,6 @@ transform: translateY(-50%) scale(1.1);
 
 .clear-filter-btn svg { width: 12px; height: 12px; stroke-width: 3; }
 
-/* Controls & Buttons */
 .controls-container {
 display: flex;
 justify-content: space-between;
@@ -667,7 +670,6 @@ pointer-events: none;
 .btn-export { border-color: var(--success-light); color: var(--success-dark); }
 .btn-export:hover { border-color: var(--success-color); background-color: var(--success-ultra-light); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
 
-/* Results Info */
 .results-info {
 margin-bottom: 2rem;
 display: flex;
@@ -711,7 +713,6 @@ cursor: pointer;
 
 #duplicateResultsCount:hover { transform: translateY(-2px); }
 
-/* Stats Grid */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.75rem; margin-bottom: 3rem; }
 .stat-card { background: white; border-radius: var(--border-radius-lg); padding: 2rem; box-shadow: var(--card-shadow); display: flex; flex-direction: column; justify-content: space-between; animation: fadeInUp 0.5s ease-out; position: relative; overflow: hidden; transition: all var(--transition-standard); border: 2px solid transparent; }
 .stat-card:hover { transform: translateY(-6px); box-shadow: var(--card-hover-shadow); border-color: rgba(59, 130, 246, 0.1); }
@@ -725,7 +726,6 @@ cursor: pointer;
 .total-card { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%); grid-column: 1 / -1; box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.3); }
 .total-card .stat-value, .total-card .stat-label { -webkit-text-fill-color: white; color: white; }
 
-/* Charts */
 .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
 .chart-container { background: white; border-radius: var(--border-radius-lg); padding: 1.5rem; box-shadow: var(--card-shadow); border: 2px solid var(--border-light); animation: fadeInUp 0.5s ease-out; height: 450px; display: flex; flex-direction: column; }
 .chart-container.wide { grid-column: 1 / -1; height: 600px; }
@@ -736,25 +736,27 @@ cursor: pointer;
 .chart-btn:hover, .chart-btn.active { background: var(--primary-ultra-light); color: var(--primary-color); border-color: var(--primary-color); }
 .chart-wrapper { flex-grow: 1; position: relative; width: 100%; }
 
-/* Tables */
 .explore-table-container, .missing-table-container { background: white; border-radius: var(--border-radius-lg); padding: 2rem; box-shadow: var(--card-shadow); overflow-x: auto; border: 2px solid var(--border-light); animation: fadeInUp 0.5s ease-out; }
 
 table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9375rem; }
-th, td { padding: 1.1rem 1.35rem; border-bottom: 1px solid var(--border-light); white-space: nowrap; text-align: left; }
+th, td { padding: 1.1rem 1.35rem; border-bottom: 1px solid var(--border-light); white-space: nowrap; text-align: left; transition: background-color 0.2s ease; }
 th { background: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 0.8125rem; color: var(--text-muted); position: sticky; top: 0; z-index: 2; border-bottom: 2px solid var(--border-light); }
 th:first-child, td:first-child { position: sticky; left: 0; background: white; z-index: 3; border-right: 2px solid var(--border-light); }
 .missing-table-container th { min-width: 150px; }
+
+tbody tr { transition: background-color 0.2s ease, transform 0.2s ease; }
+tbody tr:hover { background-color: #eff6ff; }
+tbody tr:hover td:first-child { background-color: #eff6ff; }
 
 .hidden { display: none !important; }
 
 @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } }
 </style>
-
 </head>
 <body>
 
 <div class="dashboard-header">
-<h1>Dashboard</h1>
+<h1>Dashboard Preview</h1>
 <div class="year-filter-container">
 <label for="yearFilter" class="year-filter-label">Fiscal Year</label>
 <select id="yearFilter"></select>
@@ -763,7 +765,7 @@ th:first-child, td:first-child { position: sticky; left: 0; background: white; z
 
 <div class="search-bar-container">
 <div class="premium-search-wrapper">
-<div class="search-icon-premium">
+<div class="search-icon-premium" id="triggerSearchFocus">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 <circle cx="11" cy="11" r="8"></circle>
 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -772,9 +774,16 @@ th:first-child, td:first-child { position: sticky; left: 0; background: white; z
 <div class="search-chips-container" id="searchChips"></div>
 <input type="text" id="universalSearchInput" placeholder="Search across all filters..." autocomplete="off"/>
 
+<div class="search-actions">
 <button id="clearSearchInput" class="search-action-btn hidden" title="Clear input">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+</svg>
+</button>
+
+<button id="commitSearchBtn" class="search-action-btn primary hidden" title="Apply Search">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="20 6 9 17 4 12"></polyline>
 </svg>
 </button>
 
@@ -783,6 +792,7 @@ th:first-child, td:first-child { position: sticky; left: 0; background: white; z
 <path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
 </svg>
 </button>
+</div>
 
 <div class="search-shortcut">/</div>
 <div class="universal-search-results" id="universalSearchResults"></div>
@@ -952,7 +962,7 @@ let regionChartInstance = null;
 let currentChartType = 'vertical';
 let isExploreMode = false;
 let isMissingMode = false;
-let searchIndices = {}; // Global store for Fuse indices
+let searchIndices = {};
 
 let activeFilters = {
 Year: null,
@@ -1079,18 +1089,15 @@ if (field === 'month') return getMonthOrderValue(a.value) - getMonthOrderValue(b
 return a.value.localeCompare(b.value);
 });
 
-// Optimization: Use innerHTML buffer instead of creating elements in loop
 let html = '';
 optionsWithStatus.forEach(opt => {
 html += `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" data-value="${opt.value.replace(/"/g, '&quot;')}"><div class="checkbox-custom"></div>${opt.value}</div>`;
 });
 dropdown.innerHTML = html;
 
-// Attach events via delegation or simple query loop after render
 dropdown.querySelectorAll('.dropdown-item').forEach(item => {
 item.addEventListener('click', (e) => {
 const val = item.getAttribute('data-value');
-// Check validity from class list or re-check
 if (item.classList.contains('disabled-option') && !item.classList.contains('selected')) return;
 const key = field.charAt(0).toUpperCase() + field.slice(1);
 toggleFilter(key, val);
@@ -1145,7 +1152,6 @@ btn.classList.add('active');
 });
 
 document.addEventListener('click', (e) => {
-// Prevent closing if clicking inside search wrapper
 if (!e.target.closest('.premium-search-wrapper')) {
 document.getElementById('universalSearchResults').classList.remove('active');
 }
@@ -1165,9 +1171,6 @@ updateSearchVisuals();
 });
 };
 
-/* --- Optimized Universal Search Logic --- */
-
-// Pre-build search indices to avoid lag during typing
 const buildSearchIndices = () => {
 const fields = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
 searchIndices = {};
@@ -1178,14 +1181,13 @@ options = medicationCategories;
 } else {
 options = getAllUniqueOptions(field);
 }
-// Enhanced Fuse options for "Scanning" feel
 searchIndices[field] = new Fuse(options, {
-threshold: 0.3, // Lower = stricter, 0.3 allows typos but not garbage
+threshold: 0.3,
 includeScore: true,
-ignoreLocation: true, // Crucial for "Scanning" (e.g. "pzn" finds "Piazzon")
+ignoreLocation: true,
 distance: 100,
 minMatchCharLength: 2,
-keys: ['item'] // Implicit
+keys: ['item']
 });
 });
 };
@@ -1195,14 +1197,27 @@ const searchInput = document.getElementById('universalSearchInput');
 const resultsContainer = document.getElementById('universalSearchResults');
 const clearInputBtn = document.getElementById('clearSearchInput');
 const clearAllBtn = document.getElementById('clearAllFilters');
+const commitSearchBtn = document.getElementById('commitSearchBtn');
+const triggerIcon = document.getElementById('triggerSearchFocus');
 
 const checkInputState = () => {
-if(searchInput.value.trim().length > 0) {
-clearInputBtn.classList.remove('hidden');
-} else {
-clearInputBtn.classList.add('hidden');
-}
+const hasInput = searchInput.value.trim().length > 0;
+clearInputBtn.classList.toggle('hidden', !hasInput);
+commitSearchBtn.classList.toggle('hidden', !hasInput && !resultsContainer.classList.contains('active'));
 };
+
+triggerIcon.addEventListener('click', (e) => {
+e.stopPropagation();
+if (resultsContainer.classList.contains('active')) {
+resultsContainer.classList.remove('active');
+searchInput.blur();
+} else {
+searchInput.focus();
+if (searchInput.value.trim().length > 0) {
+performUniversalSearch(searchInput.value.trim());
+}
+}
+});
 
 clearInputBtn.addEventListener('click', () => {
 searchInput.value = '';
@@ -1211,13 +1226,16 @@ resultsContainer.classList.remove('active');
 checkInputState();
 });
 
+commitSearchBtn.addEventListener('click', () => {
+resultsContainer.classList.remove('active');
+});
+
 clearAllBtn.addEventListener('click', () => {
 ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
 updateAllFilterOptions();
 updateDashboard();
 updateSearchVisuals();
 searchInput.focus();
-// If search is active, refresh the visuals of the search results
 if (resultsContainer.classList.contains('active')) {
 performUniversalSearch(searchInput.value);
 }
@@ -1235,16 +1253,15 @@ performUniversalSearch(query);
 
 searchInput.addEventListener('focus', (e) => {
 if (e.target.value.trim().length >= 1) {
-performUniversalSearch(e.target.value.trim()); // Refresh state on focus
+performUniversalSearch(e.target.value.trim());
 resultsContainer.classList.add('active');
+checkInputState();
 }
 });
 
 searchInput.addEventListener('keydown', (e) => {
 if (e.key === 'Enter') {
-// Only close if empty or explicitly intended,
-// But for multi-select, enter usually acts as a submit or close if items are selected.
-// Here we just close the dropdown.
+e.preventDefault();
 resultsContainer.classList.remove('active');
 }
 });
@@ -1281,6 +1298,21 @@ searchResults[field] = result.map(r => r.item);
 let html = '<div class="search-results-grid">';
 let hasResults = false;
 
+const createItemHtml = (itemObj, field) => {
+const { item, isValid, isSelected } = itemObj;
+const itemClass = !isValid && !isSelected ? 'disabled' : (isSelected ? 'selected' : '');
+const cleanItem = item.replace(/'/g, "\\'");
+const itemId = `search-item-${field}-${item.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+return `<div class="search-result-item ${itemClass}"
+id="${itemId}"
+onmousedown="event.preventDefault()"
+onclick="handleSearchResultClick('${field}', '${cleanItem}', this)">
+<span>${item}</span>
+${isSelected ? '<svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
+</div>`;
+};
+
 fields.forEach(field => {
 if (searchResults[field] && searchResults[field].length > 0) {
 hasResults = true;
@@ -1288,21 +1320,22 @@ const config = searchCategoryConfig[field];
 html += `<div class="search-category-column">`;
 html += `<div class="search-category-header ${config.class}"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>${config.label}</div>`;
 
+const validItems = [];
+const invalidItems = [];
+
 searchResults[field].forEach(item => {
 const isValid = validOptionsMap[field].has(item);
 const isSelected = activeFilters[field].includes(item);
-const itemClass = !isValid && !isSelected ? 'disabled' : (isSelected ? 'selected' : '');
-
-// Clean string for onclick handler
-const cleanItem = item.replace(/'/g, "\\'");
-
-html += `<div class="search-result-item ${itemClass}"
-id="search-item-${field}-${item.replace(/[^a-zA-Z0-9]/g, '_')}"
-onclick="handleSearchResultClick('${field}', '${cleanItem}', this)">
-<span>${item}</span>
-${isSelected ? '<svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
-</div>`;
+if (isValid || isSelected) {
+validItems.push({ item, isValid, isSelected });
+} else {
+invalidItems.push({ item, isValid, isSelected });
+}
 });
+
+validItems.forEach(i => html += createItemHtml(i, field));
+invalidItems.forEach(i => html += createItemHtml(i, field));
+
 html += `</div>`;
 }
 });
@@ -1320,40 +1353,35 @@ html = '<div class="search-no-results">No matches found for "' + query + '"</div
 
 resultsContainer.innerHTML = html;
 resultsContainer.classList.add('active');
+const commitBtn = document.getElementById('commitSearchBtn');
+if (commitBtn) commitBtn.classList.remove('hidden');
 };
 
 const handleSearchResultClick = (category, value, element) => {
+event.stopPropagation();
 const validSet = category === 'MedClass' ? getAvailableMedClasses() : getValidOptionsForField(category);
 
-// If item is not valid (greyed out) and NOT already selected, do nothing
 if (!validSet.has(value) && !activeFilters[category].includes(value)) {
 return;
 }
 
-// 1. Toggle filter logic
 if (activeFilters[category].includes(value)) {
 activeFilters[category] = activeFilters[category].filter(v => v !== value);
-element.classList.remove('selected');
-const check = element.querySelector('.check-icon');
-if(check) check.remove();
 } else {
 activeFilters[category].push(value);
-element.classList.add('selected');
-if(!element.querySelector('.check-icon')) {
-element.insertAdjacentHTML('beforeend', '<svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>');
-}
 }
 
-// 2. Trigger updates
+// Update app state
 updateAllFilterOptions();
-updateDashboard(); // Debounced
-updateSearchVisuals(); // Instant
+updateDashboard();
+updateSearchVisuals();
 
-// 3. UX: Keep focus and dropdown open
+// Re-render search results immediately to enforce new sort order and grey-out
 const input = document.getElementById('universalSearchInput');
+if(input.value.trim().length > 0) {
+performUniversalSearch(input.value.trim());
+}
 input.focus();
-// We do NOT call performUniversalSearch here to avoid re-rendering the whole DOM
-// This makes the selection feel instant.
 };
 
 const updateSearchVisuals = () => {
@@ -1376,13 +1404,10 @@ chip.innerHTML = `<span class="search-chip-category ${config.class}">${field}</s
 chip.querySelector('.search-chip-remove').addEventListener('click', (e) => {
 e.stopPropagation();
 toggleFilter(field, val);
-// Update search results list visual state if it's open
-const itemId = `search-item-${field}-${val.replace(/[^a-zA-Z0-9]/g, '_')}`;
-const itemEl = document.getElementById(itemId);
-if (itemEl) {
-itemEl.classList.remove('selected');
-const check = itemEl.querySelector('.check-icon');
-if(check) check.remove();
+// If search is open, refresh it to update visuals
+const input = document.getElementById('universalSearchInput');
+if(document.getElementById('universalSearchResults').classList.contains('active') && input.value.trim().length > 0) {
+performUniversalSearch(input.value.trim());
 }
 });
 container.appendChild(chip);
@@ -1395,8 +1420,6 @@ clearAllBtn.classList.remove('hidden');
 clearAllBtn.classList.add('hidden');
 }
 };
-
-/* --- End Search Logic --- */
 
 const populateYearFilter = () => {
 const yearSelect = document.getElementById('yearFilter');
@@ -1419,7 +1442,7 @@ activeFilters.Year = yearSelect.value;
 updateAllFilterOptions();
 updateDashboard();
 updateSearchVisuals();
-buildSearchIndices(); // Rebuild search index for new year
+buildSearchIndices();
 });
 };
 
@@ -1775,7 +1798,7 @@ dupeCount.classList.add('hidden');
 const showDuplicateDetails = (duplicates) => {
 const modal = document.getElementById('modalContainer');
 modal.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:50;display:flex;justify-content:center;align-items:center" onclick="document.getElementById('modalContainer').classList.add('hidden')">
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:10000;display:flex;justify-content:center;align-items:center" onclick="document.getElementById('modalContainer').classList.add('hidden')">
 <div style="background:white;width:90%;max-width:600px;max-height:80vh;border-radius:1rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;border:2px solid #e2e8f0;overflow:hidden" onclick="event.stopPropagation()">
 <div style="padding:1.5rem;border-bottom:2px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc">
 <h3 style="margin:0;font-size:1.25rem;color:#334155">Merged Duplicates</h3>
