@@ -275,7 +275,6 @@ body {
     stroke-width: 3;
 }
 
-/* --- BUTTONS: UNIFIED DESIGN --- */
 .controls-container {
     display: flex;
     justify-content: space-between;
@@ -303,7 +302,7 @@ body {
     font-weight: 600;
     font-size: 0.9375rem;
     cursor: pointer;
-    border: 2px solid; /* Unified Border */
+    border: 2px solid;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -350,7 +349,6 @@ body {
     transform: translateY(0);
 }
 
-/* Button Variants - Only Colors Change */
 .btn-reset { 
     border-color: var(--border-light); 
     color: var(--text-muted); 
@@ -389,7 +387,6 @@ body {
     box-shadow: 0 4px 15px rgba(180, 94, 148, 0.2); 
 }
 
-/* Import Button - New Indigo Theme */
 .btn-import { 
     border-color: var(--import-color); 
     color: var(--import-color); 
@@ -410,7 +407,6 @@ body {
     background-color: var(--success-ultra-light); 
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); 
 }
-/* ------------------------------------- */
 
 .results-info {
     margin-bottom: 2rem;
@@ -898,10 +894,11 @@ const updateAllFilterOptions = () => {
     const currentFilters = getCurrentFilters();
     const filtersToUpdate = ['Region', 'Pharmacy', 'Month', 'Class'];
 
+    // Update standard filters (Row based)
     filtersToUpdate.forEach(field => {
         const filterId = field.toLowerCase() + 'Filter';
         const select = document.getElementById(filterId);
-        const currentSelection = select.value.toLowerCase(); // Compare in lowercase
+        const currentSelection = select.value.toLowerCase(); 
         
         const availableOptions = getAvailableOptions(field, currentFilters);
 
@@ -914,13 +911,11 @@ const updateAllFilterOptions = () => {
             select.appendChild(option);
         });
 
-        // Check validity case-insensitively
         const exists = availableOptions.some(opt => opt.toLowerCase() === currentSelection);
         
         if (currentSelection !== 'all' && !exists) {
             select.value = 'all';
         } else if (currentSelection !== 'all') {
-            // Restore selection (matching case from options)
             const exactMatch = availableOptions.find(opt => opt.toLowerCase() === currentSelection);
             if(exactMatch) select.value = exactMatch;
         }
@@ -932,11 +927,46 @@ const updateAllFilterOptions = () => {
         }
     });
 
-    const medClassSelect = document.getElementById('medClassFilter');
-    if (medClassSelect.value !== 'all') {
-        medClassSelect.classList.add('active-filter');
+    // Dynamic Medication Class Logic (Column Header based)
+    const medSelect = document.getElementById('medClassFilter');
+    const currentMedSelection = medSelect.value;
+    
+    // Filter rows based on all OTHER filters to see which Med Classes have data
+    const activeRows = data.filter(row => {
+        if (row.Year !== currentFilters.Year) return false;
+        if (currentFilters.Region !== 'all' && String(row.Region).trim().toLowerCase() !== String(currentFilters.Region).trim().toLowerCase()) return false;
+        if (currentFilters.Pharmacy !== 'all' && String(row.Pharmacy).trim().toLowerCase() !== String(currentFilters.Pharmacy).trim().toLowerCase()) return false;
+        if (currentFilters.Month !== 'all' && String(row.Month).trim().toLowerCase() !== String(currentFilters.Month).trim().toLowerCase()) return false;
+        if (currentFilters.Class !== 'all' && String(row.Class).trim().toLowerCase() !== String(currentFilters.Class).trim().toLowerCase()) return false;
+        return true;
+    });
+
+    const availableMedClasses = medicationCategories.filter(cat => {
+        return activeRows.some(row => parseFloat(row[cat] || 0) > 0);
+    });
+
+    medSelect.innerHTML = `<option value="all">All Classes</option>`;
+    availableMedClasses.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        medSelect.appendChild(option);
+    });
+
+    let finalValue = 'all';
+    if (currentMedSelection !== 'all' && !availableMedClasses.includes(currentMedSelection)) {
+        finalValue = 'all';
     } else {
-        medClassSelect.classList.remove('active-filter');
+        finalValue = currentMedSelection;
+    }
+    
+    medSelect.value = finalValue;
+
+    // Strict Active Class Application based on Final Value
+    if (finalValue !== 'all') {
+        medSelect.classList.add('active-filter');
+    } else {
+        medSelect.classList.remove('active-filter');
     }
 };
 
@@ -1047,7 +1077,6 @@ const applyFilters = () => {
             if (key === 'MedClass') return true;
             if (value === 'all') return true;
             
-            // Tight Case-Insensitive Logic
             const rowVal = row[key] ? String(row[key]).trim().toLowerCase() : '';
             const filterVal = String(value).trim().toLowerCase();
             return rowVal === filterVal;
@@ -1199,7 +1228,7 @@ const updateMonthlyTrendChart = () => {
         data: {
             labels: months,
             datasets: [{
-                label: 'Total Spending',
+                label: 'Value',
                 data: monthlyTotals,
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
