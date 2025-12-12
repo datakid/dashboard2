@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -12,1205 +12,815 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
---primary-color: #3b82f6;
---primary-light: #60a5fa;
---primary-dark: #2563eb;
---primary-ultra-light: #f0f7ff;
---primary-hover: #4f8df7;
---primary-focus: #3478f5;
+    --primary-color: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --primary-ultra-light: #eff6ff;
+    --primary-hover: #4f8df7;
 
+    --secondary-color: #0ea5e9;
+    --secondary-light: #38bdf8;
+    --secondary-dark: #0284c7;
 
---secondary-color: #0ea5e9;
---secondary-light: #38bdf8;
---secondary-dark: #0284c7;
---secondary-ultra-light: #f0f9ff;
---secondary-hover: #1aabeb;
---secondary-focus: #0d9fe1;
+    --success-color: #10b981;
+    --success-dark: #059669;
+    --success-ultra-light: #ecfdf5;
 
---success-color: #10b981;
---success-light: #34d399;
---success-dark: #059669;
---success-ultra-light: #ecfdf5;
+    --warning-color: #f59e0b;
+    --warning-dark: #d97706;
+    --warning-ultra-light: #fffbeb;
 
---warning-color: #f59e0b;
---warning-light: #fbbf24;
---warning-dark: #d97706;
---warning-ultra-light: #fffbeb;
+    --danger-color: #ef4444;
+    --danger-dark: #dc2626;
+    --danger-ultra-light: #fef2f2;
 
---danger-color: #ef4444;
---danger-light: #f87171;
---danger-dark: #dc2626;
---danger-ultra-light: #fef2f2;
+    --import-color: #6366f1;
+    --import-dark: #4f46e5;
+    --import-light: #e0e7ff;
 
---text-color: #334155;
---text-muted: #64748b;
---text-light: #94a3b8;
---text-xlight: #cbd5e1;
---background-color: #f8fafc;
---card-background: #ffffff;
---hover-color: #f5f9ff;
+    --compare-color: #B45E94;
+    --compare-light: #fff5fa;
 
---card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 20px -5px rgba(59, 130, 246, 0.03), 0 1px 2px rgba(0, 0, 0, 0.03);
---card-hover-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.12), 0 10px 20px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(59, 130, 246, 0.05);
+    --text-color: #334155;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --background-color: #f8fafc;
+    --card-background: #ffffff;
 
---total-card-background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
---total-card-text: #ffffff;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 20px -5px rgba(59, 130, 246, 0.03);
+    --card-hover-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.12);
 
---transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
---transition-standard: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius-md: 0.875rem;
+    --border-radius-lg: 1.125rem;
+    --border-light: #e2e8f0;
+    --border-focus: rgba(59, 130, 246, 0.2);
 
---border-radius-md: 0.875rem;
---border-radius-lg: 1.125rem;
-
---border-light: #e2e8f0;
---border-focus: rgba(59, 130, 246, 0.2);
+    --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-standard: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 *, *::before, *::after {
-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 @keyframes fadeInUp {
-from {
-opacity: 0;
-transform: translateY(20px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shimmer {
-0% { background-position: -1000px 0; }
-100% { background-position: 1000px 0; }
+@keyframes reflectiveShine {
+    0% { left: -100%; opacity: 0; }
+    20% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+    100% { left: 200%; opacity: 0; }
 }
 
 body {
-font-family: 'Inter', system-ui, -apple-system, sans-serif;
-margin: 0;
-padding: 2.5rem;
-background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-color: var(--text-color);
-line-height: 1.6;
-min-height: 100vh;
-}
-
-body::before {
-content: '';
-position: fixed;
-top: -50%;
-left: -50%;
-width: 200%;
-height: 200%;
-background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
-radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.03) 0%, transparent 50%);
-pointer-events: none;
-z-index: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 2.5rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
 .dashboard-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 2.5rem;
-position: relative;
-z-index: 1;
-animation: fadeInUp 0.6s ease-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .dashboard-header h1 {
-background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-background-clip: text;
-font-weight: 800;
-font-size: 2.5rem;
-margin: 0;
-letter-spacing: -0.03em;
-position: relative;
-cursor: default;
-display: inline-block;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    font-size: 2.5rem;
+    margin: 0;
+    position: relative;
+    display: inline-block;
 }
 
 .dashboard-header h1::after {
-content: '';
-position: absolute;
-bottom: -8px;
-left: 0;
-width: 60px;
-height: 4px;
-background: linear-gradient(90deg, #3b82f6, transparent);
-border-radius: 2px;
-transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, transparent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
 }
 
 .dashboard-header h1:hover::after {
-width: 100%;
-max-width: 180px;
+    width: 100%;
 }
 
 .year-filter-container {
-position: relative;
-animation: fadeInUp 0.6s ease-out 0.1s backwards;
+    position: relative;
 }
 
 .year-filter-label {
-position: absolute;
-top: -0.75rem;
-left: 1rem;
-background-color: var(--background-color);
-padding: 0 0.5rem;
-font-size: 0.8125rem;
-font-weight: 700;
-color: var(--primary-color);
-z-index: 1;
-letter-spacing: 0.02em;
-text-transform: uppercase;
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    background-color: var(--background-color);
+    padding: 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    z-index: 2;
+    text-transform: uppercase;
 }
 
 #yearFilter {
-width: 200px;
-padding: 0.9rem 1.1rem;
-border: 2px solid var(--border-light);
-border-radius: var(--border-radius-md);
-background-color: var(--card-background);
-font-size: 0.9375rem;
-font-weight: 600;
-color: var(--text-color);
-appearance: none;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-background-position: right 1rem center;
-cursor: pointer;
-transition: all var(--transition-fast);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    width: 200px;
+    padding: 0.9rem 1.1rem;
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-background);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 #yearFilter:hover {
-border-color: var(--primary-light);
-box-shadow: 0 4px 8px rgba(59, 130, 246, 0.08);
+    border-color: var(--primary-light);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.08);
 }
 
 #yearFilter:focus {
-outline: none;
-border-color: var(--primary-color);
-box-shadow: 0 0 0 4px var(--border-focus), 0 4px 8px rgba(59, 130, 246, 0.08);
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .filters {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-gap: 1.5rem;
-margin-bottom: 2.5rem;
-position: relative;
-z-index: 1;
-}
-
-.filter-select {
-width: 100%;
-padding: 1.1rem 1.2rem;
-border: 2px solid var(--border-light);
-border-radius: var(--border-radius-md);
-background-color: var(--card-background);
-font-size: 0.9375rem;
-font-weight: 500;
-color: var(--text-color);
-appearance: none;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-background-position: right 1rem center;
-cursor: pointer;
-transition: all var(--transition-standard);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-.filter-select:focus {
-outline: none;
-border-color: var(--primary-color);
-box-shadow: 0 0 0 4px var(--border-focus), 0 4px 12px rgba(59, 130, 246, 0.12);
-transform: translateY(-2px);
-}
-
-.filter-select:hover:not(:focus) {
-border-color: var(--primary-light);
-background-color: var(--primary-ultra-light);
-box-shadow: 0 4px 8px rgba(59, 130, 246, 0.08);
-transform: translateY(-1px);
-}
-
-.filter-select.highlighted {
-background: linear-gradient(135deg, var(--primary-ultra-light) 0%, #ffffff 100%);
-border-color: var(--primary-color);
-box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    z-index: 1;
 }
 
 .filter-group {
-position: relative;
-animation: fadeInUp 0.6s ease-out;
+    position: relative;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .filter-group:nth-child(1) { animation-delay: 0.1s; }
 .filter-group:nth-child(2) { animation-delay: 0.15s; }
 .filter-group:nth-child(3) { animation-delay: 0.2s; }
 .filter-group:nth-child(4) { animation-delay: 0.25s; }
+.filter-group:nth-child(5) { animation-delay: 0.3s; }
 
 .filter-label {
-position: absolute;
-top: -0.75rem;
-left: 1rem;
-background-color: var(--card-background);
-padding: 0 0.5rem;
-font-size: 0.8125rem;
-font-weight: 700;
-color: var(--primary-color);
-z-index: 1;
-letter-spacing: 0.02em;
-text-transform: uppercase;
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    background-color: var(--background-color);
+    padding: 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    z-index: 2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 1.1rem 1.2rem;
+    padding-right: 2.5rem;
+    border: 2px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-background);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-color);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    cursor: pointer;
+    transition: all var(--transition-standard);
+}
+
+.filter-select:hover {
+    border-color: var(--primary-light);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--border-focus);
+}
+
+.filter-select.active-filter {
+    background-color: var(--primary-ultra-light);
+    border-color: var(--primary-color);
+    color: var(--primary-dark);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    background-image: none;
+}
+
+.clear-filter-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 3;
+    padding: 0;
+}
+
+.filter-select.active-filter ~ .clear-filter-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.clear-filter-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.clear-filter-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+
+/* --- BUTTONS: UNIFIED DESIGN --- */
 .controls-container {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 2rem;
-flex-wrap: wrap;
-gap: 1rem;
-background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-padding: 1.25rem;
-border-radius: var(--border-radius-lg);
-border: 2px solid var(--border-light);
-box-shadow: var(--card-shadow);
-position: relative;
-z-index: 1;
-animation: fadeInUp 0.6s ease-out 0.3s backwards;
-}
-
-.controls-container::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 3px;
-background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-opacity: 0.6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: white;
+    padding: 1.25rem;
+    border-radius: var(--border-radius-lg);
+    border: 2px solid var(--border-light);
+    box-shadow: var(--card-shadow);
+    animation: fadeInUp 0.6s ease-out 0.3s backwards;
 }
 
 .button-group {
-display: flex;
-gap: 1rem;
-flex-wrap: wrap;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .action-btn {
-padding: 0.85rem 1.4rem;
-border-radius: var(--border-radius-md);
-font-weight: 600;
-font-size: 0.9375rem;
-cursor: pointer;
-border: 2px solid transparent;
-display: inline-flex;
-align-items: center;
-justify-content: center;
-gap: 0.5rem;
-transition: all var(--transition-fast);
-position: relative;
-overflow: hidden;
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    padding: 0.85rem 1.4rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    border: 2px solid; /* Unified Border */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    background-color: white;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.action-btn::before {
-content: '';
-position: absolute;
-top: 50%;
-left: 50%;
-width: 0;
-height: 0;
-border-radius: 50%;
-background: rgba(255, 255, 255, 0.3);
-transform: translate(-50%, -50%);
-transition: width 0.6s, height 0.6s;
+.action-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        transparent 40%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 60%,
+        transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: none;
+    z-index: 2;
+    pointer-events: none;
 }
 
-.action-btn:hover::before {
-width: 300px;
-height: 300px;
-}
-
-.action-btn svg {
-width: 1.1rem;
-height: 1.1rem;
-transition: transform var(--transition-fast);
+.action-btn:hover::after {
+    animation: reflectiveShine 0.8s ease-in-out;
 }
 
 .action-btn:hover {
-transform: translateY(-2px);
-box-shadow: 0 8px 16px -4px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08);
-}
-
-.action-btn:hover svg {
-transform: scale(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06);
 }
 
 .action-btn:active {
-transform: translateY(1px) scale(0.97);
-box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-transition-duration: 0.1s;
+    transform: translateY(0);
 }
 
-.btn-reset {
-background-color: white;
-border: 2px solid var(--border-light);
-color: var(--text-muted);
+/* Button Variants - Only Colors Change */
+.btn-reset { 
+    border-color: var(--border-light); 
+    color: var(--text-muted); 
 }
-.btn-reset:hover {
-background-color: var(--danger-ultra-light);
-border-color: var(--danger-light);
-color: var(--danger-dark);
-}
-
-.btn-explore {
-background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-color: white;
-box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-}
-.btn-explore:hover {
-background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+.btn-reset:hover { 
+    background-color: #f8fafc; 
+    border-color: var(--text-color); 
+    color: var(--text-color); 
 }
 
-.btn-missing {
-background-color: white;
-border: 2px solid #fda4af;
-color: #be123c;
+.btn-explore { 
+    border-color: var(--primary-color); 
+    color: var(--primary-color); 
 }
-.btn-missing:hover {
-border-color: #f43f5e;
-color: #9f1239;
-background-color: #fff1f2;
-box-shadow: 0 8px 16px -4px rgba(244, 63, 94, 0.2), 0 4px 8px rgba(244, 63, 94, 0.1);
-transform: translateY(-2px);
-}
-.btn-missing:hover svg {
-transform: scale(1.1);
+.btn-explore:hover { 
+    background-color: var(--primary-ultra-light); 
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25); 
 }
 
-.btn-import {
-background-color: white;
-border: 2px solid var(--border-light);
-color: var(--primary-color);
+.btn-missing { 
+    border-color: #fda4af; 
+    color: #be123c; 
 }
-.btn-import:hover {
-background-color: var(--primary-ultra-light);
-border-color: var(--primary-color);
-}
-
-.btn-export {
-background-color: white;
-border: 2px solid var(--border-light);
-color: var(--success-dark);
-}
-.btn-export:hover {
-background-color: var(--success-ultra-light);
-border-color: var(--success-color);
+.btn-missing:hover { 
+    border-color: #f43f5e; 
+    color: #9f1239; 
+    background-color: #fff1f2; 
 }
 
-.btn-compare {
-background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-color: white;
-box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+.btn-compare { 
+    border-color: var(--compare-color); 
+    color: var(--compare-color); 
 }
-.btn-compare:hover {
-background: linear-gradient(135deg, var(--secondary-dark), var(--secondary-color));
-box-shadow: 0 8px 20px rgba(14, 165, 233, 0.35);
+.btn-compare:hover { 
+    background-color: var(--compare-light); 
+    box-shadow: 0 4px 15px rgba(180, 94, 148, 0.2); 
 }
+
+/* Import Button - New Indigo Theme */
+.btn-import { 
+    border-color: var(--import-color); 
+    color: var(--import-color); 
+}
+.btn-import:hover { 
+    border-color: var(--import-dark);
+    color: var(--import-dark); 
+    background-color: var(--import-light);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+}
+
+.btn-export { 
+    border-color: var(--success-light); 
+    color: var(--success-dark); 
+}
+.btn-export:hover { 
+    border-color: var(--success-color); 
+    background-color: var(--success-ultra-light); 
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); 
+}
+/* ------------------------------------- */
 
 .results-info {
-margin-bottom: 2rem;
-position: relative;
-z-index: 1;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 #resultsCount {
-color: var(--primary-color);
-font-size: 1rem;
-font-weight: 700;
-display: inline-flex;
-align-items: center;
-gap: 0.5rem;
-background: linear-gradient(135deg, var(--primary-ultra-light) 0%, rgba(59, 130, 246, 0.05) 100%);
-padding: 0.75rem 1.25rem;
-border-radius: var(--border-radius-md);
-transition: all var(--transition-standard);
-border: 2px solid rgba(59, 130, 246, 0.15);
-box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
-}
-
-#resultsCount::before {
-content: '';
-display: inline-block;
-width: 8px;
-height: 8px;
-background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-border-radius: 50%;
-box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
-animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-0%, 100% { transform: scale(1); opacity: 1; }
-50% { transform: scale(1.2); opacity: 0.8; }
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary-ultra-light);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    border: 2px solid rgba(59, 130, 246, 0.15);
 }
 
 #missingResultsCount {
-color: #be123c;
-font-size: 1rem;
-font-weight: 700;
-display: inline-flex;
-align-items: center;
-gap: 0.5rem;
-background: linear-gradient(135deg, #fff1f2 0%, rgba(253, 164, 175, 0.05) 100%);
-padding: 0.75rem 1.25rem;
-border-radius: var(--border-radius-md);
-margin-left: 1rem;
-border: 2px solid #fda4af;
-cursor: pointer;
-transition: all var(--transition-standard);
-box-shadow: 0 2px 8px rgba(253, 164, 175, 0.08);
-}
-
-#missingResultsCount:hover {
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(253, 164, 175, 0.15);
+    color: #be123c;
+    font-size: 1rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff1f2;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    border: 2px solid #fda4af;
+    cursor: pointer;
 }
 
 .stats {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-gap: 1.75rem;
-margin-bottom: 3rem;
-position: relative;
-z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.75rem;
+    margin-bottom: 3rem;
 }
 
 .stat-card {
-background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-border-radius: var(--border-radius-lg);
-padding: 2rem;
-box-shadow: var(--card-shadow);
-transition: all var(--transition-standard);
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-border: 2px solid transparent;
-position: relative;
-overflow: hidden;
-animation: fadeInUp 0.6s ease-out;
-}
-
-.stat-card::before {
-content: '';
-position: absolute;
-left: 0;
-top: 0;
-height: 4px;
-width: 100%;
-background: linear-gradient(90deg, var(--primary-light), var(--primary-color), var(--primary-dark));
-opacity: 0;
-transition: opacity var(--transition-standard);
-}
-
-.stat-card::after {
-content: '';
-position: absolute;
-top: -50%;
-left: -50%;
-width: 200%;
-height: 200%;
-background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.03), transparent);
-transform: rotate(45deg);
-transition: all 0.6s;
-opacity: 0;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    transition: all var(--transition-standard);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 2px solid transparent;
+    animation: fadeInUp 0.6s ease-out;
+    position: relative;
+    overflow: hidden;
 }
 
 .stat-card:hover {
-transform: translateY(-6px);
-box-shadow: var(--card-hover-shadow);
-border-color: rgba(59, 130, 246, 0.1);
+    transform: translateY(-6px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: rgba(59, 130, 246, 0.1);
 }
-
-.stat-card:hover::before {
-opacity: 1;
-}
-
-.stat-card:hover::after {
-opacity: 1;
-animation: shimmer 2s infinite;
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.05s; }
-.stat-card:nth-child(2) { animation-delay: 0.1s; }
-.stat-card:nth-child(3) { animation-delay: 0.15s; }
-.stat-card:nth-child(4) { animation-delay: 0.2s; }
-.stat-card:nth-child(5) { animation-delay: 0.25s; }
 
 .stat-card-content {
-display: flex;
-flex-direction: column;
-flex-grow: 1;
-position: relative;
-z-index: 1;
+    position: relative;
+    z-index: 1;
 }
 
 .stat-value {
-font-size: 2rem;
-font-weight: 800;
-background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-background-clip: text;
-margin-bottom: 0.25rem;
-letter-spacing: -0.02em;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.25rem;
 }
 
 .stat-label {
-font-size: 1rem;
-color: var(--text-muted);
-font-weight: 600;
-margin-bottom: 1rem;
-letter-spacing: 0.01em;
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
 
 .stat-card-footer {
-margin-top: auto;
-position: relative;
-z-index: 1;
+    margin-top: auto;
+    z-index: 1;
 }
 
 .stat-percentage {
-font-size: 0.9rem;
-font-weight: 700;
-color: var(--primary-color);
-display: block;
-margin-bottom: 0.5rem;
-letter-spacing: 0.01em;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 0.5rem;
 }
 
 .stat-progress-container {
-width: 100%;
-height: 8px;
-background-color: var(--border-light);
-border-radius: 99px;
-overflow: hidden;
-position: relative;
-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    height: 8px;
+    background-color: var(--border-light);
+    border-radius: 99px;
+    overflow: hidden;
 }
 
 .stat-progress-bar {
-height: 100%;
-width: 0%;
-border-radius: 99px;
-transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-background: linear-gradient(90deg, var(--primary-light), var(--primary-color));
-box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-position: relative;
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--primary-light), var(--primary-color));
 }
 
 .total-card {
-background: var(--total-card-background);
-color: var(--total-card-text);
-grid-column: 1 / -1;
-border: none;
-box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
-position: relative;
-overflow: hidden;
-}
-
-.total-card::before {
-display: none;
-}
-
-.total-card::after {
-content: '';
-position: absolute;
-top: -50%;
-right: -20%;
-width: 400px;
-height: 400px;
-background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-pointer-events: none;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
+    grid-column: 1 / -1;
+    box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.3);
 }
 
 .total-card .stat-value, .total-card .stat-label {
-color: white;
-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    -webkit-text-fill-color: white;
+    color: white;
 }
 
-.total-card .stat-value {
-font-size: 2.75rem;
-background: none;
--webkit-text-fill-color: white;
-}
-
-.total-card .stat-label {
-opacity: 0.95;
-font-weight: 600;
-}
-
-.total-card:hover {
-box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.4), 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.teal-card .stat-value {
-background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-background-clip: text;
-}
-
-.teal-card .stat-percentage {
-color: var(--secondary-dark);
-}
-
-.teal-card::before {
-background: linear-gradient(90deg, var(--secondary-light), var(--secondary-color), var(--secondary-dark));
-}
-
-.teal-card .stat-progress-bar {
-background: linear-gradient(90deg, var(--secondary-light), var(--secondary-color));
-box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
-}
-
-/* Charts Grid Layout */
 .charts-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 1.5rem;
-margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .chart-container {
-background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-border-radius: var(--border-radius-lg);
-padding: 1.5rem;
-box-shadow: var(--card-shadow);
-position: relative;
-border: 2px solid var(--border-light);
-animation: fadeInUp 0.6s ease-out 0.35s backwards;
-overflow: hidden;
-height: 450px;
-display: flex;
-flex-direction: column;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: 2px solid var(--border-light);
+    animation: fadeInUp 0.6s ease-out;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-container.wide {
-grid-column: 1 / -1;
-height: 600px;
-}
-
-.chart-container::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 3px;
-background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    grid-column: 1 / -1;
+    height: 600px;
 }
 
 .chart-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 1rem;
-flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
 .chart-title {
-font-size: 1.125rem;
-font-weight: 700;
-color: var(--text-color);
-letter-spacing: -0.01em;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-color);
 }
 
-.chart-actions {
-display: flex;
-gap: 0.5rem;
-}
-
+.chart-actions { display: flex; gap: 0.5rem; }
 .chart-btn {
-background: white;
-border: 2px solid var(--border-light);
-padding: 0.4rem 0.8rem;
-border-radius: 0.5rem;
-font-size: 0.8rem;
-font-weight: 600;
-color: var(--text-muted);
-cursor: pointer;
-transition: all var(--transition-fast);
+    background: white;
+    border: 2px solid var(--border-light);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
 }
 
 .chart-btn:hover, .chart-btn.active {
-background: linear-gradient(135deg, var(--primary-ultra-light), #ffffff);
-color: var(--primary-color);
-border-color: var(--primary-color);
-box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-transform: translateY(-1px);
+    background: var(--primary-ultra-light);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .chart-wrapper {
-flex-grow: 1;
-position: relative;
-width: 100%;
-min-height: 0;
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
 }
 
 .explore-table-container, .missing-table-container {
-background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-border-radius: var(--border-radius-lg);
-padding: 2rem;
-box-shadow: var(--card-shadow);
-overflow-x: auto;
-border: 2px solid var(--border-light);
-position: relative;
-animation: fadeInUp 0.6s ease-out;
-}
-
-.explore-table-container::before, .missing-table-container::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 3px;
-background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    overflow-x: auto;
+    border: 2px solid var(--border-light);
+    animation: fadeInUp 0.6s ease-out;
 }
 
 table {
-width: 100%;
-border-collapse: separate;
-border-spacing: 0;
-font-size: 0.9375rem;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9375rem;
 }
 
 th, td {
-padding: 1.1rem 1.35rem;
-border-bottom: 1px solid var(--border-light);
-white-space: nowrap;
+    padding: 1.1rem 1.35rem;
+    border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
 }
 
 th {
-background: linear-gradient(135deg, var(--background-color) 0%, #f1f5f9 100%);
-font-weight: 700;
-text-transform: uppercase;
-font-size: 0.8125rem;
-color: var(--text-muted);
-text-align: right;
-position: sticky;
-top: 0;
-z-index: 2;
-letter-spacing: 0.05em;
+    background: #f8fafc;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-align: right;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
-th:first-child {
-text-align: left;
-left: 0;
-z-index: 3;
-box-shadow: 2px 0 4px rgba(0, 0, 0, 0.02);
-}
-
-td:first-child {
-text-align: left;
-position: sticky;
-left: 0;
-background: white;
-z-index: 1;
-border-right: 2px solid var(--border-light);
-font-weight: 600;
-}
-
-td {
-text-align: right;
-}
-
-tbody tr {
-transition: all var(--transition-fast);
-}
-
-tbody tr:hover td {
-background-color: var(--hover-color);
-box-shadow: 0 2px 8px rgba(59, 130, 246, 0.06);
-}
-
-.numeric-cell {
-font-variant-numeric: tabular-nums;
-font-weight: 500;
+th:first-child, td:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 3;
+    border-right: 2px solid var(--border-light);
 }
 
 .duplicate-warning-banner {
-background: linear-gradient(135deg, var(--warning-ultra-light) 0%, rgba(245, 158, 11, 0.05) 100%);
-border: 2px solid var(--warning-light);
-color: var(--warning-dark);
-padding: 1.25rem;
-border-radius: var(--border-radius-lg);
-margin-bottom: 2rem;
-display: flex;
-justify-content: space-between;
-align-items: center;
-box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
-animation: fadeInUp 0.6s ease-out;
+    background: var(--warning-ultra-light);
+    border: 2px solid var(--warning-color);
+    color: var(--warning-dark);
+    padding: 1.25rem;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.warning-details-btn {
-background: white;
-border: 2px solid var(--warning-dark);
-color: var(--warning-dark);
-padding: 0.5rem 1rem;
-border-radius: 0.625rem;
-font-weight: 600;
-cursor: pointer;
-transition: all var(--transition-fast);
-}
-
-.warning-details-btn:hover {
-background: var(--warning-dark);
-color: white;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
-}
-
-.modal-overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0,0,0,0.6);
-backdrop-filter: blur(4px);
-z-index: 50;
-display: flex;
-justify-content: center;
-align-items: center;
-animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-from { opacity: 0; }
-to { opacity: 1; }
-}
-
-.modal-content {
-background: white;
-width: 90%;
-max-width: 600px;
-max-height: 80vh;
-border-radius: var(--border-radius-lg);
-box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-display: flex;
-flex-direction: column;
-animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-border: 2px solid var(--border-light);
-overflow: hidden;
-}
-
-@keyframes modalSlideUp {
-from {
-opacity: 0;
-transform: translateY(30px) scale(0.95);
-}
-to {
-opacity: 1;
-transform: translateY(0) scale(1);
-}
-}
-
-.modal-header {
-padding: 1.5rem 1.75rem;
-border-bottom: 2px solid var(--border-light);
-display: flex;
-justify-content: space-between;
-align-items: center;
-background: linear-gradient(to right, #f8fafc, #ffffff);
-}
-
-.modal-header h3 {
-margin: 0;
-font-weight: 700;
-color: var(--text-color);
-font-size: 1.25rem;
-}
-
-.modal-close-btn {
-background: white;
-border: 2px solid var(--border-light);
-color: var(--text-muted);
-cursor: pointer;
-width: 36px;
-height: 36px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 0.5rem;
-transition: all var(--transition-fast);
-box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.modal-close-btn:hover {
-background: var(--danger-ultra-light);
-border-color: var(--danger-light);
-color: var(--danger-dark);
-transform: translateY(-1px);
-box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
-}
-
-.modal-close-btn svg {
-width: 1.25rem;
-height: 1.25rem;
-}
-
-.modal-body {
-overflow-y: auto;
-padding: 0;
-}
-
-.duplicate-item {
-padding: 1.25rem 1.75rem;
-border-bottom: 1px solid var(--border-light);
-display: flex;
-flex-direction: column;
-gap: 0.75rem;
-transition: background var(--transition-fast);
-background: white;
-}
-
-.duplicate-item:hover {
-background: var(--hover-color);
-}
-
-.duplicate-item:last-child {
-border-bottom: none;
-}
-
-.duplicate-item-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.duplicate-info {
-color: var(--text-color);
-}
-
-.duplicate-badge {
-background: var(--warning-ultra-light);
-color: var(--warning-dark);
-padding: 0.25rem 0.75rem;
-border-radius: 99px;
-font-size: 0.75rem;
-font-weight: 700;
-border: 1px solid var(--warning-light);
-text-transform: uppercase;
-letter-spacing: 0.02em;
-}
-
-.duplicate-rows {
-font-size: 0.8125rem;
-color: var(--text-muted);
-background: var(--background-color);
-padding: 0.75rem;
-border-radius: 0.5rem;
-border: 1px solid var(--border-light);
-display: flex;
-align-items: center;
-gap: 0.5rem;
-}
-
-.duplicate-rows::before {
-content: 'Row IDs:';
-font-weight: 600;
-color: var(--text-color);
-}
-
-.hidden {
-display: none !important;
-}
-
-.trend-up {
-color: var(--success-color);
-font-weight: 700;
-}
-
-.trend-down {
-color: var(--danger-color);
-font-weight: 700;
-}
-
-.trend-neutral {
-color: var(--text-muted);
-}
+.hidden { display: none !important; }
 
 @media (max-width: 1024px) {
-.charts-grid {
-grid-template-columns: 1fr;
-}
+    .charts-grid { grid-template-columns: 1fr; }
 }
 </style>
-
 </head>
 <body>
 
 <div class="dashboard-header">
-<h1>Dashboard</h1>
-<div class="year-filter-container">
-<label for="yearFilter" class="year-filter-label">Fiscal Year</label>
-<select id="yearFilter"></select>
-</div>
+    <h1>Dashboard</h1>
+    <div class="year-filter-container">
+        <label for="yearFilter" class="year-filter-label">Fiscal Year</label>
+        <select id="yearFilter"></select>
+    </div>
 </div>
 
 <div id="duplicateWarningContainer" class="hidden"></div>
 <div id="modalContainer" class="hidden"></div>
 
 <div class="filters">
-<div class="filter-group">
-<label for="regionFilter" class="filter-label">Region</label>
-<select id="regionFilter" class="filter-select"><option value="all">All Regions</option></select>
-</div>
-<div class="filter-group">
-<label for="pharmacyFilter" class="filter-label">Pharmacy</label>
-<select id="pharmacyFilter" class="filter-select"><option value="all">All Pharmacies</option></select>
-</div>
-<div class="filter-group">
-<label for="monthFilter" class="filter-label">Month</label>
-<select id="monthFilter" class="filter-select"><option value="all">All Months</option></select>
-</div>
-<div class="filter-group">
-<label for="classFilter" class="filter-label">Classification</label>
-<select id="classFilter" class="filter-select">
-<option value="all">All Classes</option>
-<option value="student">Student</option>
-<option value="workforce">Workforce</option>
-</select>
-</div>
+    <div class="filter-group">
+        <label for="regionFilter" class="filter-label">Region</label>
+        <div class="select-wrapper">
+            <select id="regionFilter" class="filter-select"><option value="all">All Regions</option></select>
+            <button class="clear-filter-btn" data-target="regionFilter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+        </div>
+    </div>
+    <div class="filter-group">
+        <label for="pharmacyFilter" class="filter-label">Pharmacy</label>
+        <div class="select-wrapper">
+            <select id="pharmacyFilter" class="filter-select"><option value="all">All Pharmacies</option></select>
+            <button class="clear-filter-btn" data-target="pharmacyFilter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+        </div>
+    </div>
+    <div class="filter-group">
+        <label for="monthFilter" class="filter-label">Month</label>
+        <div class="select-wrapper">
+            <select id="monthFilter" class="filter-select"><option value="all">All Months</option></select>
+            <button class="clear-filter-btn" data-target="monthFilter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+        </div>
+    </div>
+    <div class="filter-group">
+        <label for="classFilter" class="filter-label">Classification</label>
+        <div class="select-wrapper">
+            <select id="classFilter" class="filter-select">
+                <option value="all">All Classes</option>
+            </select>
+            <button class="clear-filter-btn" data-target="classFilter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+        </div>
+    </div>
+    <div class="filter-group">
+        <label for="medClassFilter" class="filter-label">Medication Class</label>
+        <div class="select-wrapper">
+            <select id="medClassFilter" class="filter-select"><option value="all">All Classes</option></select>
+            <button class="clear-filter-btn" data-target="medClassFilter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+        </div>
+    </div>
 </div>
 
 <div class="controls-container">
-<div class="button-group">
-<button class="action-btn btn-reset" id="resetFiltersBtn">
-<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
-Reset
-</button>
-<button class="action-btn btn-explore" id="toggleExploreBtn">
-<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
-Explore
-</button>
-<button class="action-btn btn-missing" id="toggleMissingBtn">
-<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-Missing Data
-</button>
-<button class="action-btn btn-compare" onclick="window.open('https://dashboard-yearly.vercel.app/', '_blank')">
-<svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-Compare
-</button>
-</div>
-<div class="button-group">
-<button class="action-btn btn-import" id="import" onclick="window.open('https://josn.vercel.app/', '_blank')">
-<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-Import
-</button>
-<button class="action-btn btn-export" id="exportExcelBtn">
-<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-Export
-</button>
-</div>
+    <div class="button-group">
+        <button class="action-btn btn-reset" id="resetFiltersBtn">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+            Reset
+        </button>
+        <button class="action-btn btn-explore" id="toggleExploreBtn">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+            Explore
+        </button>
+        <button class="action-btn btn-missing" id="toggleMissingBtn">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            Missing Data
+        </button>
+        <button class="action-btn btn-compare" onclick="window.open('https://dashboard-yearly.vercel.app/', '_blank')">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            Compare
+        </button>
+    </div>
+    <div class="button-group">
+        <button class="action-btn btn-import" onclick="window.open('https://josn.vercel.app/', '_blank')">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+            Import
+        </button>
+        <button class="action-btn btn-export" id="exportExcelBtn">
+            <svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            Export
+        </button>
+    </div>
 </div>
 
 <div class="results-info">
-<div id="resultsCount">Loading...</div>
-<div id="missingResultsCount" class="hidden"></div>
+    <div id="resultsCount">Loading...</div>
+    <div id="missingResultsCount" class="hidden"></div>
 </div>
 
 <div class="dashboard-view">
-<div class="stats" id="statsContainer"></div>
-<div class="charts-grid">
-<!-- Existing Main Chart -->
-<div class="chart-container wide">
-<div class="chart-header">
-<div class="chart-title">Medication Distribution</div>
-<div class="chart-actions">
-<button class="chart-btn active" onclick="updateChartType('bar')">Bar</button>
-<button class="chart-btn" onclick="updateChartType('line')">Line</button>
-</div>
-</div>
-<div class="chart-wrapper">
-<canvas id="medicationChart"></canvas>
-</div>
-</div>
+    <div class="stats" id="statsContainer"></div>
+    <div class="charts-grid">
+        <div class="chart-container wide">
+            <div class="chart-header">
+                <div class="chart-title">Medication Distribution</div>
+                <div class="chart-actions">
+                    <button class="chart-btn active" onclick="updateChartType('bar')">Bar</button>
+                    <button class="chart-btn" onclick="updateChartType('line')">Line</button>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="medicationChart"></canvas>
+            </div>
+        </div>
 
-<!-- New Chart 1: Monthly Trend -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">Monthly Trend</div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
 
-<div class="chart-container">
-<div class="chart-header">
-<div class="chart-title">Monthly Trend</div>
-</div>
-<div class="chart-wrapper">
-<canvas id="trendChart"></canvas>
-</div>
-</div>
-
-<!-- New Chart 2: Regional Performance -->
-
-<div class="chart-container">
-<div class="chart-header">
-<div class="chart-title">Regional Distribution</div>
-</div>
-<div class="chart-wrapper">
-<canvas id="regionChart"></canvas>
-</div>
-</div>
-</div>
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">Regional Distribution</div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="regionChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="explore-view hidden">
-<div class="explore-table-container">
-<table id="exploreTable">
-<thead><tr><th>Metric</th></tr></thead>
-<tbody></tbody>
-</table>
-</div>
+    <div class="explore-table-container">
+        <table id="exploreTable"><thead><tr><th>Metric</th></tr></thead><tbody></tbody></table>
+    </div>
 </div>
 
 <div class="missing-view hidden">
-<div class="missing-table-container">
-<table id="missingTable">
-<thead>
-<tr>
-<th>Region</th>
-<th>Pharmacy</th>
-<th>Month</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
+    <div class="missing-table-container">
+        <table id="missingTable"><thead><tr><th>Region</th><th>Pharmacy</th><th>Month</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </div>
 </div>
 
 <script>
 const monthOrder = {
-july: 1, august: 2, september: 3, october: 4, november: 5, december: 6,
-january: 7, february: 8, march: 9, april: 10, may: 11, june: 12,
-'يوليو': 1, 'أغسطس': 2, 'سبتمبر': 3, 'أكتوبر': 4, 'نوفمبر': 5, 'ديسمبر': 6,
-'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12,
+    july: 1, august: 2, september: 3, october: 4, november: 5, december: 6,
+    january: 7, february: 8, march: 9, april: 10, may: 11, june: 12,
+    'يوليو': 1, 'أغسطس': 2, 'سبتمبر': 3, 'أكتوبر': 4, 'نوفمبر': 5, 'ديسمبر': 6,
+    'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12,
 };
 const getMonthOrderValue = (month) => month ? monthOrder[String(month).trim().toLowerCase()] || 99 : 99;
 const debounce = (func, wait) => {
-let timeout;
-return (...args) => {
-clearTimeout(timeout);
-timeout = setTimeout(() => func(...args), wait);
-};
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
 };
 
 let data = [], filteredData = [], missingData = [];
@@ -1224,531 +834,628 @@ let isExploreMode = false;
 let isMissingMode = false;
 
 const medicationCategories = [
-'المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن',
-'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية',
-'عيون و رمد', 'انف و اذن', 'مضادات تقلصات', 'اورام', 'فيتامينات', 'مختلفة',
+    'المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن',
+    'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية',
+    'عيون و رمد', 'انف و اذن', 'مضادات تقلصات', 'اورام', 'فيتامينات', 'مختلفة',
 ];
 
 const getCurrentFilters = () => ({
-Year: document.getElementById('yearFilter').value,
-Region: document.getElementById('regionFilter').value,
-Pharmacy: document.getElementById('pharmacyFilter').value,
-Month: document.getElementById('monthFilter').value,
-Class: document.getElementById('classFilter').value,
+    Year: document.getElementById('yearFilter').value,
+    Region: document.getElementById('regionFilter').value,
+    Pharmacy: document.getElementById('pharmacyFilter').value,
+    Month: document.getElementById('monthFilter').value,
+    Class: document.getElementById('classFilter').value,
+    MedClass: document.getElementById('medClassFilter').value,
 });
 
-const getAvailableOptions = (field, currentFilters) => {
-const uniqueValues = new Set();
-const yearFilteredData = data.filter(row => row.Year === currentFilters.Year);
-yearFilteredData.forEach((row) => {
-if (Object.entries(currentFilters).every(([key, value]) =>
-key === 'Year' || value === 'all' || key === field || row[key] === value)) {
-uniqueValues.add(row[field] ? String(row[field]).trim() : row[field]);
-}
-});
-return Array.from(uniqueValues).filter(val => val).sort((a, b) => {
-if (field === 'Month') return getMonthOrderValue(a) - getMonthOrderValue(b);
-return String(a).localeCompare(String(b));
-});
+const getAvailableOptions = (targetField, currentFilters) => {
+    const uniqueValues = new Set();
+    const yearFilteredData = data.filter(row => row.Year === currentFilters.Year);
+
+    yearFilteredData.forEach((row) => {
+        let isValidRow = true;
+
+        const checkMap = {
+            Region: 'Region',
+            Pharmacy: 'Pharmacy',
+            Month: 'Month',
+            Class: 'Class'
+        };
+
+        for (const [filterKey, rowKey] of Object.entries(checkMap)) {
+            if (rowKey === targetField) continue;
+            
+            const filterVal = currentFilters[filterKey];
+            if (filterVal !== 'all') {
+                const rowVal = row[rowKey] ? String(row[rowKey]).trim().toLowerCase() : '';
+                const compVal = String(filterVal).trim().toLowerCase();
+                
+                if (rowVal !== compVal) {
+                    isValidRow = false;
+                    break;
+                }
+            }
+        }
+
+        if (isValidRow && currentFilters.MedClass !== 'all') {
+            const medVal = parseFloat(row[currentFilters.MedClass] || 0);
+            if (medVal <= 0) isValidRow = false;
+        }
+
+        if (isValidRow) {
+            const val = row[targetField] ? String(row[targetField]).trim() : '';
+            if (val) uniqueValues.add(val);
+        }
+    });
+
+    return Array.from(uniqueValues).sort((a, b) => {
+        if (targetField === 'Month') return getMonthOrderValue(a) - getMonthOrderValue(b);
+        return String(a).localeCompare(String(b));
+    });
 };
 
-const updateFilterOptions = (filterName, currentFilters) => {
-const select = document.getElementById(`${filterName}Filter`);
-if (!select) return;
-const currentValue = select.value;
-const fieldName = filterName.charAt(0).toUpperCase() + filterName.slice(1);
-const availableOptions = getAvailableOptions(fieldName, currentFilters);
+const updateAllFilterOptions = () => {
+    const currentFilters = getCurrentFilters();
+    const filtersToUpdate = ['Region', 'Pharmacy', 'Month', 'Class'];
 
-select.innerHTML = `<option value="all">All ${fieldName}s</option>`;
-availableOptions.forEach((option) => {
-const optElement = document.createElement('option');
-optElement.value = option;
-optElement.textContent = option;
-select.appendChild(optElement);
-});
+    filtersToUpdate.forEach(field => {
+        const filterId = field.toLowerCase() + 'Filter';
+        const select = document.getElementById(filterId);
+        const currentSelection = select.value.toLowerCase(); // Compare in lowercase
+        
+        const availableOptions = getAvailableOptions(field, currentFilters);
 
-if (currentValue !== 'all' && availableOptions.includes(currentValue)) {
-select.value = currentValue;
-select.classList.add('highlighted');
-} else {
-select.value = 'all';
-select.classList.remove('highlighted');
-}
+        select.innerHTML = `<option value="all">All ${field === 'Class' ? 'Classes' : field + 's'}</option>`;
+        
+        availableOptions.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = opt;
+            select.appendChild(option);
+        });
+
+        // Check validity case-insensitively
+        const exists = availableOptions.some(opt => opt.toLowerCase() === currentSelection);
+        
+        if (currentSelection !== 'all' && !exists) {
+            select.value = 'all';
+        } else if (currentSelection !== 'all') {
+            // Restore selection (matching case from options)
+            const exactMatch = availableOptions.find(opt => opt.toLowerCase() === currentSelection);
+            if(exactMatch) select.value = exactMatch;
+        }
+
+        if (select.value !== 'all') {
+            select.classList.add('active-filter');
+        } else {
+            select.classList.remove('active-filter');
+        }
+    });
+
+    const medClassSelect = document.getElementById('medClassFilter');
+    if (medClassSelect.value !== 'all') {
+        medClassSelect.classList.add('active-filter');
+    } else {
+        medClassSelect.classList.remove('active-filter');
+    }
 };
 
 const initializeFilters = () => {
-['region', 'pharmacy', 'month', 'class'].forEach(filter => {
-document.getElementById(`${filter}Filter`).addEventListener('change', () => {
-const currentFilters = getCurrentFilters();
-['region', 'pharmacy', 'month', 'class'].forEach(f => {
-if(f !== filter) updateFilterOptions(f, currentFilters);
-});
-updateDashboard();
-});
-});
-const currentFilters = getCurrentFilters();
-['region', 'pharmacy', 'month', 'class'].forEach(f => updateFilterOptions(f, currentFilters));
+    const filterIds = ['region', 'pharmacy', 'month', 'class', 'medClass'];
+    filterIds.forEach(id => {
+        document.getElementById(id + 'Filter').addEventListener('change', () => {
+            updateAllFilterOptions();
+            updateDashboard();
+        });
+    });
+
+    document.querySelectorAll('.clear-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const targetId = btn.dataset.target;
+            const select = document.getElementById(targetId);
+            select.value = 'all';
+            updateAllFilterOptions();
+            updateDashboard();
+        });
+    });
+
+    const medClassSelect = document.getElementById('medClassFilter');
+    medClassSelect.innerHTML = `<option value="all">All Classes</option>`;
+    medicationCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        medClassSelect.appendChild(opt);
+    });
+
+    updateAllFilterOptions();
 };
 
 const populateYearFilter = () => {
-const yearSelect = document.getElementById('yearFilter');
-if (allYears.length === 0) return;
-yearSelect.innerHTML = '';
-allYears.forEach(year => {
-const option = document.createElement('option');
-option.value = year;
-option.textContent = `${Number(year) - 1}-${year}`;
-yearSelect.appendChild(option);
-});
-if (defaultYear) yearSelect.value = defaultYear;
-yearSelect.addEventListener('change', () => {
-['region', 'pharmacy', 'month', 'class'].forEach(f => document.getElementById(`${f}Filter`).value = 'all');
-const currentFilters = getCurrentFilters();
-['region', 'pharmacy', 'month', 'class'].forEach(f => updateFilterOptions(f, currentFilters));
-updateDashboard();
-});
+    const yearSelect = document.getElementById('yearFilter');
+    if (allYears.length === 0) return;
+    yearSelect.innerHTML = '';
+    allYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `${Number(year) - 1}-${year}`;
+        yearSelect.appendChild(option);
+    });
+    if (defaultYear) yearSelect.value = defaultYear;
+
+    yearSelect.addEventListener('change', () => {
+        ['region', 'pharmacy', 'month', 'class', 'medClass'].forEach(f => document.getElementById(`${f}Filter`).value = 'all');
+        updateAllFilterOptions();
+        updateDashboard();
+    });
 };
 
 const processDataAndHandleDuplicates = (rawData) => {
-const groupedData = {};
-const duplicateTracker = [];
-const categoriesToSum = ['Total Prescription', 'Insurance Covered Prescription', ...medicationCategories];
+    const groupedData = {};
+    const duplicateTracker = [];
+    const categoriesToSum = ['Total Prescription', 'Insurance Covered Prescription', ...medicationCategories];
 
-rawData.forEach(row => {
-const year = row.Year ? String(row.Year).trim() : '';
-const region = row.Region ? String(row.Region).trim() : '';
-const pharmacy = row.Pharmacy ? String(row.Pharmacy).trim() : '';
-const month = row.Month ? String(row.Month).trim() : '';
-const rowClass = row.Class ? String(row.Class).trim() : 'Unknown';
-if (!year && !pharmacy) return;
+    rawData.forEach(row => {
+        const year = row.Year ? String(row.Year).trim() : '';
+        const region = row.Region ? String(row.Region).trim() : '';
+        const pharmacy = row.Pharmacy ? String(row.Pharmacy).trim() : '';
+        const month = row.Month ? String(row.Month).trim() : '';
+        const rowClass = row.Class ? String(row.Class).trim() : 'Unknown';
+        if (!year && !pharmacy) return;
 
-const uniqueKey = `${year}_${region}_${pharmacy}_${month}_${rowClass}`.toLowerCase();
-const currentRowNum = row._rowNum || 'Unknown';
+        const uniqueKey = `${year}_${region}_${pharmacy}_${month}_${rowClass}`.toLowerCase();
+        const currentRowNum = row._rowNum || 'Unknown';
 
-if (groupedData[uniqueKey]) {
-groupedData[uniqueKey]._duplicateCount = (groupedData[uniqueKey]._duplicateCount || 1) + 1;
-groupedData[uniqueKey]._rows.push(currentRowNum);
-categoriesToSum.forEach(cat => {
-groupedData[uniqueKey][cat] = (parseFloat(groupedData[uniqueKey][cat] || 0) + parseFloat(row[cat] || 0));
-});
-} else {
-groupedData[uniqueKey] = { ...row, _duplicateCount: 1, _rows: [currentRowNum], Year: year, Region: region, Pharmacy: pharmacy, Month: month, Class: rowClass };
-categoriesToSum.forEach(cat => groupedData[uniqueKey][cat] = parseFloat(row[cat] || 0));
-}
-});
+        if (groupedData[uniqueKey]) {
+            groupedData[uniqueKey]._duplicateCount = (groupedData[uniqueKey]._duplicateCount || 1) + 1;
+            groupedData[uniqueKey]._rows.push(currentRowNum);
+            categoriesToSum.forEach(cat => {
+                groupedData[uniqueKey][cat] = (parseFloat(groupedData[uniqueKey][cat] || 0) + parseFloat(row[cat] || 0));
+            });
+        } else {
+            groupedData[uniqueKey] = { ...row, _duplicateCount: 1, _rows: [currentRowNum], Year: year, Region: region, Pharmacy: pharmacy, Month: month, Class: rowClass };
+            categoriesToSum.forEach(cat => groupedData[uniqueKey][cat] = parseFloat(row[cat] || 0));
+        }
+    });
 
-const cleanData = Object.values(groupedData);
-cleanData.forEach(row => {
-if (row._duplicateCount > 1) {
-duplicateTracker.push({
-Year: row.Year,
-Pharmacy: row.Pharmacy,
-Region: row.Region,
-Month: row.Month,
-Class: row.Class,
-count: row._duplicateCount,
-rows: row._rows.join(', ')
-});
-}
-delete row._duplicateCount;
-delete row._rows;
-});
-return { cleanData, duplicateTracker };
+    const cleanData = Object.values(groupedData);
+    cleanData.forEach(row => {
+        if (row._duplicateCount > 1) {
+            duplicateTracker.push({
+                Year: row.Year,
+                Pharmacy: row.Pharmacy,
+                Region: row.Region,
+                Month: row.Month,
+                Class: row.Class,
+                count: row._duplicateCount,
+                rows: row._rows.join(', ')
+            });
+        }
+        delete row._duplicateCount;
+        delete row._rows;
+    });
+    return { cleanData, duplicateTracker };
 };
 
 const applyFilters = () => {
-const currentFilters = getCurrentFilters();
-filteredData = data.filter((row) =>
-Object.entries(currentFilters).every(([key, value]) => {
-if (key === 'Year') return String(row.Year).trim() === String(value).trim();
-if (value === 'all') return true;
-return (row[key] ? String(row[key]).trim() : null) === value;
-})
-);
+    const currentFilters = getCurrentFilters();
+    filteredData = data.filter((row) => {
+        const matchesStandard = Object.entries(currentFilters).every(([key, value]) => {
+            if (key === 'Year') return String(row.Year).trim() === String(value).trim();
+            if (key === 'MedClass') return true;
+            if (value === 'all') return true;
+            
+            // Tight Case-Insensitive Logic
+            const rowVal = row[key] ? String(row[key]).trim().toLowerCase() : '';
+            const filterVal = String(value).trim().toLowerCase();
+            return rowVal === filterVal;
+        });
+
+        if (!matchesStandard) return false;
+
+        if (currentFilters.MedClass !== 'all') {
+            const val = parseFloat(row[currentFilters.MedClass] || 0);
+            if (val <= 0) return false;
+        }
+
+        return true;
+    });
+};
+
+const getSelectedMedicationCategories = () => {
+    const selected = document.getElementById('medClassFilter').value;
+    return selected === 'all' ? medicationCategories : [selected];
 };
 
 const addStatCard = (label, value, options = {}) => {
-const container = document.getElementById('statsContainer');
-const card = document.createElement('div');
-let cardClasses = 'stat-card';
-if (options.cardType === 'total') cardClasses += ' total-card';
-else if (options.cardType === 'teal') cardClasses += ' teal-card';
-card.className = cardClasses;
+    const container = document.getElementById('statsContainer');
+    const card = document.createElement('div');
+    let cardClasses = 'stat-card';
+    if (options.cardType === 'total') cardClasses += ' total-card';
+    card.className = cardClasses;
 
-const fmtValue = Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
-let footer = '';
+    const fmtValue = Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    let footer = '';
 
-if (options.cardType === 'medication' && options.percentage !== undefined) {
-const pct = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
-footer = `
-<div class="stat-card-footer">
-<span class="stat-percentage">${pct.toFixed(1)}%</span>
-<div class="stat-progress-container">
-<div class="stat-progress-bar" style="width: ${pct}%;"></div>
-</div>
-</div>`;
-}
+    if (options.cardType === 'medication' && options.percentage !== undefined) {
+        const pct = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
+        footer = `
+        <div class="stat-card-footer">
+        <span class="stat-percentage">${pct.toFixed(1)}%</span>
+        <div class="stat-progress-container">
+        <div class="stat-progress-bar" style="width: ${pct}%;"></div>
+        </div>
+        </div>`;
+    }
 
-card.innerHTML = `
-<div class="stat-card-content">
-<div class="stat-value">${fmtValue}</div>
-<div class="stat-label">${label}</div>
-</div>
-${footer}`;
-container.appendChild(card);
+    card.innerHTML = `
+    <div class="stat-card-content">
+    <div class="stat-value">${fmtValue}</div>
+    <div class="stat-label">${label}</div>
+    </div>
+    ${footer}`;
+    container.appendChild(card);
 };
 
 const updateStats = () => {
-const container = document.getElementById('statsContainer');
-container.innerHTML = '';
-const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
-const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
-const activePharmacies = new Set(filteredData.map((row) => row.Pharmacy).filter(Boolean)).size;
-const totalVal = medicationCategories.reduce((sum, cat) => sum + filteredData.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
-const yearPharmacies = new Set(data.filter(d => d.Year === getCurrentFilters().Year).map(r => r.Pharmacy).filter(Boolean)).size;
+    const container = document.getElementById('statsContainer');
+    container.innerHTML = '';
+    const targetCats = getSelectedMedicationCategories();
+    const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
+    const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
+    const activePharmacies = new Set(filteredData.map((row) => row.Pharmacy).filter(Boolean)).size;
+    const totalVal = targetCats.reduce((sum, cat) => sum + filteredData.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
+    const yearPharmacies = new Set(data.filter(d => d.Year === getCurrentFilters().Year).map(r => r.Pharmacy).filter(Boolean)).size;
 
-addStatCard('Total Medications Value', totalVal, { cardType: 'total' });
-addStatCard('Total Prescriptions', totalPrescriptions, { cardType: 'teal' });
-addStatCard('Insurance Covered', insuranceCovered, { cardType: 'teal' });
-addStatCard('Active Pharmacies', activePharmacies, { cardType: 'medication', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
-medicationCategories.forEach((cat) => {
-const val = filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0);
-addStatCard(cat, val, { cardType: 'medication', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
-});
+    addStatCard('Total Medications Value', totalVal, { cardType: 'total' });
+    addStatCard('Total Prescriptions', totalPrescriptions, { cardType: 'teal' });
+    addStatCard('Insurance Covered', insuranceCovered, { cardType: 'teal' });
+    addStatCard('Active Pharmacies', activePharmacies, { cardType: 'medication', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
+
+    targetCats.forEach((cat) => {
+        const val = filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0);
+        addStatCard(cat, val, { cardType: 'medication', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
+    });
 };
 
 const updateChartType = (type) => {
-currentChartType = type;
-document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
-event.target.classList.add('active');
-updateMedicationChart();
+    currentChartType = type;
+    document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    updateMedicationChart();
 };
 
 const updateMedicationChart = () => {
-const ctx = document.getElementById('medicationChart').getContext('2d');
-if (currentChart) currentChart.destroy();
+    const ctx = document.getElementById('medicationChart').getContext('2d');
+    if (currentChart) currentChart.destroy();
 
-const chartData = medicationCategories.map(cat => filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0));
-const isHorizontal = currentChartType === 'bar';
+    const targetCats = getSelectedMedicationCategories();
+    const chartData = targetCats.map(cat => filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0));
+    const isHorizontal = currentChartType === 'bar';
 
-currentChart = new Chart(ctx, {
-type: 'bar',
-data: {
-labels: medicationCategories,
-datasets: [{
-label: 'Value',
-data: chartData,
-backgroundColor: '#3b82f6',
-borderColor: '#2563eb',
-borderWidth: 0,
-borderRadius: 4,
-}],
-},
-options: {
-indexAxis: isHorizontal ? 'y' : 'x',
-responsive: true,
-maintainAspectRatio: false,
-layout: { padding: { right: 20, top: 20 } },
-plugins: {
-legend: { display: false },
-tooltip: {
-enabled: true,
-backgroundColor: 'rgba(255,255,255,0.95)',
-titleColor: '#1e293b',
-bodyColor: '#475569',
-borderColor: '#e2e8f0',
-borderWidth: 1,
-padding: 10,
-displayColors: true
-}
-},
-scales: {
-x: {
-grid: { display: !isHorizontal, drawBorder: false },
-ticks: { color: '#64748b', font: { size: 11 } }
-},
-y: {
-grid: { display: isHorizontal, color: '#f1f5f9', drawBorder: false },
-ticks: { color: '#334155', font: { weight: '600', size: 11 } }
-}
-}
-}
-});
+    currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: targetCats,
+            datasets: [{
+                label: 'Value',
+                data: chartData,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 0,
+                borderRadius: 4,
+            }],
+        },
+        options: {
+            indexAxis: isHorizontal ? 'y' : 'x',
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 20, top: 20 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(255,255,255,0.95)',
+                    titleColor: '#1e293b',
+                    bodyColor: '#475569',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: !isHorizontal, drawBorder: false },
+                    ticks: { color: '#64748b', font: { size: 11 } }
+                },
+                y: {
+                    grid: { display: isHorizontal, color: '#f1f5f9', drawBorder: false },
+                    ticks: { color: '#334155', font: { weight: '600', size: 11 } }
+                }
+            }
+        }
+    });
 };
 
 const updateMonthlyTrendChart = () => {
-const ctx = document.getElementById('trendChart').getContext('2d');
-if (trendChartInstance) trendChartInstance.destroy();
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (trendChartInstance) trendChartInstance.destroy();
 
-const months = Array.from(new Set(filteredData.map(r => r.Month)))
-.filter(Boolean)
-.sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+    const targetCats = getSelectedMedicationCategories();
+    const months = Array.from(new Set(filteredData.map(r => r.Month)))
+        .filter(Boolean)
+        .sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
 
-const monthlyTotals = months.map(m => {
-const monthRows = filteredData.filter(r => r.Month === m);
-return medicationCategories.reduce((sum, cat) => sum + monthRows.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
-});
+    const monthlyTotals = months.map(m => {
+        const monthRows = filteredData.filter(r => r.Month === m);
+        return targetCats.reduce((sum, cat) => sum + monthRows.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
+    });
 
-trendChartInstance = new Chart(ctx, {
-type: 'line',
-data: {
-labels: months,
-datasets: [{
-label: 'Total Spending',
-data: monthlyTotals,
-borderColor: '#10b981',
-backgroundColor: 'rgba(16, 185, 129, 0.1)',
-borderWidth: 2,
-fill: true,
-tension: 0.4
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-plugins: { legend: { display: false } },
-scales: {
-y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-x: { grid: { display: false } }
-}
-}
-});
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Total Spending',
+                data: monthlyTotals,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
 };
 
 const updateRegionChart = () => {
-const ctx = document.getElementById('regionChart').getContext('2d');
-if (regionChartInstance) regionChartInstance.destroy();
+    const ctx = document.getElementById('regionChart').getContext('2d');
+    if (regionChartInstance) regionChartInstance.destroy();
 
-const regions = {};
-filteredData.forEach(row => {
-const reg = row.Region || 'Unknown';
-const val = medicationCategories.reduce((sum, cat) => sum + parseFloat(row[cat] || 0), 0);
-regions[reg] = (regions[reg] || 0) + val;
-});
+    const targetCats = getSelectedMedicationCategories();
+    const regions = {};
+    filteredData.forEach(row => {
+        const reg = row.Region || 'Unknown';
+        const val = targetCats.reduce((sum, cat) => sum + parseFloat(row[cat] || 0), 0);
+        regions[reg] = (regions[reg] || 0) + val;
+    });
 
-const sortedRegions = Object.entries(regions).sort((a,b) => b[1] - a[1]);
+    const sortedRegions = Object.entries(regions).sort((a,b) => b[1] - a[1]);
 
-regionChartInstance = new Chart(ctx, {
-type: 'polarArea',
-data: {
-labels: sortedRegions.map(i => i[0]),
-datasets: [{
-data: sortedRegions.map(i => i[1]),
-backgroundColor: [
-'rgba(59, 130, 246, 0.7)',
-'rgba(14, 165, 233, 0.7)',
-'rgba(16, 185, 129, 0.7)',
-'rgba(245, 158, 11, 0.7)',
-'rgba(239, 68, 68, 0.7)'
-],
-borderWidth: 1
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-plugins: {
-legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
-},
-scales: { r: { ticks: { display: false } } }
-}
-});
+    regionChartInstance = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: sortedRegions.map(i => i[0]),
+            datasets: [{
+                data: sortedRegions.map(i => i[1]),
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(14, 165, 233, 0.7)',
+                    'rgba(16, 185, 129, 0.7)',
+                    'rgba(245, 158, 11, 0.7)',
+                    'rgba(239, 68, 68, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+            },
+            scales: { r: { ticks: { display: false } } }
+        }
+    });
 };
 
 const findMissingTotals = () => {
-missingData = [];
-const currentFilters = getCurrentFilters();
-const baseDataset = data.filter(d => d.Year === currentFilters.Year &&
-(currentFilters.Region === 'all' || d.Region === currentFilters.Region) &&
-(currentFilters.Pharmacy === 'all' || d.Pharmacy === currentFilters.Pharmacy) &&
-(currentFilters.Class === 'all' || d.Class === currentFilters.Class));
-const allMonths = Array.from(new Set(data.filter(d => d.Year === currentFilters.Year).map(r => r.Month))).filter(Boolean).sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-const monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonths;
-const eligiblePharmacies = Array.from(new Set(baseDataset.map(r => r.Pharmacy))).filter(Boolean);
-const pharmacyRegions = {};
-data.forEach(r => { if(r.Pharmacy) pharmacyRegions[r.Pharmacy] = r.Region; });
+    missingData = [];
+    const currentFilters = getCurrentFilters();
+    const baseDataset = data.filter(d => d.Year === currentFilters.Year &&
+        (currentFilters.Region === 'all' || d.Region === currentFilters.Region) &&
+        (currentFilters.Pharmacy === 'all' || d.Pharmacy === currentFilters.Pharmacy) &&
+        (currentFilters.Class === 'all' || d.Class === currentFilters.Class));
+    const allMonths = Array.from(new Set(data.filter(d => d.Year === currentFilters.Year).map(r => r.Month))).filter(Boolean).sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+    const monthsToCheck = currentFilters.Month !== 'all' ? [currentFilters.Month] : allMonths;
+    const eligiblePharmacies = Array.from(new Set(baseDataset.map(r => r.Pharmacy))).filter(Boolean);
+    const pharmacyRegions = {};
+    data.forEach(r => { if(r.Pharmacy) pharmacyRegions[r.Pharmacy] = r.Region; });
 
-monthsToCheck.forEach(month => {
-const activeInMonth = new Set(baseDataset.filter(r => r.Month === month).map(r => r.Pharmacy));
-eligiblePharmacies.forEach(pharmacy => {
-if (!activeInMonth.has(pharmacy)) {
-missingData.push({ Region: pharmacyRegions[pharmacy] || 'Unknown', Pharmacy: pharmacy, Month: month, Status: 'Inactive' });
-}
-});
-});
-missingData.sort((a,b) => a.Region.localeCompare(b.Region) || a.Pharmacy.localeCompare(b.Pharmacy) || getMonthOrderValue(a.Month) - getMonthOrderValue(b.Month));
+    monthsToCheck.forEach(month => {
+        const activeInMonth = new Set(baseDataset.filter(r => r.Month === month).map(r => r.Pharmacy));
+        eligiblePharmacies.forEach(pharmacy => {
+            if (!activeInMonth.has(pharmacy)) {
+                missingData.push({ Region: pharmacyRegions[pharmacy] || 'Unknown', Pharmacy: pharmacy, Month: month, Status: 'Inactive' });
+            }
+        });
+    });
+    missingData.sort((a,b) => a.Region.localeCompare(b.Region) || a.Pharmacy.localeCompare(b.Pharmacy) || getMonthOrderValue(a.Month) - getMonthOrderValue(b.Month));
 };
 
 const getTrendIndicator = (c, p) => {
-if (p == null || c == null) return '';
-if (c === p) return '<span class="trend-neutral">→</span>';
-return c > p ? '<span class="trend-up">↑</span>' : '<span class="trend-down">↓</span>';
+    if (p == null || c == null) return '';
+    if (c === p) return '<span style="color:#64748b">→</span>';
+    return c > p ? '<span style="color:#10b981;font-weight:700">↑</span>' : '<span style="color:#ef4444;font-weight:700">↓</span>';
 };
 
 const updateExploreView = () => {
-const tbody = document.querySelector('#exploreTable tbody');
-const thead = document.querySelector('#exploreTable thead tr');
-const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-thead.innerHTML = '<th>Metric</th>' + months.map(m => `<th class="numeric-cell">${m}</th>`).join('');
-const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...medicationCategories];
-const monthlyData = {};
-months.forEach(m => {
-const md = filteredData.filter(r => r.Month === m);
-monthlyData[m] = {
-Total: medicationCategories.reduce((s,c) => s + md.reduce((ms,r) => ms + parseFloat(r[c]||0),0),0),
-'Total Prescriptions': md.reduce((s,r) => s + parseFloat(r['Total Prescription']||0),0),
-'Insurance Covered': md.reduce((s,r) => s + parseFloat(r['Insurance Covered Prescription']||0),0),
-'Active Pharmacies': new Set(md.map(r=>r.Pharmacy)).size,
-...Object.fromEntries(medicationCategories.map(c => [c, md.reduce((s,r) => s + parseFloat(r[c]||0),0)]))
-};
-});
-tbody.innerHTML = metrics.map(metric => {
-let hasData = false;
-let prev = null;
-const cells = months.map(m => {
-const val = monthlyData[m][metric];
-if(val > 0) hasData = true;
-const trend = getTrendIndicator(val, prev);
-prev = val;
-return `<td class="numeric-cell">${val.toLocaleString(undefined,{maximumFractionDigits:0})} ${trend}</td>`;
-}).join('');
-return hasData ? `<tr><td>${metric}</td>${cells}</tr>` : '';
-}).join('');
+    const tbody = document.querySelector('#exploreTable tbody');
+    const thead = document.querySelector('#exploreTable thead tr');
+    const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+    thead.innerHTML = '<th>Metric</th>' + months.map(m => `<th>${m}</th>`).join('');
+
+    const currentFilters = getCurrentFilters();
+    let targetMetrics = medicationCategories;
+    if (currentFilters.MedClass !== 'all') {
+        targetMetrics = [currentFilters.MedClass];
+    }
+
+    const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...targetMetrics];
+    const monthlyData = {};
+    months.forEach(m => {
+        const md = filteredData.filter(r => r.Month === m);
+        monthlyData[m] = {
+            Total: targetMetrics.reduce((s,c) => s + md.reduce((ms,r) => ms + parseFloat(r[c]||0),0),0),
+            'Total Prescriptions': md.reduce((s,r) => s + parseFloat(r['Total Prescription']||0),0),
+            'Insurance Covered': md.reduce((s,r) => s + parseFloat(r['Insurance Covered Prescription']||0),0),
+            'Active Pharmacies': new Set(md.map(r=>r.Pharmacy)).size,
+            ...Object.fromEntries(medicationCategories.map(c => [c, md.reduce((s,r) => s + parseFloat(r[c]||0),0)]))
+        };
+    });
+    tbody.innerHTML = metrics.map(metric => {
+        let hasData = false;
+        let prev = null;
+        const cells = months.map(m => {
+            const val = monthlyData[m][metric];
+            if(val > 0) hasData = true;
+            const trend = getTrendIndicator(val, prev);
+            prev = val;
+            return `<td>${val.toLocaleString(undefined,{maximumFractionDigits:0})} ${trend}</td>`;
+        }).join('');
+        return hasData ? `<tr><td>${metric}</td>${cells}</tr>` : '';
+    }).join('');
 };
 
 const updateMissingView = () => {
-document.querySelector('#missingTable tbody').innerHTML = missingData.map(i => `<tr><td>${i.Region}</td><td><strong>${i.Pharmacy}</strong></td><td>${i.Month}</td><td><span style="color:#ef4444;font-weight:700">Inactive</span></td></tr>`).join('');
+    document.querySelector('#missingTable tbody').innerHTML = missingData.map(i => `<tr><td>${i.Region}</td><td><strong>${i.Pharmacy}</strong></td><td>${i.Month}</td><td><span style="color:#ef4444;font-weight:700">Inactive</span></td></tr>`).join('');
 };
 
 const updateDashboard = debounce(() => {
-applyFilters();
-findMissingTotals();
-const resCount = document.getElementById('resultsCount');
-const misCount = document.getElementById('missingResultsCount');
+    applyFilters();
+    findMissingTotals();
+    const resCount = document.getElementById('resultsCount');
+    const misCount = document.getElementById('missingResultsCount');
 
-if (isExploreMode) {
-document.querySelector('.dashboard-view').classList.add('hidden');
-document.querySelector('.missing-view').classList.add('hidden');
-document.querySelector('.explore-view').classList.remove('hidden');
-updateExploreView();
-resCount.innerHTML = `Showing metrics across <strong>${Array.from(new Set(filteredData.map(r=>r.Month))).length}</strong> months`;
-misCount.classList.add('hidden');
-} else if (isMissingMode) {
-document.querySelector('.dashboard-view').classList.add('hidden');
-document.querySelector('.explore-view').classList.add('hidden');
-document.querySelector('.missing-view').classList.remove('hidden');
-updateMissingView();
-resCount.innerHTML = `Found <strong>${missingData.length}</strong> inactive records`;
-misCount.classList.add('hidden');
-} else {
-document.querySelector('.explore-view').classList.add('hidden');
-document.querySelector('.missing-view').classList.add('hidden');
-document.querySelector('.dashboard-view').classList.remove('hidden');
-updateStats();
-updateMedicationChart();
-updateMonthlyTrendChart();
-updateRegionChart();
-resCount.innerHTML = `Showing <strong>${filteredData.length}</strong> Results`;
-if (missingData.length > 0) {
-misCount.classList.remove('hidden');
-misCount.innerHTML = `<strong>${missingData.length}</strong> Missing`;
-misCount.onclick = () => document.getElementById('toggleMissingBtn').click();
-} else {
-misCount.classList.add('hidden');
-}
-}
+    if (isExploreMode) {
+        document.querySelector('.dashboard-view').classList.add('hidden');
+        document.querySelector('.missing-view').classList.add('hidden');
+        document.querySelector('.explore-view').classList.remove('hidden');
+        updateExploreView();
+        resCount.innerHTML = `Showing metrics across <strong>${Array.from(new Set(filteredData.map(r=>r.Month))).length}</strong> months`;
+        misCount.classList.add('hidden');
+    } else if (isMissingMode) {
+        document.querySelector('.dashboard-view').classList.add('hidden');
+        document.querySelector('.explore-view').classList.add('hidden');
+        document.querySelector('.missing-view').classList.remove('hidden');
+        updateMissingView();
+        resCount.innerHTML = `Found <strong>${missingData.length}</strong> inactive records`;
+        misCount.classList.add('hidden');
+    } else {
+        document.querySelector('.explore-view').classList.add('hidden');
+        document.querySelector('.missing-view').classList.add('hidden');
+        document.querySelector('.dashboard-view').classList.remove('hidden');
+        updateStats();
+        updateMedicationChart();
+        updateMonthlyTrendChart();
+        updateRegionChart();
+        resCount.innerHTML = `Showing <strong>${filteredData.length}</strong> Results`;
+        if (missingData.length > 0) {
+            misCount.classList.remove('hidden');
+            misCount.innerHTML = `<strong>${missingData.length}</strong> Missing`;
+            misCount.onclick = () => document.getElementById('toggleMissingBtn').click();
+        } else {
+            misCount.classList.add('hidden');
+        }
+    }
 }, 150);
 
 const showDuplicateDetails = (duplicates) => {
-const modal = document.getElementById('modalContainer');
-modal.innerHTML = `
-<div class="modal-overlay" onclick="document.getElementById('modalContainer').classList.add('hidden')">
-<div class="modal-content" onclick="event.stopPropagation()">
-<div class="modal-header">
-<h3>Merged Duplicates</h3>
-<button class="modal-close-btn" onclick="document.getElementById('modalContainer').classList.add('hidden')">
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-</svg>
-</button>
-</div>
-<div class="modal-body">
-${duplicates.map(d => `
-<div class="duplicate-item">
-<div class="duplicate-item-header">
-<div class="duplicate-info">
-<strong>${d.Year}</strong> • ${d.Pharmacy} • ${d.Month}
-</div>
-<span class="duplicate-badge">${d.count} Merged</span>
-</div>
-<div class="duplicate-rows">${d.rows}</div>
-</div>
-`).join('')}
-</div>
-</div>
-</div>`;
-modal.classList.remove('hidden');
+    const modal = document.getElementById('modalContainer');
+    modal.innerHTML = `
+    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:50;display:flex;justify-content:center;align-items:center" onclick="document.getElementById('modalContainer').classList.add('hidden')">
+    <div style="background:white;width:90%;max-width:600px;max-height:80vh;border-radius:1rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;border:2px solid #e2e8f0;overflow:hidden" onclick="event.stopPropagation()">
+    <div style="padding:1.5rem;border-bottom:2px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc">
+    <h3 style="margin:0;font-size:1.25rem;color:#334155">Merged Duplicates</h3>
+    <button style="background:white;border:2px solid #e2e8f0;padding:0.5rem;border-radius:0.5rem;cursor:pointer" onclick="document.getElementById('modalContainer').classList.add('hidden')">X</button>
+    </div>
+    <div style="overflow-y:auto;padding:0">
+    ${duplicates.map(d => `
+    <div style="padding:1.25rem;border-bottom:1px solid #e2e8f0;background:white">
+    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem">
+    <div style="color:#334155"><strong>${d.Year}</strong> • ${d.Pharmacy} • ${d.Month}</div>
+    <span style="background:#fffbeb;color:#b45309;padding:0.25rem 0.75rem;border-radius:99px;font-size:0.75rem;font-weight:700;border:1px solid #fcd34d">${d.count} Merged</span>
+    </div>
+    <div style="font-size:0.8125rem;color:#64748b;background:#f8fafc;padding:0.75rem;border-radius:0.5rem;border:1px solid #e2e8f0">IDs: ${d.rows}</div>
+    </div>
+    `).join('')}
+    </div>
+    </div>
+    </div>`;
+    modal.classList.remove('hidden');
 };
 
 const exportData = () => {
-const dataToExport = isExploreMode ? [] : (isMissingMode ? missingData : filteredData);
-if(isExploreMode) { alert("Please export from Dashboard or Missing view."); return; }
-const ws = XLSX.utils.json_to_sheet(dataToExport);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, "Data");
-XLSX.writeFile(wb, "Export.xlsx");
+    const dataToExport = isExploreMode ? [] : (isMissingMode ? missingData : filteredData);
+    if(isExploreMode) { alert("Please export from Dashboard or Missing view."); return; }
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, "Export.xlsx");
 };
 
 document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-['region', 'pharmacy', 'month', 'class'].forEach(f => document.getElementById(`${f}Filter`).value = 'all');
-['region', 'pharmacy', 'month', 'class'].forEach(f => updateFilterOptions(f, getCurrentFilters()));
-updateDashboard();
+    ['region', 'pharmacy', 'month', 'class', 'medClass'].forEach(f => document.getElementById(`${f}Filter`).value = 'all');
+    updateAllFilterOptions();
+    updateDashboard();
 });
 
 document.getElementById('toggleExploreBtn').addEventListener('click', () => {
-isExploreMode = !isExploreMode; isMissingMode = false;
-const btn = document.getElementById('toggleExploreBtn');
-if(isExploreMode) {
-btn.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg> Back`;
-document.getElementById('toggleMissingBtn').innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
-} else {
-btn.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> Explore`;
-}
-updateDashboard();
+    isExploreMode = !isExploreMode; isMissingMode = false;
+    const btn = document.getElementById('toggleExploreBtn');
+    if(isExploreMode) {
+        btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg> Back`;
+        document.getElementById('toggleMissingBtn').innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
+    } else {
+        btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> Explore`;
+    }
+    updateDashboard();
 });
 
 document.getElementById('toggleMissingBtn').addEventListener('click', () => {
-isMissingMode = !isMissingMode; isExploreMode = false;
-const btn = document.getElementById('toggleMissingBtn');
-if(isMissingMode) {
-btn.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg> Back`;
-document.getElementById('toggleExploreBtn').innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> Explore`;
-} else {
-btn.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
-}
-updateDashboard();
+    isMissingMode = !isMissingMode; isExploreMode = false;
+    const btn = document.getElementById('toggleMissingBtn');
+    if(isMissingMode) {
+        btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg> Back`;
+        document.getElementById('toggleExploreBtn').innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> Explore`;
+    } else {
+        btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
+    }
+    updateDashboard();
 });
 
 document.getElementById('exportExcelBtn').addEventListener('click', exportData);
 
 const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`).then(r => r.text()).then(csv => {
-Papa.parse(csv, { header: true, skipEmptyLines: true, complete: (results) => {
-results.data.forEach((row, index) => { row._rowNum = index + 2; });
-const processed = processDataAndHandleDuplicates(results.data);
-data = processed.cleanData;
-if (processed.duplicateTracker.length > 0) {
-const banner = document.getElementById('duplicateWarningContainer');
-banner.innerHTML = `<div class="duplicate-warning-banner"><div><strong>Notice:</strong> ${processed.duplicateTracker.length} duplicate entries merged.</div><button class="warning-details-btn" id="viewDuplicatesBtn">Details</button></div>`;
-banner.classList.remove('hidden');
-document.getElementById('viewDuplicatesBtn').onclick = () => showDuplicateDetails(processed.duplicateTracker);
-}
-allYears = [...new Set(data.map(d => d.Year))].filter(Boolean).map(Number).sort((a,b)=>a-b);
-if(allYears.length) defaultYear = Math.max(...allYears);
-populateYearFilter();
-initializeFilters();
-updateDashboard();
-}});
+    Papa.parse(csv, { header: true, skipEmptyLines: true, complete: (results) => {
+        results.data.forEach((row, index) => { row._rowNum = index + 2; });
+        const processed = processDataAndHandleDuplicates(results.data);
+        data = processed.cleanData;
+        if (processed.duplicateTracker.length > 0) {
+            const banner = document.getElementById('duplicateWarningContainer');
+            banner.innerHTML = `<div class="duplicate-warning-banner"><div><strong>Notice:</strong> ${processed.duplicateTracker.length} duplicate entries merged.</div><button style="background:white;border:2px solid #b45309;color:#b45309;padding:0.5rem 1rem;border-radius:0.5rem;font-weight:600;cursor:pointer" id="viewDuplicatesBtn">Details</button></div>`;
+            banner.classList.remove('hidden');
+            document.getElementById('viewDuplicatesBtn').onclick = () => showDuplicateDetails(processed.duplicateTracker);
+        }
+        allYears = [...new Set(data.map(d => d.Year))].filter(Boolean).map(Number).sort((a,b)=>a-b);
+        if(allYears.length) defaultYear = Math.max(...allYears);
+        populateYearFilter();
+        initializeFilters();
+        updateDashboard();
+    }});
 });
 </script>
 
