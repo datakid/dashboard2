@@ -953,6 +953,15 @@ timeout = setTimeout(() => func(...args), wait);
 };
 };
 
+const normalizeArabic = (str) => {
+if (!str) return '';
+return String(str).toLowerCase()
+.replace(/[\u064B-\u065F\u0670]/g, '')
+.replace(/[إأآا]/g, 'ا')
+.replace(/ة/g, 'ه')
+.replace(/ى/g, 'ي');
+};
+
 let data = [], filteredData = [], missingData = [], mergedDuplicates = [];
 let allYears = [];
 let defaultYear = null;
@@ -1181,13 +1190,17 @@ options = medicationCategories;
 } else {
 options = getAllUniqueOptions(field);
 }
-searchIndices[field] = new Fuse(options, {
+const normalizedOptions = options.map(opt => ({
+item: opt,
+searchKey: normalizeArabic(opt)
+}));
+searchIndices[field] = new Fuse(normalizedOptions, {
 threshold: 0.3,
 includeScore: true,
 ignoreLocation: true,
 distance: 100,
 minMatchCharLength: 2,
-keys: ['item']
+keys: ['searchKey']
 });
 });
 };
@@ -1286,12 +1299,13 @@ MedClass: getAvailableMedClasses()
 };
 
 const fields = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
+const normalizedQuery = normalizeArabic(query);
 
 fields.forEach(field => {
 if (!searchIndices[field]) return;
-const result = searchIndices[field].search(query);
+const result = searchIndices[field].search(normalizedQuery);
 if (result.length > 0) {
-searchResults[field] = result.map(r => r.item);
+searchResults[field] = result.map(r => r.item.item);
 }
 });
 
@@ -1371,12 +1385,10 @@ activeFilters[category] = activeFilters[category].filter(v => v !== value);
 activeFilters[category].push(value);
 }
 
-// Update app state
 updateAllFilterOptions();
 updateDashboard();
 updateSearchVisuals();
 
-// Re-render search results immediately to enforce new sort order and grey-out
 const input = document.getElementById('universalSearchInput');
 if(input.value.trim().length > 0) {
 performUniversalSearch(input.value.trim());
@@ -1404,7 +1416,6 @@ chip.innerHTML = `<span class="search-chip-category ${config.class}">${field}</s
 chip.querySelector('.search-chip-remove').addEventListener('click', (e) => {
 e.stopPropagation();
 toggleFilter(field, val);
-// If search is open, refresh it to update visuals
 const input = document.getElementById('universalSearchInput');
 if(document.getElementById('universalSearchResults').classList.contains('active') && input.value.trim().length > 0) {
 performUniversalSearch(input.value.trim());
@@ -1818,9 +1829,12 @@ modal.classList.remove('hidden');
 };
 
 const exportData = () => {
-const dataToExport = isExploreMode ? [] : (isMissingMode ? missingData : filteredData);
-if(isExploreMode) { alert("Please export from Dashboard or Missing view."); return; }
-const ws = XLSX.utils.json_to_sheet(dataToExport);
+let ws;
+if (isExploreMode) {
+ws = XLSX.utils.table_to_sheet(document.getElementById('exploreTable'));
+} else {
+ws = XLSX.utils.json_to_sheet(isMissingMode ? missingData : filteredData);
+}
 const wb = XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb, ws, "Data");
 XLSX.writeFile(wb, "Export.xlsx");
@@ -1838,7 +1852,7 @@ isExploreMode = !isExploreMode; isMissingMode = false;
 const btn = document.getElementById('toggleExploreBtn');
 if(isExploreMode) {
 btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-10.293a1 1 0 00-1.414-1.414L10 8.586 7.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-2.293 2.293a1 1 0 001.414 1.414L10 11.414l2.293 2.293a1 1 0 001.414-1.414L11.414 10l2.293-2.293z" clip-rule="evenodd" /></svg> Back`;
-document.getElementById('toggleMissingBtn').innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
+document.getElementById('toggleMissingBtn').innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 100 20V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Missing`;
 } else {
 btn.innerHTML = `<svg style="width:1.1rem;height:1.1rem" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg> Explore`;
 }
