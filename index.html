@@ -1829,12 +1829,24 @@ modal.classList.remove('hidden');
 };
 
 const exportData = () => {
-let ws;
+const filterText = `Fiscal Year: ${activeFilters.Year || 'All'} | Filters: ${getFilterSummary()}`;
+let aoa = [[filterText], []];
+
 if (isExploreMode) {
-ws = XLSX.utils.table_to_sheet(document.getElementById('exploreTable'));
+const tempSheet = XLSX.utils.table_to_sheet(document.getElementById('exploreTable'));
+aoa = aoa.concat(XLSX.utils.sheet_to_json(tempSheet, {header: 1}));
 } else {
-ws = XLSX.utils.json_to_sheet(isMissingMode ? missingData : filteredData);
+const sourceData = isMissingMode ? missingData : filteredData;
+if (sourceData.length > 0) {
+const headers = Object.keys(sourceData[0]);
+aoa.push(headers);
+sourceData.forEach(row => aoa.push(headers.map(h => row[h])));
+} else {
+aoa.push(["No data available"]);
 }
+}
+
+const ws = XLSX.utils.aoa_to_sheet(aoa);
 const wb = XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb, ws, "Data");
 XLSX.writeFile(wb, "Export.xlsx");
