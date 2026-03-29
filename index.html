@@ -938,6 +938,8 @@ Export
 </div>
 
 <script>
+const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
+
 const monthOrder = {
 july: 1, august: 2, september: 3, october: 4, november: 5, december: 6,
 january: 7, february: 8, march: 9, april: 10, may: 11, june: 12,
@@ -1100,7 +1102,7 @@ return a.value.localeCompare(b.value);
 
 let html = '';
 optionsWithStatus.forEach(opt => {
-html += `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" data-value="${opt.value.replace(/"/g, '&quot;')}"><div class="checkbox-custom"></div>${opt.value}</div>`;
+html += `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" data-value="${escapeHTML(opt.value)}"><div class="checkbox-custom"></div>${escapeHTML(opt.value)}</div>`;
 });
 dropdown.innerHTML = html;
 
@@ -1315,14 +1317,14 @@ let hasResults = false;
 const createItemHtml = (itemObj, field) => {
 const { item, isValid, isSelected } = itemObj;
 const itemClass = !isValid && !isSelected ? 'disabled' : (isSelected ? 'selected' : '');
-const cleanItem = item.replace(/'/g, "\\'");
-const itemId = `search-item-${field}-${item.replace(/[^a-zA-Z0-9]/g, '_')}`;
+const safeJSItem = escapeHTML(String(item).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+const itemId = `search-item-${field}-${String(item).replace(/[^a-zA-Z0-9]/g, '_')}`;
 
 return `<div class="search-result-item ${itemClass}"
 id="${itemId}"
 onmousedown="event.preventDefault()"
-onclick="handleSearchResultClick('${field}', '${cleanItem}', this)">
-<span>${item}</span>
+onclick="handleSearchResultClick('${field}', '${safeJSItem}', this)">
+<span>${escapeHTML(item)}</span>
 ${isSelected ? '<svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
 </div>`;
 };
@@ -1362,7 +1364,7 @@ html += `<div class="search-hint">
 <span><span class="kbd-key">Enter</span> to close</span>
 </div>`;
 } else {
-html = '<div class="search-no-results">No matches found for "' + query + '"</div>';
+html = '<div class="search-no-results">No matches found for "' + escapeHTML(query) + '"</div>';
 }
 
 resultsContainer.innerHTML = html;
@@ -1408,7 +1410,7 @@ activeFilters[field].forEach(val => {
 const chip = document.createElement('div');
 chip.className = 'search-chip';
 const config = searchCategoryConfig[field];
-chip.innerHTML = `<span class="search-chip-category ${config.class}">${field}</span>${val}
+chip.innerHTML = `<span class="search-chip-category ${config.class}">${field}</span>${escapeHTML(val)}
 <span class="search-chip-remove">
 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 </span>`;
@@ -1536,7 +1538,7 @@ const pct = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
 footer = `<div class="stat-card-footer"><span class="stat-percentage">${pct.toFixed(1)}%</span><div class="stat-progress-container"><div class="stat-progress-bar" style="width: ${pct}%;"></div></div></div>`;
 }
 
-card.innerHTML = `<div class="stat-card-content"><div class="stat-value">${fmtValue}</div><div class="stat-label">${label}</div></div>${footer}`;
+card.innerHTML = `<div class="stat-card-content"><div class="stat-value">${fmtValue}</div><div class="stat-label">${escapeHTML(label)}</div></div>${footer}`;
 container.appendChild(card);
 };
 
@@ -1724,7 +1726,7 @@ const updateExploreView = () => {
 const tbody = document.querySelector('#exploreTable tbody');
 const thead = document.querySelector('#exploreTable thead tr');
 const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a,b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-thead.innerHTML = '<th>Metric</th>' + months.map(m => `<th>${m}</th>`).join('');
+thead.innerHTML = '<th>Metric</th>' + months.map(m => `<th>${escapeHTML(m)}</th>`).join('');
 
 const targetMetrics = activeFilters.MedClass.length > 0 ? activeFilters.MedClass : medicationCategories;
 const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...targetMetrics];
@@ -1749,12 +1751,12 @@ const trend = getTrendIndicator(val, prev);
 prev = val;
 return `<td>${val.toLocaleString(undefined,{maximumFractionDigits:0})} ${trend}</td>`;
 }).join('');
-return hasData ? `<tr><td>${metric}</td>${cells}</tr>` : '';
+return hasData ? `<tr><td>${escapeHTML(metric)}</td>${cells}</tr>` : '';
 }).join('');
 };
 
 const updateMissingView = () => {
-document.querySelector('#missingTable tbody').innerHTML = missingData.map(i => `<tr><td>${i.Region}</td><td><strong>${i.Pharmacy}</strong></td><td>${i.Month}</td><td><span style="color:#ef4444;font-weight:700">Inactive</span></td></tr>`).join('');
+document.querySelector('#missingTable tbody').innerHTML = missingData.map(i => `<tr><td>${escapeHTML(i.Region)}</td><td><strong>${escapeHTML(i.Pharmacy)}</strong></td><td>${escapeHTML(i.Month)}</td><td><span style="color:#ef4444;font-weight:700">Inactive</span></td></tr>`).join('');
 };
 
 const updateDashboard = debounce(() => {
@@ -1819,10 +1821,10 @@ modal.innerHTML = `
 ${duplicates.map(d => `
 <div style="padding:1.25rem;border-bottom:1px solid #e2e8f0;background:white">
 <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem">
-<div style="color:#334155"><strong>${d.Year}</strong> • ${d.Pharmacy} • ${d.Month}</div>
+<div style="color:#334155"><strong>${escapeHTML(d.Year)}</strong> • ${escapeHTML(d.Pharmacy)} • ${escapeHTML(d.Month)}</div>
 <span style="background:#fffbeb;color:#b45309;padding:0.25rem 0.75rem;border-radius:99px;font-size:0.75rem;font-weight:700;border:1px solid #fcd34d">${d.count} Merged</span>
 </div>
-<div style="font-size:0.8125rem;color:#64748b;background:#f8fafc;padding:0.75rem;border-radius:0.5rem;border:1px solid #e2e8f0">IDs: ${d.rows}</div>
+<div style="font-size:0.8125rem;color:#64748b;background:#f8fafc;padding:0.75rem;border-radius:0.5rem;border:1px solid #e2e8f0">IDs: ${escapeHTML(d.rows)}</div>
 </div>`).join('')}
 </div></div></div>`;
 modal.classList.remove('hidden');
