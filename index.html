@@ -144,11 +144,7 @@ body {
   gap: 1.5rem;
 }
 
-.brand {
-  display: flex;
-  align-items: baseline;
-  gap: 0.875rem;
-}
+.brand { display: flex; align-items: baseline; gap: 0.875rem; }
 
 .brand-lx {
   background: linear-gradient(140deg, var(--sys-blue) 10%, var(--sys-purple) 55%, var(--sys-pink) 100%);
@@ -169,11 +165,7 @@ body {
   line-height: 1;
 }
 
-.header-right {
-  display: flex;
-  align-items: flex-end;
-  gap: 1.25rem;
-}
+.header-right { display: flex; align-items: flex-end; gap: 1.25rem; }
 
 .theme-switcher {
   display: flex;
@@ -203,18 +195,9 @@ body {
 }
 
 .theme-btn:hover { color: var(--text-secondary); }
-.theme-btn.active {
-  background: var(--card-bg);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-xs);
-}
+.theme-btn.active { background: var(--card-bg); color: var(--text-primary); box-shadow: var(--shadow-xs); }
 
-.year-filter-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-}
+.year-filter-container { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
 
 .year-filter-label {
   font-size: 0.75rem;
@@ -569,10 +552,7 @@ body {
   transition: background 0.2s var(--spring), border-color 0.2s;
 }
 
-.dropdown-item.selected .checkbox-custom {
-  background: var(--sys-blue);
-  border-color: var(--sys-blue);
-}
+.dropdown-item.selected .checkbox-custom { background: var(--sys-blue); border-color: var(--sys-blue); }
 
 .dropdown-item.selected .checkbox-custom::after {
   content: '';
@@ -711,23 +691,52 @@ html.dark .btn-explore { box-shadow: 0 2px 12px rgba(41, 151, 255, 0.35); }
   flex-direction: column;
   justify-content: space-between;
   animation: slideUp 0.5s var(--ease-out) both;
-  transition: transform 0.3s var(--spring), box-shadow 0.3s var(--ease-out);
+  transition: transform 0.45s var(--spring), box-shadow 0.45s var(--ease-out), border-color 0.3s var(--ease-out);
   position: relative;
   overflow: hidden;
   container-type: inline-size;
+  cursor: default;
 }
 
-html.dark .stat-card {
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06);
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+  pointer-events: none;
+  z-index: 0;
 }
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--sys-blue), var(--sys-indigo), var(--sys-purple));
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.stat-card-content, .stat-card-footer { position: relative; z-index: 1; }
+
+html.dark .stat-card { box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06); }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-10px) scale(1.018);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.13), 0 8px 24px rgba(0,0,0,0.09);
+  border-color: transparent;
 }
 
+.stat-card:hover::before { opacity: 1; }
+.stat-card:hover::after { opacity: 1; }
+
 html.dark .stat-card:hover {
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .stat-card-content { width: 100%; }
@@ -742,23 +751,11 @@ html.dark .stat-card:hover {
   color: var(--text-primary);
 }
 
-.stat-label {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
+.stat-label { font-size: 1rem; color: var(--text-secondary); font-weight: 500; letter-spacing: -0.01em; }
 .stat-card-footer { margin-top: 1.5rem; }
 .stat-percentage { font-size: 0.875rem; font-weight: 600; color: var(--sys-blue); display: block; margin-bottom: 0.625rem; }
 
-.stat-progress-container {
-  width: 100%;
-  height: 5px;
-  background: var(--border-light);
-  border-radius: 99px;
-  overflow: hidden;
-}
+.stat-progress-container { width: 100%; height: 5px; background: var(--border-light); border-radius: 99px; overflow: hidden; }
 
 .stat-progress-bar {
   height: 100%;
@@ -773,14 +770,28 @@ html.dark .stat-card:hover {
   border: none;
   grid-column: 1 / -1;
   box-shadow: 0 8px 32px rgba(0, 113, 227, 0.22), 0 2px 8px rgba(0, 113, 227, 0.15);
+  transition: transform 0.45s var(--spring), box-shadow 0.45s var(--ease-out);
 }
 
-html.dark .total-card {
-  box-shadow: 0 8px 32px rgba(41, 151, 255, 0.28), 0 2px 8px rgba(41, 151, 255, 0.18);
-}
-
+html.dark .total-card { box-shadow: 0 8px 32px rgba(41, 151, 255, 0.28), 0 2px 8px rgba(41, 151, 255, 0.18); }
 .total-card .stat-value { color: #fff; }
 .total-card .stat-label { color: rgba(255,255,255,0.82); }
+
+.total-card::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 40%, transparent 70%);
+}
+
+.total-card::after { display: none; }
+
+.total-card:hover {
+  transform: translateY(-10px) scale(1.012);
+  box-shadow: 0 32px 80px rgba(0, 113, 227, 0.45), 0 12px 28px rgba(88, 86, 214, 0.3);
+  border-color: transparent;
+}
+
+html.dark .total-card:hover {
+  box-shadow: 0 32px 80px rgba(41, 151, 255, 0.5), 0 12px 28px rgba(94, 92, 230, 0.38);
+}
 
 .charts-grid {
   display: grid;
@@ -801,11 +812,10 @@ html.dark .total-card {
   height: 460px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-html.dark .chart-container {
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06);
-}
+html.dark .chart-container { box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06); }
 
 .chart-container.wide { grid-column: 1 / -1; height: 500px; }
 
@@ -817,12 +827,7 @@ html.dark .chart-container {
   flex-shrink: 0;
 }
 
-.chart-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
+.chart-title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; }
 
 .chart-actions {
   display: flex;
@@ -848,7 +853,13 @@ html.dark .chart-container {
 .chart-btn:hover { color: var(--text-secondary); }
 .chart-btn.active { background: var(--card-bg); color: var(--text-primary); box-shadow: var(--shadow-xs); }
 
-.chart-wrapper { flex-grow: 1; position: relative; width: 100%; min-height: 0; }
+.chart-wrapper {
+  flex: 1 1 0;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
 
 .explore-table-container,
 .missing-table-container {
@@ -967,10 +978,7 @@ tbody tr:last-child td { border-bottom: none; }
   transition: transform 0.35s var(--spring);
 }
 
-html.dark .modal-content {
-  box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
+html.dark .modal-content { box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.08); }
 #modalContainer:not(.hidden) .modal-content { transform: scale(1) translateY(0); }
 
 @media (max-width: 1200px) { .charts-grid { grid-template-columns: 1fr; } }
@@ -1641,6 +1649,14 @@ const updateStats = () => {
   });
 };
 
+const compactNum = (value) => {
+  const abs = Math.abs(value);
+  if (abs >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+  if (abs >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (abs >= 1e3) return (value / 1e3).toFixed(0) + 'K';
+  return value;
+};
+
 const getFilterSummary = () => {
   const parts = [];
   ['Region', 'Pharmacy', 'Month', 'Class'].forEach(k => {
@@ -1666,19 +1682,56 @@ const updateMedicationChart = () => {
   Chart.defaults.color = getThemeColor('--text-secondary');
   currentChart = new Chart(ctx, {
     type: 'bar',
-    data: { labels: targetCats, datasets: [{ label: 'Value', data: chartData, backgroundColor: getThemeColor('--sys-blue'), borderRadius: 6, borderSkipped: false }] },
+    data: {
+      labels: targetCats,
+      datasets: [{
+        label: 'Value',
+        data: chartData,
+        backgroundColor: getThemeColor('--sys-blue'),
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
     options: {
       indexAxis: currentChartType === 'horizontal' ? 'y' : 'x',
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { left: 4, right: 8, top: 4, bottom: 4 }
+      },
       plugins: {
         tooltip: getCustomTooltip(),
         legend: { display: false },
-        subtitle: { display: true, text: getFilterSummary(), color: getThemeColor('--text-tertiary'), padding: { bottom: 16 }, font: { size: 13, weight: '500' } }
+        subtitle: {
+          display: true,
+          text: getFilterSummary(),
+          color: getThemeColor('--text-tertiary'),
+          padding: { bottom: 12 },
+          font: { size: 13, weight: '500' }
+        }
       },
       scales: {
-        x: { grid: { display: false }, border: { display: false }, ticks: { color: getThemeColor('--text-secondary'), font: { size: 12 } } },
-        y: { grid: { color: getThemeColor('--separator') }, border: { display: false }, ticks: { color: getThemeColor('--text-secondary'), font: { size: 12 } } }
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: {
+            color: getThemeColor('--text-secondary'),
+            font: { size: 11 },
+            maxRotation: 35,
+            minRotation: 0,
+            autoSkip: true
+          }
+        },
+        y: {
+          grid: { color: getThemeColor('--separator') },
+          border: { display: false },
+          afterFit: (scale) => { scale.width = Math.max(scale.width, 52); },
+          ticks: {
+            color: getThemeColor('--text-secondary'),
+            font: { size: 11 },
+            callback: (value) => compactNum(value)
+          }
+        }
       }
     }
   });
@@ -1715,14 +1768,41 @@ const updateMonthlyTrendChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { left: 4, right: 8, top: 4, bottom: 4 }
+      },
       plugins: {
         tooltip: getCustomTooltip(),
         legend: { display: false },
-        subtitle: { display: true, text: getFilterSummary(), color: getThemeColor('--text-tertiary'), padding: { bottom: 16 }, font: { size: 13, weight: '500' } }
+        subtitle: {
+          display: true,
+          text: getFilterSummary(),
+          color: getThemeColor('--text-tertiary'),
+          padding: { bottom: 12 },
+          font: { size: 13, weight: '500' }
+        }
       },
       scales: {
-        x: { grid: { display: false }, border: { display: false }, ticks: { color: getThemeColor('--text-secondary'), font: { size: 12 } } },
-        y: { grid: { color: getThemeColor('--separator') }, border: { display: false }, ticks: { color: getThemeColor('--text-secondary'), font: { size: 12 } } }
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: {
+            color: getThemeColor('--text-secondary'),
+            font: { size: 11 },
+            maxRotation: 35,
+            minRotation: 0
+          }
+        },
+        y: {
+          grid: { color: getThemeColor('--separator') },
+          border: { display: false },
+          afterFit: (scale) => { scale.width = Math.max(scale.width, 52); },
+          ticks: {
+            color: getThemeColor('--text-secondary'),
+            font: { size: 11 },
+            callback: (value) => compactNum(value)
+          }
+        }
       }
     }
   });
@@ -1755,21 +1835,45 @@ const updateRegionChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { left: 0, right: 0, top: 8, bottom: 0 }
+      },
       plugins: {
         tooltip: getCustomTooltip(),
         legend: {
-          position: 'bottom',
+          position: 'right',
+          align: 'center',
           labels: {
             usePointStyle: true,
-            boxWidth: 8,
-            padding: 20,
+            pointStyle: 'circle',
+            boxWidth: 7,
+            boxHeight: 7,
+            padding: 14,
             color: getThemeColor('--text-primary'),
-            font: { size: 12 }
+            font: { size: 11 },
+            generateLabels: (chart) => {
+              const original = Chart.overrides.polarArea.plugins.legend.labels.generateLabels(chart);
+              return original.map(label => ({
+                ...label,
+                text: label.text.length > 12 ? label.text.slice(0, 12) + '…' : label.text
+              }));
+            }
           }
         },
-        subtitle: { display: true, text: getFilterSummary(), color: getThemeColor('--text-tertiary'), padding: { bottom: 16 }, font: { size: 13, weight: '500' } }
+        subtitle: {
+          display: true,
+          text: getFilterSummary(),
+          color: getThemeColor('--text-tertiary'),
+          padding: { bottom: 8 },
+          font: { size: 12, weight: '500' }
+        }
       },
-      scales: { r: { ticks: { display: false, backdropColor: 'transparent' }, grid: { color: getThemeColor('--separator') } } }
+      scales: {
+        r: {
+          ticks: { display: false, backdropColor: 'transparent' },
+          grid: { color: getThemeColor('--separator') }
+        }
+      }
     }
   });
 };
