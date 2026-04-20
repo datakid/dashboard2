@@ -144,23 +144,51 @@ body {
   gap: 1.5rem;
 }
 
-.brand { display: flex; align-items: baseline; gap: 0.875rem; }
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.brand-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  line-height: 1;
+  padding-left: 0.15rem;
+}
+
+.brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
 
 .brand-lx {
   background: linear-gradient(140deg, var(--sys-blue) 10%, var(--sys-purple) 55%, var(--sys-pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-size: 3rem;
+  font-size: 2.75rem;
   font-weight: 800;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.06em;
   line-height: 1;
 }
 
+.brand-sep {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border-medium);
+  align-self: center;
+  flex-shrink: 0;
+}
+
 .dashboard-header h1 {
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 400;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   color: var(--text-secondary);
   line-height: 1;
 }
@@ -691,53 +719,35 @@ html.dark .btn-explore { box-shadow: 0 2px 12px rgba(41, 151, 255, 0.35); }
   flex-direction: column;
   justify-content: space-between;
   animation: slideUp 0.5s var(--ease-out) both;
-  transition: transform 0.45s var(--spring), box-shadow 0.45s var(--ease-out), border-color 0.3s var(--ease-out);
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), border-color 0.25s;
   position: relative;
   overflow: hidden;
   container-type: inline-size;
   cursor: default;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 40%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.45s var(--ease-out);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.stat-card::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, var(--sys-blue), var(--sys-indigo), var(--sys-purple));
-  opacity: 0;
-  transition: opacity 0.4s var(--ease-out);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.stat-card-content, .stat-card-footer { position: relative; z-index: 1; }
-
 html.dark .stat-card { box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06); }
 
 .stat-card:hover {
-  transform: translateY(-10px) scale(1.018);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.13), 0 8px 24px rgba(0,0,0,0.09);
-  border-color: transparent;
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.07);
+  border-color: var(--border-medium);
 }
-
-.stat-card:hover::before { opacity: 1; }
-.stat-card:hover::after { opacity: 1; }
 
 html.dark .stat-card:hover {
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.09);
+  border-color: var(--border-medium);
 }
+
+.stat-card .stat-value {
+  transition: color 0.25s;
+}
+
+.stat-card:hover .stat-value {
+  color: var(--sys-blue);
+}
+
+.total-card:hover .stat-value { color: #fff; }
 
 .stat-card-content { width: 100%; }
 
@@ -769,28 +779,24 @@ html.dark .stat-card:hover {
   background: linear-gradient(140deg, var(--sys-blue) 0%, #5560e8 50%, var(--sys-purple) 100%);
   border: none;
   grid-column: 1 / -1;
-  box-shadow: 0 8px 32px rgba(0, 113, 227, 0.22), 0 2px 8px rgba(0, 113, 227, 0.15);
-  transition: transform 0.45s var(--spring), box-shadow 0.45s var(--ease-out);
+  box-shadow: 0 4px 20px rgba(0, 113, 227, 0.2), 0 1px 6px rgba(0, 113, 227, 0.12);
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
 }
 
-html.dark .total-card { box-shadow: 0 8px 32px rgba(41, 151, 255, 0.28), 0 2px 8px rgba(41, 151, 255, 0.18); }
+html.dark .total-card { box-shadow: 0 4px 20px rgba(41, 151, 255, 0.25), 0 1px 6px rgba(41, 151, 255, 0.15); }
 .total-card .stat-value { color: #fff; }
-.total-card .stat-label { color: rgba(255,255,255,0.82); }
+.total-card .stat-label { color: rgba(255,255,255,0.72); }
 
-.total-card::before {
-  background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 40%, transparent 70%);
-}
-
-.total-card::after { display: none; }
+.total-card::before, .total-card::after { display: none; }
 
 .total-card:hover {
-  transform: translateY(-10px) scale(1.012);
-  box-shadow: 0 32px 80px rgba(0, 113, 227, 0.45), 0 12px 28px rgba(88, 86, 214, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 56px rgba(0, 113, 227, 0.32), 0 8px 20px rgba(88, 86, 214, 0.22);
   border-color: transparent;
 }
 
 html.dark .total-card:hover {
-  box-shadow: 0 32px 80px rgba(41, 151, 255, 0.5), 0 12px 28px rgba(94, 92, 230, 0.38);
+  box-shadow: 0 20px 56px rgba(41, 151, 255, 0.38), 0 8px 20px rgba(94, 92, 230, 0.28);
 }
 
 .charts-grid {
@@ -859,6 +865,37 @@ html.dark .chart-container { box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(25
   width: 100%;
   min-height: 0;
   overflow: hidden;
+}
+
+.region-legend {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--separator);
+  margin-top: 0.75rem;
+  max-height: 5.5rem;
+  overflow-y: auto;
+}
+
+.region-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.region-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .explore-table-container,
@@ -994,8 +1031,12 @@ html.dark .modal-content { box-shadow: var(--shadow-float), inset 0 1px 0 rgba(2
 
 <div class="dashboard-header">
   <div class="brand">
-    <span class="brand-lx">Lx</span>
-    <h1>Dashboard</h1>
+    <div class="brand-eyebrow">Analytics Platform</div>
+    <div class="brand-row">
+      <span class="brand-lx">Lx</span>
+      <div class="brand-sep"></div>
+      <h1>Dashboard</h1>
+    </div>
   </div>
   <div class="header-right">
     <div class="theme-switcher">
@@ -1143,6 +1184,7 @@ html.dark .modal-content { box-shadow: var(--shadow-float), inset 0 1px 0 rgba(2
     <div class="chart-container">
       <div class="chart-header"><div class="chart-title">Regional Distribution</div></div>
       <div class="chart-wrapper"><canvas id="regionChart"></canvas></div>
+      <div id="regionLegend" class="region-legend"></div>
     </div>
   </div>
 </div>
@@ -1819,7 +1861,8 @@ const updateRegionChart = () => {
     regions[reg] = (regions[reg] || 0) + val;
   });
   const sortedRegions = Object.entries(regions).sort((a, b) => b[1] - a[1]);
-  const colors = ['--sys-blue', '--sys-indigo', '--sys-purple', '--sys-pink', '--sys-orange', '--sys-yellow', '--sys-green'].map(v => getThemeColor(v));
+  const colorVars = ['--sys-blue', '--sys-indigo', '--sys-purple', '--sys-pink', '--sys-orange', '--sys-yellow', '--sys-green'];
+  const colors = colorVars.map(v => getThemeColor(v));
   Chart.defaults.color = getThemeColor('--text-secondary');
   regionChartInstance = new Chart(ctx, {
     type: 'polarArea',
@@ -1835,36 +1878,15 @@ const updateRegionChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: {
-        padding: { left: 0, right: 0, top: 8, bottom: 0 }
-      },
+      layout: { padding: { left: 4, right: 4, top: 4, bottom: 4 } },
       plugins: {
         tooltip: getCustomTooltip(),
-        legend: {
-          position: 'right',
-          align: 'center',
-          labels: {
-            usePointStyle: true,
-            pointStyle: 'circle',
-            boxWidth: 7,
-            boxHeight: 7,
-            padding: 14,
-            color: getThemeColor('--text-primary'),
-            font: { size: 11 },
-            generateLabels: (chart) => {
-              const original = Chart.overrides.polarArea.plugins.legend.labels.generateLabels(chart);
-              return original.map(label => ({
-                ...label,
-                text: label.text.length > 12 ? label.text.slice(0, 12) + '…' : label.text
-              }));
-            }
-          }
-        },
+        legend: { display: false },
         subtitle: {
           display: true,
           text: getFilterSummary(),
           color: getThemeColor('--text-tertiary'),
-          padding: { bottom: 8 },
+          padding: { bottom: 10 },
           font: { size: 12, weight: '500' }
         }
       },
@@ -1876,6 +1898,16 @@ const updateRegionChart = () => {
       }
     }
   });
+
+  const legendEl = document.getElementById('regionLegend');
+  legendEl.innerHTML = sortedRegions.map((item, i) => {
+    const color = colors[i % colors.length];
+    const label = item[0].length > 18 ? item[0].slice(0, 18) + '…' : item[0];
+    return `<div class="region-legend-item" title="${escapeHTML(item[0])}">
+      <div class="region-legend-dot" style="background:${color}"></div>
+      <span>${escapeHTML(label)}</span>
+    </div>`;
+  }).join('');
 };
 
 const findMissingTotals = () => {
