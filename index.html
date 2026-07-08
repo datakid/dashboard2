@@ -40,8 +40,8 @@
   --glass-highlight: rgba(255, 255, 255, 1);
 
   --text-primary: #1D1D1F;
-  --text-secondary: #86868B;
-  --text-tertiary: #A1A1A6;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #8E8E93;
 
   --border-light: rgba(0, 0, 0, 0.06);
   --border-medium: rgba(0, 0, 0, 0.12);
@@ -103,6 +103,8 @@ html.dark {
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { scroll-behavior: smooth; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
   margin: 0 auto;
@@ -110,12 +112,49 @@ body {
   max-width: 1800px;
   background-color: var(--bg-color);
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+  position: relative;
+  isolation: isolate;
+}
+
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  will-change: transform;
+  animation: driftBlob 26s ease-in-out infinite;
+}
+
+html.dark .ambient-blob { opacity: 0.22; }
+
+.ambient-blob.b1 { width: 42vw; height: 42vw; top: -14vw; left: -10vw; background: radial-gradient(circle, var(--sys-blue) 0%, transparent 70%); animation-duration: 30s; }
+.ambient-blob.b2 { width: 36vw; height: 36vw; top: 20vh; right: -12vw; background: radial-gradient(circle, var(--sys-purple) 0%, transparent 70%); animation-duration: 34s; animation-delay: -8s; }
+.ambient-blob.b3 { width: 32vw; height: 32vw; bottom: -10vw; left: 20vw; background: radial-gradient(circle, var(--sys-teal) 0%, transparent 70%); animation-duration: 38s; animation-delay: -16s; }
+
+@keyframes driftBlob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, 6%) scale(1.08); }
+  66% { transform: translate(-3%, -4%) scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ambient-blob { animation: none; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 
 @keyframes slideUpFade {
@@ -126,6 +165,26 @@ body {
 @keyframes scaleInPop {
   0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -300px 0; }
+  100% { background-position: 300px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--border-light) 25%, var(--border-medium) 37%, var(--border-light) 63%);
+  background-size: 400px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  color: transparent !important;
+  pointer-events: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sys-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -706,6 +765,25 @@ body {
 
 .stat-card-content { width: 100%; display: flex; flex-direction: column; gap: 0.25rem; }
 
+.stat-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.4rem; }
+
+.stat-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--sys-blue-light);
+  color: var(--sys-blue);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.stat-card:hover .stat-icon { transform: scale(1.08) rotate(-4deg); }
+.total-card .stat-icon { background: rgba(255,255,255,0.18); color: #fff; }
+.stat-icon svg { width: 18px; height: 18px; }
+
 .stat-label {
   font-size: 0.9rem;
   color: var(--text-secondary);
@@ -715,11 +793,11 @@ body {
 }
 
 .stat-value {
-  font-size: 2.5rem;
-  font-weight: 600;
-  letter-spacing: -0.04em;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1.15;
   color: var(--text-primary);
   transition: color 0.3s;
 }
@@ -850,16 +928,17 @@ th, td {
   white-space: nowrap;
   border-bottom: 0.5px solid var(--separator);
   font-variant-numeric: tabular-nums;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
+  letter-spacing: -0.005em;
 }
 
 th {
   background: var(--card-bg);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -909,6 +988,101 @@ tbody tr:last-child td { border-bottom: none; }
 
 .hidden { display: none !important; }
 
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.sync-refresh-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease-out);
+}
+
+.sync-refresh-btn:hover { background: var(--border-light); color: var(--sys-blue); }
+.sync-refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4.5rem 2rem;
+  color: var(--text-tertiary);
+  gap: 0.75rem;
+  animation: slideUpFade 0.5s var(--ease-out) both;
+}
+
+.empty-state-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--border-light);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-icon svg { width: 26px; height: 26px; }
+.empty-state-title { font-size: 1.05rem; font-weight: 600; color: var(--text-secondary); }
+.empty-state-desc { font-size: 0.9rem; max-width: 360px; }
+
+#toastStack {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: flex-end;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--popover-bg);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-popover);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  animation: toastIn 0.35s var(--ease-spring) both;
+  max-width: 340px;
+}
+
+.toast.leaving { animation: toastOut 0.25s var(--ease-out) forwards; }
+
+@keyframes toastIn { 0% { opacity: 0; transform: translateY(12px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(8px) scale(0.96); } }
+
+.toast-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.toast.success .toast-icon { color: var(--sys-green); }
+.toast.error .toast-icon { color: var(--sys-red); }
+.toast.info .toast-icon { color: var(--sys-blue); }
+
 #modalContainer {
   position: fixed;
   top: 0; left: 0;
@@ -957,6 +1131,14 @@ tbody tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
+
+<div class="ambient-bg" aria-hidden="true">
+  <div class="ambient-blob b1"></div>
+  <div class="ambient-blob b2"></div>
+  <div class="ambient-blob b3"></div>
+</div>
+
+<div id="toastStack" aria-live="polite"></div>
 
 <div class="dashboard-header">
   <div class="brand">
@@ -1085,13 +1267,24 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <div class="results-info">
-  <div id="resultsCount" class="status-badge">Loading...</div>
+  <div id="resultsCount" class="status-badge skeleton">Loading results</div>
   <div id="missingResultsCount" class="status-badge hidden"></div>
   <div id="duplicateResultsCount" class="status-badge hidden"></div>
+  <div class="sync-status">
+    <span id="syncTimestamp">Syncing…</span>
+    <button class="sync-refresh-btn" id="syncRefreshBtn" title="Refresh data">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+  </div>
 </div>
 
 <div class="dashboard-view">
-  <div class="stats" id="statsContainer"></div>
+  <div class="stats" id="statsContainer">
+    <div class="stat-card glass-panel total-card skeleton" style="height:140px;"></div>
+    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+  </div>
   <div class="charts-grid">
     <div class="chart-container wide glass-panel">
       <div class="chart-header">
@@ -1143,6 +1336,26 @@ let isExploreMode = false;
 let isMissingMode = false;
 let searchIndices = {};
 let activeFilters = { Year: null, Region: [], Pharmacy: [], Month: [], Class: [], MedClass: [] };
+const FILTERS_STORAGE_KEY = 'lx-dashboard-filters';
+
+const persistFilters = () => {
+  try {
+    const { Year, ...rest } = activeFilters;
+    sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(rest));
+  } catch (e) { /* storage unavailable, skip silently */ }
+};
+
+const restoreSavedFilters = () => {
+  if (!isFirstLoad) return;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(FILTERS_STORAGE_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => {
+        if (Array.isArray(saved[k])) activeFilters[k] = saved[k];
+      });
+    }
+  } catch (e) { /* corrupted storage, ignore */ }
+};
 let exploreSort = { col: null, dir: 1 };
 let missingSort = { col: null, dir: 1 };
 
@@ -1198,6 +1411,59 @@ const getCustomTooltip = () => ({
 });
 
 const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
+
+const toastIcons = {
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+};
+
+const showToast = (message, type = 'info', duration = 3200) => {
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-icon">${toastIcons[type] || toastIcons.info}</span><span>${escapeHTML(message)}</span>`;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('leaving');
+    setTimeout(() => el.remove(), 260);
+  }, duration);
+};
+
+const animateValue = (el, endValue, duration = 700) => {
+  const startValue = 0;
+  const startTime = performance.now();
+  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isReducedMotion || !isFinite(endValue)) {
+    el.textContent = Number(endValue).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return;
+  }
+  const step = (now) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = startValue + (endValue - startValue) * eased;
+    el.textContent = Math.round(current).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = Number(endValue).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  };
+  requestAnimationFrame(step);
+};
+
+const emptyStateHTML = (title, desc, iconSvg) => `
+  <div class="empty-state">
+    <div class="empty-state-icon">${iconSvg}</div>
+    <div class="empty-state-title">${escapeHTML(title)}</div>
+    <div class="empty-state-desc">${escapeHTML(desc)}</div>
+  </div>`;
+
+const icons = {
+  checkCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+  pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 1 1 7-7l7 7a5 5 0 1 1-7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
+  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="15" y1="12" x2="15" y2="12.01"/><line x1="9" y1="17" x2="9" y2="17.01"/><line x1="15" y1="17" x2="15" y2="17.01"/></svg>'
+};
 
 const monthOrder = {
   july: 1, august: 2, september: 3, october: 4, november: 5, december: 6,
@@ -1434,6 +1700,14 @@ const setupUniversalSearch = () => {
 
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
+    if (e.key === 'Escape') {
+      resultsContainer.classList.remove('active');
+      document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
+      document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
+      const modal = document.getElementById('modalContainer');
+      if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
+      else searchInput.blur();
+    }
   });
 };
 
@@ -1487,7 +1761,7 @@ const performUniversalSearch = (query) => {
 
   html += '</div>';
   if (hasResults) html += `<div class="search-hint"><span>Select items to filter</span></div>`;
-  else html = '<div class="search-no-results">No matches found</div>';
+  else html = emptyStateHTML('No matches found', `Nothing matches "${query}" — try a different term.`, icons.search);
 
   resultsContainer.innerHTML = html;
   resultsContainer.classList.add('active');
@@ -1591,18 +1865,34 @@ const applyFilters = () => {
 
 const getSelectedMedicationCategories = () => activeFilters.MedClass.length > 0 ? activeFilters.MedClass : medicationCategories;
 
+const coreStatIcons = {
+  'Total Value': icons.layers,
+  'Prescriptions': icons.pill,
+  'Insurance Covered': icons.shield,
+  'Pharmacies': icons.building
+};
+
 const addStatCard = (label, value, options = {}) => {
   const container = document.getElementById('statsContainer');
   const card = document.createElement('div');
   card.className = `stat-card glass-panel ${options.cardType === 'total' ? ' total-card' : ''}`;
-  const fmtValue = Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const numericValue = Number(value) || 0;
   let footer = '';
   if (options.cardType === 'medication' && options.percentage !== undefined) {
     const pct = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
-    footer = `<div class="stat-card-footer"><span class="stat-percentage">${pct.toFixed(1)}%</span><div class="stat-progress-container"><div class="stat-progress-bar" style="width:${pct}%"></div></div></div>`;
+    footer = `<div class="stat-card-footer"><span class="stat-percentage">${pct.toFixed(1)}%</span><div class="stat-progress-container"><div class="stat-progress-bar" style="width:0%" data-target-width="${pct}"></div></div></div>`;
   }
-  card.innerHTML = `<div class="stat-card-content"><div class="stat-label">${escapeHTML(label)}</div><div class="stat-value" title="${fmtValue}">${fmtValue}</div></div>${footer}`;
+  let iconMarkup = '';
+  if (coreStatIcons[label]) {
+    iconMarkup = `<div class="stat-icon">${coreStatIcons[label]}</div>`;
+  }
+  card.innerHTML = `<div class="stat-card-content">${iconMarkup ? `<div class="stat-card-top">${iconMarkup}</div>` : ''}<div class="stat-label">${escapeHTML(label)}</div><div class="stat-value" title="${numericValue.toLocaleString()}">0</div></div>${footer}`;
   container.appendChild(card);
+  requestAnimationFrame(() => {
+    animateValue(card.querySelector('.stat-value'), numericValue);
+    const bar = card.querySelector('.stat-progress-bar');
+    if (bar) bar.style.width = bar.dataset.targetWidth + '%';
+  });
 };
 
 const updateStats = () => {
@@ -1694,10 +1984,11 @@ const updateMedicationChart = () => {
         label: 'Value',
         data: chartData,
         backgroundColor: getThemeColor('--sys-blue'),
-        borderRadius: 4,
+        hoverBackgroundColor: getThemeColor('--sys-blue-dark'),
+        borderRadius: 6,
         borderSkipped: false,
-        barPercentage: 0.6,
-        categoryPercentage: 0.8
+        barPercentage: 0.62,
+        categoryPercentage: 0.75
       }]
     },
     options: {
@@ -1917,16 +2208,20 @@ const updateExploreView = () => {
     const activeTh = thead.querySelector(`th[data-col="${exploreSort.col}"]`);
     if (activeTh) activeTh.classList.add(exploreSort.dir === 1 ? 'sort-asc' : 'sort-desc');
   }
-  tbody.innerHTML = rowsData.map(row => {
-    let prev = null;
-    const cells = months.map(m => {
-      const val = row[m] || 0;
-      const trend = getTrendIndicator(val, prev);
-      prev = val;
-      return `<td>${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${trend}</td>`;
+  if (rowsData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${months.length + 1}">${emptyStateHTML('No metrics to explore', 'Adjust your filters — there is no data for this selection yet.', icons.layers)}</td></tr>`;
+  } else {
+    tbody.innerHTML = rowsData.map(row => {
+      let prev = null;
+      const cells = months.map(m => {
+        const val = row[m] || 0;
+        const trend = getTrendIndicator(val, prev);
+        prev = val;
+        return `<td>${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${trend}</td>`;
+      }).join('');
+      return `<tr><td>${escapeHTML(row.Metric)}</td>${cells}</tr>`;
     }).join('');
-    return `<tr><td>${escapeHTML(row.Metric)}</td>${cells}</tr>`;
-  }).join('');
+  }
   thead.querySelectorAll('th.sortable').forEach(th => {
     th.addEventListener('click', () => {
       const col = th.getAttribute('data-col');
@@ -1953,6 +2248,10 @@ const updateMissingView = () => {
     const activeTh = thead.querySelector(`th[data-col="${missingSort.col}"]`);
     if (activeTh) activeTh.classList.add(missingSort.dir === 1 ? 'sort-asc' : 'sort-desc');
   }
+  if (dataToSort.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}">${emptyStateHTML('All pharmacies reporting', 'No inactive records for the current filters — every eligible pharmacy submitted data.', icons.checkCircle)}</td></tr>`;
+    return;
+  }
   tbody.innerHTML = dataToSort.map(i =>
     `<tr><td>${escapeHTML(i.Region)}</td><td><strong>${escapeHTML(i.Pharmacy)}</strong></td><td>${escapeHTML(i.Month)}</td><td><span class="status-inactive">Inactive</span></td></tr>`
   ).join('');
@@ -1967,10 +2266,11 @@ const updateMissingView = () => {
 };
 
 const updateDashboard = debounce(() => {
-  applyFilters(); findMissingTotals();
+  applyFilters(); findMissingTotals(); persistFilters();
   const resCount = document.getElementById('resultsCount');
   const misCount = document.getElementById('missingResultsCount');
   const dupeCount = document.getElementById('duplicateResultsCount');
+  resCount.classList.remove('skeleton');
   if (isExploreMode) {
     document.querySelector('.dashboard-view').classList.add('hidden');
     document.querySelector('.missing-view').classList.add('hidden');
@@ -2078,31 +2378,67 @@ document.getElementById('toggleMissingBtn').addEventListener('click', () => {
   updateDashboard();
 });
 
-document.getElementById('exportExcelBtn').addEventListener('click', exportData);
+document.getElementById('exportExcelBtn').addEventListener('click', () => {
+  exportData();
+  showToast('Export ready — check your downloads', 'success');
+});
+
+const formatSyncTime = (date) => `Synced ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+
+const clearStatSkeletons = () => {
+  const container = document.getElementById('statsContainer');
+  if (container.querySelector('.skeleton')) container.innerHTML = '';
+};
 
 const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`)
-  .then(r => r.text())
-  .then(csv => {
-    Papa.parse(csv, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        results.data.forEach((row, index) => { row._rowNum = index + 2; });
-        const processed = processDataAndHandleDuplicates(results.data);
-        data = processed.cleanData;
-        mergedDuplicates = processed.duplicateTracker;
-        allYears = [...new Set(data.map(d => d.Year))].filter(Boolean).map(Number).sort((a, b) => a - b);
-        if (allYears.length) defaultYear = Math.max(...allYears);
-        populateYearFilter();
-        setupDropdowns();
-        updateAllFilterOptions();
-        buildSearchIndices();
-        updateDashboard();
-        setupUniversalSearch();
-      }
-    });
-  });
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+let isFirstLoad = true;
+
+const loadDashboardData = (isManualRefresh = false) => {
+  const refreshBtn = document.getElementById('syncRefreshBtn');
+  const timestampEl = document.getElementById('syncTimestamp');
+  if (isManualRefresh) { refreshBtn.classList.add('spinning'); timestampEl.textContent = 'Syncing…'; }
+
+  fetch(SHEET_URL)
+    .then(r => { if (!r.ok) throw new Error('Network response was not ok'); return r.text(); })
+    .then(csv => {
+      Papa.parse(csv, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          results.data.forEach((row, index) => { row._rowNum = index + 2; });
+          const processed = processDataAndHandleDuplicates(results.data);
+          data = processed.cleanData;
+          mergedDuplicates = processed.duplicateTracker;
+          allYears = [...new Set(data.map(d => d.Year))].filter(Boolean).map(Number).sort((a, b) => a - b);
+          if (allYears.length) defaultYear = Math.max(...allYears);
+          clearStatSkeletons();
+          populateYearFilter();
+          restoreSavedFilters();
+          if (isFirstLoad) { setupDropdowns(); setupUniversalSearch(); isFirstLoad = false; }
+          updateAllFilterOptions();
+          buildSearchIndices();
+          updateDashboard();
+          updateSearchVisuals();
+          timestampEl.textContent = formatSyncTime(new Date());
+          if (isManualRefresh) showToast('Dashboard data refreshed', 'success');
+        },
+        error: () => {
+          timestampEl.textContent = 'Sync failed';
+          showToast('Could not parse the data source', 'error');
+        }
+      });
+    })
+    .catch(() => {
+      timestampEl.textContent = 'Sync failed';
+      showToast('Could not reach the data source — check your connection', 'error');
+    })
+    .finally(() => { if (isManualRefresh) refreshBtn.classList.remove('spinning'); });
+};
+
+document.getElementById('syncRefreshBtn').addEventListener('click', () => loadDashboardData(true));
+
+loadDashboardData(false);
 </script>
 </body>
 </html>
