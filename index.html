@@ -62,6 +62,9 @@
 
   --ease-spring: cubic-bezier(0.25, 1.25, 0.3, 1);
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+  --live-dot: var(--sys-green);
+  --live-dot-glow: rgba(52, 199, 89, 0.35);
 }
 
 html.dark {
@@ -99,6 +102,9 @@ html.dark {
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.8);
   --shadow-popover: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--glass-border);
+
+  --live-dot: var(--sys-green);
+  --live-dot-glow: rgba(48, 209, 88, 0.4);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -225,6 +231,7 @@ html.dark .ambient-blob { opacity: 0.22; }
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
+  filter: drop-shadow(0 1px 12px rgba(0, 102, 204, 0.18));
 }
 
 .brand-sep {
@@ -702,16 +709,31 @@ html.dark .ambient-blob { opacity: 0.22; }
 .btn-reset { color: var(--text-primary); }
 .btn-reset:hover { background: var(--border-light); }
 
+.filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--sys-blue);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  animation: scaleInPop 0.25s var(--ease-spring) both;
+}
+
 .btn-explore { background: var(--sys-blue); color: #fff; border: none; box-shadow: 0 4px 14px rgba(0, 102, 204, 0.3); }
 .btn-explore:hover { background: var(--sys-blue-dark); box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4); }
 
-.btn-missing { color: var(--sys-red); }
+.btn-missing { color: var(--sys-red); border-color: rgba(255, 59, 48, 0.16); }
 .btn-missing:hover { background: var(--sys-red-light); border-color: transparent; }
-.btn-compare { color: var(--sys-purple); }
+.btn-compare { color: var(--sys-purple); border-color: rgba(175, 82, 222, 0.16); }
 .btn-compare:hover { background: rgba(175, 82, 222, 0.1); border-color: transparent; }
-.btn-import { color: var(--sys-indigo); }
+.btn-import { color: var(--sys-indigo); border-color: rgba(88, 86, 214, 0.16); }
 .btn-import:hover { background: rgba(88, 86, 214, 0.1); border-color: transparent; }
-.btn-export { color: var(--sys-green); }
+.btn-export { color: var(--sys-green); border-color: rgba(52, 199, 89, 0.16); }
 .btn-export:hover { background: var(--sys-green-light); border-color: transparent; }
 
 .results-info {
@@ -751,8 +773,9 @@ html.dark .ambient-blob { opacity: 0.22; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  animation: slideUpFade 0.6s var(--ease-out) both;
-  transition: all 0.3s var(--ease-out);
+  animation: slideUpFade 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--stat-index, 0) * 0.05s);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
   position: relative;
   overflow: hidden;
   min-height: 140px;
@@ -840,7 +863,10 @@ html.dark .ambient-blob { opacity: 0.22; }
   height: 480px;
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.3s var(--ease-out);
 }
+
+.chart-container:hover { box-shadow: var(--shadow-lg), inset 0 1px 0 0 var(--glass-highlight); }
 
 .chart-container.wide { grid-column: 1 / -1; height: 550px; }
 
@@ -917,7 +943,11 @@ html.dark .ambient-blob { opacity: 0.22; }
 .missing-table-container {
   overflow: hidden;
   animation: slideUpFade 0.6s var(--ease-out) both;
+  transition: box-shadow 0.3s var(--ease-out);
 }
+
+.explore-table-container:hover,
+.missing-table-container:hover { box-shadow: var(--shadow-lg), inset 0 1px 0 0 var(--glass-highlight); }
 
 .table-scroll-wrapper { overflow-x: auto; max-height: 75vh; }
 
@@ -973,8 +1003,8 @@ th:first-child, td:first-child {
 
 th:first-child { z-index: 12; }
 
-tbody tr { transition: background 0.2s; }
-tbody tr:hover { background: var(--border-light); }
+tbody tr { transition: background 0.2s, box-shadow 0.2s; }
+tbody tr:hover { background: var(--border-light); box-shadow: inset 3px 0 0 0 var(--sys-blue); }
 tbody tr:last-child td { border-bottom: none; }
 
 .status-inactive {
@@ -991,29 +1021,86 @@ tbody tr:last-child td { border-bottom: none; }
 .sync-status {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-size: 0.8rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-weight: 500;
   margin-left: auto;
+  background: var(--card-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.4rem 0.4rem 0.9rem;
+  transition: box-shadow 0.25s var(--ease-out);
 }
+
+.sync-status:hover { box-shadow: var(--shadow-md); }
+
+.sync-dot-wrap {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sync-dot-wrap .sync-dot-core {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live-dot);
+  box-shadow: 0 0 0 3px var(--live-dot-glow);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.sync-dot-wrap .sync-dot-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--live-dot);
+  animation: syncPing 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+.sync-status.is-syncing .sync-dot-wrap .sync-dot-core,
+.sync-status.is-syncing .sync-dot-wrap .sync-dot-ping { background: var(--sys-blue); }
+.sync-status.is-error .sync-dot-wrap .sync-dot-core,
+.sync-status.is-error .sync-dot-wrap .sync-dot-ping { background: var(--sys-red); }
+.sync-status.is-syncing .sync-dot-wrap .sync-dot-core { box-shadow: 0 0 0 3px var(--sys-blue-light); }
+
+@keyframes syncPing {
+  0% { transform: scale(1); opacity: 0.55; }
+  75%, 100% { transform: scale(2.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-dot-wrap .sync-dot-ping { animation: none; display: none; }
+}
+
+#syncTimestamp { letter-spacing: -0.005em; white-space: nowrap; }
 
 .sync-refresh-btn {
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s var(--ease-out);
+  transition: all 0.25s var(--ease-spring);
+  flex-shrink: 0;
 }
 
-.sync-refresh-btn:hover { background: var(--border-light); color: var(--sys-blue); }
-.sync-refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+.sync-refresh-btn:hover { background: var(--sys-blue-light); color: var(--sys-blue); transform: rotate(-24deg); }
+.sync-refresh-btn:active { transform: scale(0.9) rotate(-24deg); }
+.sync-refresh-btn.spinning { color: var(--sys-blue); background: var(--sys-blue-light); }
+.sync-refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .empty-state {
@@ -1082,6 +1169,35 @@ tbody tr:last-child td { border-bottom: none; }
 .toast.success .toast-icon { color: var(--sys-green); }
 .toast.error .toast-icon { color: var(--sys-red); }
 .toast.info .toast-icon { color: var(--sys-blue); }
+.toast { cursor: pointer; }
+
+.scroll-top-btn {
+  position: fixed;
+  bottom: 1.75rem;
+  left: 1.75rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 500;
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  pointer-events: none;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.scroll-top-btn.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.scroll-top-btn:hover { color: var(--sys-blue); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.scroll-top-btn svg { width: 18px; height: 18px; }
 
 #modalContainer {
   position: fixed;
@@ -1139,6 +1255,10 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <div id="toastStack" aria-live="polite"></div>
+
+<button class="scroll-top-btn" id="scrollTopBtn" title="Back to top" aria-label="Scroll to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
 
 <div class="dashboard-header">
   <div class="brand">
@@ -1240,6 +1360,7 @@ tbody tr:last-child td { border-bottom: none; }
     <button class="action-btn btn-reset" id="resetFiltersBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
       Reset
+      <span class="filter-count-badge hidden" id="filterCountBadge">0</span>
     </button>
     <button class="action-btn btn-explore" id="toggleExploreBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
@@ -1270,7 +1391,11 @@ tbody tr:last-child td { border-bottom: none; }
   <div id="resultsCount" class="status-badge skeleton">Loading results</div>
   <div id="missingResultsCount" class="status-badge hidden"></div>
   <div id="duplicateResultsCount" class="status-badge hidden"></div>
-  <div class="sync-status">
+  <div class="sync-status is-syncing" id="syncStatus">
+    <span class="sync-dot-wrap" aria-hidden="true">
+      <span class="sync-dot-ping"></span>
+      <span class="sync-dot-core"></span>
+    </span>
     <span id="syncTimestamp">Syncing…</span>
     <button class="sync-refresh-btn" id="syncRefreshBtn" title="Refresh data">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1342,7 +1467,7 @@ const persistFilters = () => {
   try {
     const { Year, ...rest } = activeFilters;
     sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(rest));
-  } catch (e) { /* storage unavailable, skip silently */ }
+  } catch (e) { }
 };
 
 const restoreSavedFilters = () => {
@@ -1354,7 +1479,7 @@ const restoreSavedFilters = () => {
         if (Array.isArray(saved[k])) activeFilters[k] = saved[k];
       });
     }
-  } catch (e) { /* corrupted storage, ignore */ }
+  } catch (e) { }
 };
 let exploreSort = { col: null, dir: 1 };
 let missingSort = { col: null, dir: 1 };
@@ -1423,12 +1548,14 @@ const showToast = (message, type = 'info', duration = 3200) => {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.innerHTML = `<span class="toast-icon">${toastIcons[type] || toastIcons.info}</span><span>${escapeHTML(message)}</span>`;
+  const dismiss = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 260); };
+  el.addEventListener('click', dismiss);
   stack.appendChild(el);
-  setTimeout(() => {
-    el.classList.add('leaving');
-    setTimeout(() => el.remove(), 260);
-  }, duration);
+  setTimeout(dismiss, duration);
 };
+
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
 const animateValue = (el, endValue, duration = 700) => {
   const startValue = 0;
@@ -1478,6 +1605,10 @@ const debounce = (func, wait) => {
   let timeout;
   return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); };
 };
+
+window.addEventListener('scroll', debounce(() => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 480);
+}, 80), { passive: true });
 
 const normalizeArabic = (str) => {
   if (!str) return '';
@@ -1801,6 +1932,11 @@ const updateSearchVisuals = () => {
     });
   });
   if (hasFilters) clearAllBtn.classList.remove('hidden'); else clearAllBtn.classList.add('hidden');
+
+  const totalActive = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].reduce((sum, f) => sum + activeFilters[f].length, 0);
+  const badge = document.getElementById('filterCountBadge');
+  if (totalActive > 0) { badge.textContent = totalActive; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
 };
 
 const populateYearFilter = () => {
@@ -1876,6 +2012,7 @@ const addStatCard = (label, value, options = {}) => {
   const container = document.getElementById('statsContainer');
   const card = document.createElement('div');
   card.className = `stat-card glass-panel ${options.cardType === 'total' ? ' total-card' : ''}`;
+  card.style.setProperty('--stat-index', container.children.length);
   const numericValue = Number(value) || 0;
   let footer = '';
   if (options.cardType === 'medication' && options.percentage !== undefined) {
@@ -2383,7 +2520,30 @@ document.getElementById('exportExcelBtn').addEventListener('click', () => {
   showToast('Export ready — check your downloads', 'success');
 });
 
-const formatSyncTime = (date) => `Synced ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+let lastSyncDate = null;
+let syncRelativeTimer = null;
+
+const formatSyncTime = (date) => {
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Synced just now';
+  if (diffMin === 1) return 'Synced 1m ago';
+  if (diffMin < 60) return `Synced ${diffMin}m ago`;
+  return `Synced at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+};
+
+const setSyncState = (state) => {
+  const statusEl = document.getElementById('syncStatus');
+  statusEl.classList.remove('is-syncing', 'is-error', 'is-idle');
+  statusEl.classList.add(state);
+};
+
+const startSyncRelativeClock = () => {
+  clearInterval(syncRelativeTimer);
+  syncRelativeTimer = setInterval(() => {
+    if (lastSyncDate) document.getElementById('syncTimestamp').textContent = formatSyncTime(lastSyncDate);
+  }, 30000);
+};
 
 const clearStatSkeletons = () => {
   const container = document.getElementById('statsContainer');
@@ -2397,7 +2557,9 @@ let isFirstLoad = true;
 const loadDashboardData = (isManualRefresh = false) => {
   const refreshBtn = document.getElementById('syncRefreshBtn');
   const timestampEl = document.getElementById('syncTimestamp');
-  if (isManualRefresh) { refreshBtn.classList.add('spinning'); timestampEl.textContent = 'Syncing…'; }
+  refreshBtn.classList.add('spinning');
+  timestampEl.textContent = 'Syncing…';
+  setSyncState('is-syncing');
 
   fetch(SHEET_URL)
     .then(r => { if (!r.ok) throw new Error('Network response was not ok'); return r.text(); })
@@ -2420,20 +2582,25 @@ const loadDashboardData = (isManualRefresh = false) => {
           buildSearchIndices();
           updateDashboard();
           updateSearchVisuals();
-          timestampEl.textContent = formatSyncTime(new Date());
+          lastSyncDate = new Date();
+          timestampEl.textContent = formatSyncTime(lastSyncDate);
+          setSyncState('is-idle');
+          startSyncRelativeClock();
           if (isManualRefresh) showToast('Dashboard data refreshed', 'success');
         },
         error: () => {
           timestampEl.textContent = 'Sync failed';
+          setSyncState('is-error');
           showToast('Could not parse the data source', 'error');
         }
       });
     })
     .catch(() => {
       timestampEl.textContent = 'Sync failed';
+      setSyncState('is-error');
       showToast('Could not reach the data source — check your connection', 'error');
     })
-    .finally(() => { if (isManualRefresh) refreshBtn.classList.remove('spinning'); });
+    .finally(() => { refreshBtn.classList.remove('spinning'); });
 };
 
 document.getElementById('syncRefreshBtn').addEventListener('click', () => loadDashboardData(true));
