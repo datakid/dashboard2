@@ -1452,6 +1452,32 @@ let defaultYear = null;
 let currentChart = null;
 let trendChartInstance = null;
 let regionChartInstance = null;
+
+const destroyCharts = () => {
+  if (currentChart) { currentChart.destroy(); currentChart = null; }
+  if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
+  if (regionChartInstance) { regionChartInstance.destroy(); regionChartInstance = null; }
+};
+
+const centerTotalPlugin = {
+  id: 'centerTotal',
+  afterDraw(chart) {
+    const { ctx, chartArea: { left, right, top, bottom } } = chart;
+    const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = getThemeColor('--ink-900');
+    ctx.font = `700 20px ${Chart.defaults.font.family}`;
+    ctx.fillText(compactNum(total), cx, cy - 8);
+    ctx.fillStyle = getThemeColor('--ink-500');
+    ctx.font = `500 11px ${Chart.defaults.font.family}`;
+    ctx.fillText('Total', cx, cy + 13);
+    ctx.restore();
+  }
+};
 let currentChartType = 'vertical';
 let isExploreMode = false;
 let isMissingMode = false;
@@ -1962,6 +1988,7 @@ const populateYearFilter = () => {
   yearSelect.addEventListener('change', () => {
     activeFilters.Year = yearSelect.value;
     ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
+    destroyCharts();
     updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); buildSearchIndices();
   });
 };
@@ -2085,9 +2112,25 @@ const updateChartType = (e, type) => {
   updateMedicationChart();
 };
 
+const barGradient = (context, isHorizontal) => {
+  const { chart } = context;
+  const { ctx: c, chartArea } = chart;
+  if (!chartArea) return getThemeColor('--accent');
+  const gradient = isHorizontal
+    ? c.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
+    : c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  if (isHorizontal) {
+    gradient.addColorStop(0, getThemeColor('--accent-tint-2'));
+    gradient.addColorStop(1, getThemeColor('--accent'));
+  } else {
+    gradient.addColorStop(0, getThemeColor('--accent'));
+    gradient.addColorStop(1, getThemeColor('--accent-tint-2'));
+  }
+  return gradient;
+};
+
 const updateMedicationChart = () => {
   const ctx = document.getElementById('medicationChart').getContext('2d');
-  if (currentChart) currentChart.destroy();
   const targetCats = getSelectedMedicationCategories();
   const chartData = targetCats.map(cat => filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0));
   const isHorizontal = currentChartType === 'horizontal';
@@ -2096,7 +2139,7 @@ const updateMedicationChart = () => {
     grid: { display: false, drawBorder: false },
     border: { display: false },
     ticks: {
-      color: getThemeColor('--text-secondary'),
+      color: getThemeColor('--ink-500'),
       font: { size: 12, weight: '500' },
       autoSkip: false,
       maxRotation: isHorizontal ? 0 : 45,
@@ -2106,11 +2149,11 @@ const updateMedicationChart = () => {
   };
 
   const valueAxisScale = {
-    grid: { color: getThemeColor('--border-light'), drawBorder: false, borderDash: [4, 4] },
+    grid: { color: getThemeColor('--line-1'), drawBorder: false },
     border: { display: false },
     grace: '5%',
     ticks: {
-      color: getThemeColor('--text-secondary'),
+      color: getThemeColor('--ink-500'),
       font: { size: 12, weight: '500' },
       callback: (value) => compactNum(value),
       padding: 8
@@ -2123,6 +2166,20 @@ const updateMedicationChart = () => {
     categoryAxisScale.afterFit = (scale) => { scale.width = 120; };
   }
 
+  if (currentChart) {
+    currentChart.data.labels = targetCats;
+    currentChart.data.datasets[0].data = chartData;
+    currentChart.data.datasets[0].backgroundColor = (context) => barGradient(context, isHorizontal);
+    currentChart.data.datasets[0].hoverBackgroundColor = getThemeColor('--accent-hover');
+    currentChart.options.indexAxis = isHorizontal ? 'y' : 'x';
+    currentChart.options.scales.x = isHorizontal ? valueAxisScale : categoryAxisScale;
+    currentChart.options.scales.y = isHorizontal ? categoryAxisScale : valueAxisScale;
+    currentChart.options.plugins.subtitle.text = getFilterSummary();
+    currentChart.options.plugins.subtitle.color = getThemeColor('--ink-400');
+    currentChart.update('none');
+    return;
+  }
+
   currentChart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -2130,9 +2187,9 @@ const updateMedicationChart = () => {
       datasets: [{
         label: 'Value',
         data: chartData,
-        backgroundColor: getThemeColor('--sys-blue'),
-        hoverBackgroundColor: getThemeColor('--sys-blue-dark'),
-        borderRadius: 6,
+        backgroundColor: (context) => barGradient(context, isHorizontal),
+        hoverBackgroundColor: getThemeColor('--accent-hover'),
+        borderRadius: 4,
         borderSkipped: false,
         barPercentage: 0.62,
         categoryPercentage: 0.75
@@ -2149,7 +2206,7 @@ const updateMedicationChart = () => {
         subtitle: {
           display: true,
           text: getFilterSummary(),
-          color: getThemeColor('--text-tertiary'),
+          color: getThemeColor('--ink-400'),
           padding: { bottom: 20 },
           font: { size: 13, weight: '400' },
           align: 'start'
@@ -2165,17 +2222,32 @@ const updateMedicationChart = () => {
 
 const updateMonthlyTrendChart = () => {
   const ctx = document.getElementById('trendChart').getContext('2d');
-  if (trendChartInstance) trendChartInstance.destroy();
   const targetCats = getSelectedMedicationCategories();
   const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
   const monthlyTotals = months.map(m => {
     const monthRows = filteredData.filter(r => r.Month === m);
     return targetCats.reduce((sum, cat) => sum + monthRows.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
   });
-  
+
   const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-  gradient.addColorStop(0, getThemeColor('--sys-blue-light'));
+  gradient.addColorStop(0, getThemeColor('--accent-tint'));
   gradient.addColorStop(1, 'rgba(255,255,255,0)');
+
+  if (trendChartInstance) {
+    trendChartInstance.data.labels = months;
+    trendChartInstance.data.datasets[0].data = monthlyTotals;
+    trendChartInstance.data.datasets[0].borderColor = getThemeColor('--accent');
+    trendChartInstance.data.datasets[0].backgroundColor = gradient;
+    trendChartInstance.data.datasets[0].pointBackgroundColor = getThemeColor('--accent');
+    trendChartInstance.data.datasets[0].pointBorderColor = getThemeColor('--surface-1');
+    trendChartInstance.options.scales.x.ticks.color = getThemeColor('--ink-500');
+    trendChartInstance.options.scales.y.grid.color = getThemeColor('--line-1');
+    trendChartInstance.options.scales.y.ticks.color = getThemeColor('--ink-500');
+    trendChartInstance.options.plugins.subtitle.text = getFilterSummary();
+    trendChartInstance.options.plugins.subtitle.color = getThemeColor('--ink-400');
+    trendChartInstance.update('none');
+    return;
+  }
 
   trendChartInstance = new Chart(ctx, {
     type: 'line',
@@ -2184,15 +2256,15 @@ const updateMonthlyTrendChart = () => {
       datasets: [{
         label: 'Trend',
         data: monthlyTotals,
-        borderColor: getThemeColor('--sys-blue'),
+        borderColor: getThemeColor('--accent'),
         backgroundColor: gradient,
         fill: true,
         tension: 0.4,
         pointRadius: 0,
         pointHoverRadius: 6,
-        pointBackgroundColor: getThemeColor('--sys-blue'),
+        pointBackgroundColor: getThemeColor('--accent'),
         pointBorderWidth: 2,
-        pointBorderColor: getThemeColor('--card-bg-solid'),
+        pointBorderColor: getThemeColor('--surface-1'),
         borderWidth: 3,
         clip: false
       }]
@@ -2208,7 +2280,7 @@ const updateMonthlyTrendChart = () => {
         subtitle: {
           display: true,
           text: getFilterSummary(),
-          color: getThemeColor('--text-tertiary'),
+          color: getThemeColor('--ink-400'),
           padding: { bottom: 20 },
           font: { size: 13, weight: '400' },
           align: 'start'
@@ -2218,14 +2290,14 @@ const updateMonthlyTrendChart = () => {
         x: {
           grid: { display: false, drawBorder: false },
           border: { display: false },
-          ticks: { color: getThemeColor('--text-secondary'), font: { size: 12, weight: '500' }, maxRotation: 45, minRotation: 0, padding: 8 }
+          ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, maxRotation: 45, minRotation: 0, padding: 8 }
         },
         y: {
-          grid: { color: getThemeColor('--border-light'), drawBorder: false, borderDash: [4, 4] },
+          grid: { color: getThemeColor('--line-1'), drawBorder: false },
           border: { display: false },
           grace: '5%',
           afterFit: (scale) => { scale.width = Math.max(scale.width, 50); },
-          ticks: { color: getThemeColor('--text-secondary'), font: { size: 12, weight: '500' }, callback: (value) => compactNum(value), padding: 8 }
+          ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, callback: (value) => compactNum(value), padding: 8 }
         }
       }
     }
@@ -2234,7 +2306,6 @@ const updateMonthlyTrendChart = () => {
 
 const updateRegionChart = () => {
   const ctx = document.getElementById('regionChart').getContext('2d');
-  if (regionChartInstance) regionChartInstance.destroy();
   const targetCats = getSelectedMedicationCategories();
   const regions = {};
   filteredData.forEach(row => {
@@ -2243,39 +2314,47 @@ const updateRegionChart = () => {
     regions[reg] = (regions[reg] || 0) + val;
   });
   const sortedRegions = Object.entries(regions).sort((a, b) => b[1] - a[1]);
-  const colorVars = ['--sys-blue', '--sys-indigo', '--sys-purple', '--sys-pink', '--sys-orange', '--sys-yellow', '--sys-green', '--sys-teal'];
-  const colors = colorVars.map(v => getThemeColor(v));
-  
-  regionChartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: sortedRegions.map(i => i[0]),
-      datasets: [{
-        data: sortedRegions.map(i => i[1]),
-        backgroundColor: colors,
-        borderWidth: 0,
-        hoverOffset: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '75%',
-      layout: { padding: 10 },
-      plugins: {
-        tooltip: getCustomTooltip(),
-        legend: { display: false },
-        subtitle: {
-          display: true,
-          text: getFilterSummary(),
-          color: getThemeColor('--text-tertiary'),
-          padding: { bottom: 10 },
-          font: { size: 13, weight: '400' },
-          align: 'start'
+  const colors = ['#FF6266', '#FF8A6F', '#F2A65A', '#D96A8B', '#A96FA8', '#7B7BB8', '#5B93B0', '#6FB09B'];
+
+  if (regionChartInstance) {
+    regionChartInstance.data.labels = sortedRegions.map(i => i[0]);
+    regionChartInstance.data.datasets[0].data = sortedRegions.map(i => i[1]);
+    regionChartInstance.options.plugins.subtitle.text = getFilterSummary();
+    regionChartInstance.options.plugins.subtitle.color = getThemeColor('--ink-400');
+    regionChartInstance.update('none');
+  } else {
+    regionChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: sortedRegions.map(i => i[0]),
+        datasets: [{
+          data: sortedRegions.map(i => i[1]),
+          backgroundColor: colors,
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      plugins: [centerTotalPlugin],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '80%',
+        layout: { padding: 10 },
+        plugins: {
+          tooltip: getCustomTooltip(),
+          legend: { display: false },
+          subtitle: {
+            display: true,
+            text: getFilterSummary(),
+            color: getThemeColor('--ink-400'),
+            padding: { bottom: 10 },
+            font: { size: 13, weight: '400' },
+            align: 'start'
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   const legendEl = document.getElementById('regionLegend');
   legendEl.innerHTML = sortedRegions.map((item, i) => {
