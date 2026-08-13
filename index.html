@@ -477,37 +477,39 @@ body {
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-pop);
   max-height: 60vh;
-  overflow-y: auto;
   display: none;
+  flex-direction: column;
   opacity: 0;
   transform: translateY(-10px) scale(0.98);
   transition: all 0.3s var(--ease-spring);
-  padding: 1.5rem;
   z-index: 999;
   transform-origin: top center;
+  overflow: hidden;
 }
 
 .universal-search-results.active {
-  display: block;
+  display: flex;
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-.search-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2rem; }
-.search-category-column { display: flex; flex-direction: column; gap: 0.25rem; }
+.search-results-scroll { overflow-y: auto; padding: 1rem; flex: 1 1 auto; min-height: 0; }
+.search-results-list { display: flex; flex-direction: column; gap: 2px; }
 
 .search-category-header {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink-500);
-  padding-bottom: 0.5rem;
-  border-bottom: 0.5px solid var(--line-2);
-  margin-bottom: 0.5rem;
+  padding: 0.6rem 0.5rem 0.4rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  background: var(--surface-1);
+  z-index: 2;
 }
 
 .search-result-item {
@@ -516,20 +518,27 @@ body {
   cursor: pointer;
   font-size: 0.95rem;
   color: var(--ink-900);
-  transition: all 0.2s var(--ease);
+  transition: background 0.15s var(--ease);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  scroll-margin: 4px;
 }
 
-.search-result-item:hover { background: var(--line-1); transform: translateX(4px); }
-.search-result-item.selected { background: var(--accent); color: #fff; font-weight: 500; }
-.search-result-item.selected:hover { transform: none; background: var(--accent-hover); }
-.search-result-item.disabled { opacity: 0.3; cursor: not-allowed; }
-.search-result-item.disabled:hover { background: none; transform: none; }
+.search-result-label mark { background: var(--accent-tint); color: var(--accent); border-radius: 2px; padding: 0 1px; }
+.search-result-count { font-size: 0.78rem; color: var(--ink-400); white-space: nowrap; }
+.search-result-item.selected .search-result-count { color: inherit; }
 
-.search-no-results { text-align: center; padding: 4rem; color: var(--ink-400); font-size: 1.1rem; font-weight: 400; }
-.search-hint { margin-top: 1.5rem; padding-top: 1rem; border-top: 0.5px solid var(--line-2); font-size: 0.85rem; color: var(--ink-400); display: flex; justify-content: flex-end; }
+.search-result-item:hover, .search-result-item.kbd-focus { background: var(--surface-2); }
+.search-result-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
+.search-result-item.selected:hover, .search-result-item.selected.kbd-focus { background: var(--accent-tint-2); }
+.search-result-item.disabled { opacity: 0.35; cursor: not-allowed; }
+.search-result-item.disabled:hover { background: none; }
+.search-result-item.is-action { color: var(--ink-700); font-weight: 500; }
+.search-result-item.is-action:hover, .search-result-item.is-action.kbd-focus { background: var(--surface-2); color: var(--ink-900); }
+
+.search-no-results { text-align: center; padding: 4rem 1rem; color: var(--ink-400); font-size: 1.1rem; font-weight: 400; }
 
 .cat-region    { color: var(--sys-teal); }
 .cat-pharmacy  { color: var(--sys-purple); }
@@ -1288,7 +1297,7 @@ tbody tr:last-child td { border-bottom: none; }
       </svg>
     </div>
     <div class="search-chips-container" id="searchChips"></div>
-    <input type="text" id="universalSearchInput" placeholder="Search across all filters..." autocomplete="off"/>
+    <input type="text" id="universalSearchInput" placeholder="Search across all filters..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="universalSearchResults" aria-autocomplete="list" aria-activedescendant=""/>
     <div class="search-actions">
       <button id="clearSearchInput" class="search-action-btn hidden" title="Clear">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1301,7 +1310,15 @@ tbody tr:last-child td { border-bottom: none; }
       </button>
     </div>
     <div class="search-shortcut">⌘K</div>
-    <div class="universal-search-results" id="universalSearchResults"></div>
+    <div class="universal-search-results" id="universalSearchResults" role="listbox">
+      <div class="search-results-scroll" id="searchResultsScroll"></div>
+      <div class="dropdown-footer">
+        <span class="kbd-hint"><kbd>↑↓</kbd> Navigate</span>
+        <span class="kbd-hint"><kbd>↵</kbd> Toggle</span>
+        <span class="kbd-hint"><kbd>⇧↵</kbd> Keep open</span>
+        <span class="kbd-hint"><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1482,6 +1499,75 @@ let currentChartType = 'vertical';
 let isExploreMode = false;
 let isMissingMode = false;
 let searchIndices = {};
+let searchSelectedIndex = -1;
+let searchFlatItems = [];
+let fieldStatsCache = { signature: null, stats: null };
+
+const RECENTS_KEY = 'lx-recent-selections';
+
+const getRecentSelections = () => {
+  try { return JSON.parse(sessionStorage.getItem(RECENTS_KEY) || '[]'); } catch (err) { return []; }
+};
+
+const addRecentSelection = (field, value) => {
+  let recents = getRecentSelections().filter(r => !(r.field === field && r.value === value));
+  recents.unshift({ field, value });
+  recents = recents.slice(0, 8);
+  try { sessionStorage.setItem(RECENTS_KEY, JSON.stringify(recents)); } catch (err) {}
+};
+
+const searchScopePrefixes = { 'region:': 'Region', 'ph:': 'Pharmacy', 'month:': 'Month', 'class:': 'Class', 'med:': 'MedClass' };
+
+const parseSearchScope = (query) => {
+  const lower = query.toLowerCase();
+  for (const prefix in searchScopePrefixes) {
+    if (lower.startsWith(prefix)) return { field: searchScopePrefixes[prefix], text: query.slice(prefix.length).trim() };
+  }
+  return { field: null, text: query };
+};
+
+const searchActions = [
+  { id: 'reset', label: 'Reset filters', keywords: 'reset clear filters', run: () => document.getElementById('resetFiltersBtn').click() },
+  { id: 'explore', label: 'Toggle Explore', keywords: 'explore metrics view', run: () => document.getElementById('toggleExploreBtn').click() },
+  { id: 'missing', label: 'Toggle Missing', keywords: 'missing inactive records', run: () => document.getElementById('toggleMissingBtn').click() },
+  { id: 'export', label: 'Export', keywords: 'export excel download xlsx', run: () => exportData() },
+  { id: 'theme', label: 'Switch theme', keywords: 'theme dark light auto appearance', run: () => {
+    const order = ['light', 'dark', 'auto'];
+    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
+    localStorage.setItem(themeKey, currentTheme);
+    applyTheme(currentTheme);
+  } },
+  { id: 'refresh', label: 'Refresh data', keywords: 'refresh reload sync data', run: () => document.getElementById('syncRefreshBtn').click() }
+];
+
+const runSearchAction = (id) => {
+  const action = searchActions.find(a => a.id === id);
+  if (action) action.run();
+};
+
+const highlightMatches = (text, indices) => {
+  if (!indices || !indices.length) return escapeHTML(text);
+  let result = '';
+  let last = 0;
+  indices.forEach(([start, end]) => {
+    if (start > last) result += escapeHTML(text.slice(last, start));
+    result += `<mark>${escapeHTML(text.slice(start, end + 1))}</mark>`;
+    last = end + 1;
+  });
+  result += escapeHTML(text.slice(last));
+  return result;
+};
+
+const setSearchPanelOpen = (open) => {
+  const resultsContainer = document.getElementById('universalSearchResults');
+  const searchInput = document.getElementById('universalSearchInput');
+  resultsContainer.classList.toggle('active', open);
+  searchInput.setAttribute('aria-expanded', String(open));
+  if (!open) {
+    searchSelectedIndex = -1;
+    searchInput.setAttribute('aria-activedescendant', '');
+  }
+};
 let activeFilters = { Year: null, Region: [], Pharmacy: [], Month: [], Class: [], MedClass: [] };
 const FILTERS_STORAGE_KEY = 'lx-dashboard-filters';
 
@@ -1679,45 +1765,50 @@ const getAllUniqueOptions = (field) => {
   });
 };
 
-const getValidOptionsForField = (targetField) => {
-  const validValues = new Set();
-  data.filter(row => row.Year === activeFilters.Year).forEach((row) => {
-    let isValidRow = true;
-    const checkMap = { Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Class' };
-    for (const [filterKey, rowKey] of Object.entries(checkMap)) {
-      if (rowKey === targetField) continue;
-      const activeVals = activeFilters[filterKey];
-      if (activeVals.length > 0) {
-        const rowVal = row[rowKey] ? String(row[rowKey]).trim() : '';
-        if (!activeVals.includes(rowVal)) { isValidRow = false; break; }
-      }
-    }
-    if (isValidRow && activeFilters.MedClass.length > 0) {
-      if (!activeFilters.MedClass.some(cat => parseFloat(row[cat] || 0) > 0)) isValidRow = false;
-    }
-    if (isValidRow) {
-      const val = row[targetField] ? String(row[targetField]).trim() : '';
-      if (val) validValues.add(val);
-    }
-  });
-  return validValues;
-};
+const getFieldOptionStats = () => {
+  const signature = JSON.stringify([activeFilters.Year, activeFilters.Region, activeFilters.Pharmacy, activeFilters.Month, activeFilters.Class, activeFilters.MedClass]);
+  if (fieldStatsCache.signature === signature) return fieldStatsCache.stats;
 
-const getAvailableMedClasses = () => {
-  const validClasses = new Set();
+  const stats = { Region: new Map(), Pharmacy: new Map(), Month: new Map(), Class: new Map(), MedClass: new Map() };
+  const checkMap = { Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Class' };
+
   data.filter(row => row.Year === activeFilters.Year).forEach(row => {
-    let isValidRow = true;
-    const checkMap = { Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Class' };
+    ['Region', 'Pharmacy', 'Month', 'Class'].forEach(targetField => {
+      let isValidRow = true;
+      for (const [filterKey, rowKey] of Object.entries(checkMap)) {
+        if (rowKey === targetField) continue;
+        const activeVals = activeFilters[filterKey];
+        if (activeVals.length > 0) {
+          const rowVal = row[rowKey] ? String(row[rowKey]).trim() : '';
+          if (!activeVals.includes(rowVal)) { isValidRow = false; break; }
+        }
+      }
+      if (isValidRow && activeFilters.MedClass.length > 0) {
+        if (!activeFilters.MedClass.some(cat => parseFloat(row[cat] || 0) > 0)) isValidRow = false;
+      }
+      if (isValidRow) {
+        const val = row[targetField] ? String(row[targetField]).trim() : '';
+        if (val) stats[targetField].set(val, (stats[targetField].get(val) || 0) + 1);
+      }
+    });
+
+    let medRowValid = true;
     for (const [filterKey, rowKey] of Object.entries(checkMap)) {
       const activeVals = activeFilters[filterKey];
       if (activeVals.length > 0) {
         const rowVal = row[rowKey] ? String(row[rowKey]).trim() : '';
-        if (!activeVals.includes(rowVal)) { isValidRow = false; break; }
+        if (!activeVals.includes(rowVal)) { medRowValid = false; break; }
       }
     }
-    if (isValidRow) medicationCategories.forEach(cat => { if (parseFloat(row[cat] || 0) > 0) validClasses.add(cat); });
+    if (medRowValid) {
+      medicationCategories.forEach(cat => {
+        if (parseFloat(row[cat] || 0) > 0) stats.MedClass.set(cat, (stats.MedClass.get(cat) || 0) + 1);
+      });
+    }
   });
-  return validClasses;
+
+  fieldStatsCache = { signature, stats };
+  return stats;
 };
 
 const renderCustomDropdown = (field) => {
@@ -1725,7 +1816,7 @@ const renderCustomDropdown = (field) => {
   const btn = document.querySelector(`.custom-select-button[data-id="${field}"]`);
   const key = field.charAt(0).toUpperCase() + field.slice(1);
   let allOptions = field === 'medClass' ? medicationCategories : getAllUniqueOptions(key);
-  let validSet = field === 'medClass' ? getAvailableMedClasses() : getValidOptionsForField(key);
+  const validSet = getFieldOptionStats()[key];
   const currentSelection = activeFilters[key];
   const optionsWithStatus = allOptions.map(opt => ({
     value: opt,
@@ -1790,7 +1881,7 @@ const setupDropdowns = () => {
   });
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.premium-search-wrapper')) document.getElementById('universalSearchResults').classList.remove('active');
+    if (!e.target.closest('.premium-search-wrapper')) setSearchPanelOpen(false);
     document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
     document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
   });
@@ -1813,19 +1904,184 @@ const buildSearchIndices = () => {
     const options = field === 'MedClass' ? medicationCategories : getAllUniqueOptions(field);
     const normalizedOptions = options.map(opt => ({ item: opt, searchKey: normalizeArabic(opt) }));
     searchIndices[field] = new Fuse(normalizedOptions, {
-      threshold: 0.3,
+      threshold: 0.35,
       includeScore: true,
+      includeMatches: true,
       ignoreLocation: true,
       distance: 100,
-      minMatchCharLength: 2,
+      minMatchCharLength: 1,
       keys: ['searchKey']
     });
   });
 };
 
+const renderSearchRow = (id, field, value, isValid, isSelected, count, indices) => {
+  const cls = ['search-result-item'];
+  if (!isValid && !isSelected) cls.push('disabled');
+  if (isSelected) cls.push('selected');
+  const meta = isSelected
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
+    : `<span class="search-result-count">${count}</span>`;
+  return `<div class="${cls.join(' ')}" id="${id}" role="option" data-field="${field}" data-value="${escapeHTML(value)}">
+    <span class="search-result-label">${highlightMatches(value, indices)}</span>
+    <span class="search-result-meta">${meta}</span>
+  </div>`;
+};
+
+const renderActionRow = (id, action) => {
+  return `<div class="search-result-item is-action" id="${id}" role="option" data-action-id="${action.id}">
+    <span class="search-result-label">${escapeHTML(action.label)}</span>
+  </div>`;
+};
+
+const refreshSearchFlatItems = () => {
+  searchFlatItems = Array.from(document.querySelectorAll('#searchResultsScroll .search-result-item'));
+  searchSelectedIndex = searchFlatItems.length > 0 ? 0 : -1;
+  updateSearchSelection();
+};
+
+const updateSearchSelection = () => {
+  const searchInput = document.getElementById('universalSearchInput');
+  searchFlatItems.forEach(el => el.classList.remove('kbd-focus'));
+  const active = searchFlatItems[searchSelectedIndex];
+  if (active) {
+    active.classList.add('kbd-focus');
+    active.scrollIntoView({ block: 'nearest' });
+    searchInput.setAttribute('aria-activedescendant', active.id);
+  } else {
+    searchInput.setAttribute('aria-activedescendant', '');
+  }
+};
+
+const toggleSearchResult = (field, value) => {
+  const stats = getFieldOptionStats();
+  const isCurrentlyValid = (stats[field].get(value) || 0) > 0;
+  const isSelected = activeFilters[field].includes(value);
+  if (!isCurrentlyValid && !isSelected) return;
+  if (isSelected) {
+    activeFilters[field] = activeFilters[field].filter(v => v !== value);
+  } else {
+    activeFilters[field].push(value);
+    addRecentSelection(field, value);
+  }
+  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
+};
+
+const refreshSearchPanel = () => {
+  const searchInput = document.getElementById('universalSearchInput');
+  const q = searchInput.value.trim();
+  if (q.length > 0) performUniversalSearch(q); else renderRecentSelections();
+};
+
+const activateSearchItem = (keepOpen) => {
+  const el = searchFlatItems[searchSelectedIndex];
+  if (!el) return;
+  const searchInput = document.getElementById('universalSearchInput');
+  if (el.dataset.actionId) {
+    runSearchAction(el.dataset.actionId);
+    setSearchPanelOpen(false);
+    return;
+  }
+  if (el.classList.contains('disabled')) return;
+  toggleSearchResult(el.dataset.field, el.dataset.value);
+  if (keepOpen) { refreshSearchPanel(); searchInput.focus(); }
+  else setSearchPanelOpen(false);
+};
+
+const removeLastChip = () => {
+  const order = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
+  for (let i = order.length - 1; i >= 0; i--) {
+    if (activeFilters[order[i]].length > 0) {
+      activeFilters[order[i]] = activeFilters[order[i]].slice(0, -1);
+      updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
+      return;
+    }
+  }
+};
+
+const performUniversalSearch = (query) => {
+  const scroll = document.getElementById('searchResultsScroll');
+  const fields = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
+  const scope = parseSearchScope(query);
+  const stats = getFieldOptionStats();
+  let idx = 0;
+  let html = '';
+  let hasResults = false;
+
+  if (!scope.field) {
+    const q = query.trim().toLowerCase();
+    const matchedActions = searchActions.filter(a => a.label.toLowerCase().includes(q) || a.keywords.includes(q));
+    if (matchedActions.length > 0) {
+      html += `<div class="search-category-header">Actions</div>`;
+      matchedActions.forEach(a => { html += renderActionRow(`search-item-${idx++}`, a); });
+      hasResults = true;
+    }
+  }
+
+  const fieldsToSearch = scope.field ? [scope.field] : fields;
+
+  fieldsToSearch.forEach(field => {
+    let items;
+    if (scope.field && scope.text === '') {
+      const all = field === 'MedClass' ? medicationCategories : getAllUniqueOptions(field);
+      items = all.map(item => ({ item, indices: null }));
+    } else {
+      if (!searchIndices[field]) return;
+      const normalizedQuery = normalizeArabic(scope.field ? scope.text : query);
+      if (!normalizedQuery) return;
+      const result = searchIndices[field].search(normalizedQuery);
+      items = result.map(r => ({ item: r.item.item, indices: r.matches && r.matches[0] ? r.matches[0].indices : null }));
+    }
+    if (!items.length) return;
+
+    const validItems = [], invalidItems = [];
+    items.forEach(({ item, indices }) => {
+      const count = stats[field].get(item) || 0;
+      const isSelected = activeFilters[field].includes(item);
+      const isValid = count > 0;
+      (isValid || isSelected ? validItems : invalidItems).push({ item, indices, count, isValid, isSelected });
+    });
+
+    hasResults = true;
+    html += `<div class="search-category-header ${searchCategoryConfig[field].class}">${searchCategoryConfig[field].label}</div>`;
+    [...validItems, ...invalidItems].forEach(r => {
+      html += renderSearchRow(`search-item-${idx++}`, field, r.item, r.isValid, r.isSelected, r.count, r.indices);
+    });
+  });
+
+  scroll.innerHTML = hasResults ? `<div class="search-results-list">${html}</div>` : emptyStateHTML('No matches found', `Nothing matches "${query}" — try a different term.`, icons.search);
+
+  setSearchPanelOpen(true);
+  document.getElementById('commitSearchBtn').classList.remove('hidden');
+  refreshSearchFlatItems();
+};
+
+const renderRecentSelections = () => {
+  const scroll = document.getElementById('searchResultsScroll');
+  const recents = getRecentSelections();
+  if (!recents.length) {
+    scroll.innerHTML = '';
+    setSearchPanelOpen(false);
+    refreshSearchFlatItems();
+    return;
+  }
+  const stats = getFieldOptionStats();
+  let idx = 0;
+  let html = `<div class="search-category-header">Recent</div>`;
+  recents.forEach(r => {
+    const count = stats[r.field] ? (stats[r.field].get(r.value) || 0) : 0;
+    const isSelected = activeFilters[r.field] ? activeFilters[r.field].includes(r.value) : false;
+    html += renderSearchRow(`search-item-${idx++}`, r.field, r.value, count > 0, isSelected, count, null);
+  });
+  scroll.innerHTML = `<div class="search-results-list">${html}</div>`;
+  setSearchPanelOpen(true);
+  refreshSearchFlatItems();
+};
+
 const setupUniversalSearch = () => {
   const searchInput = document.getElementById('universalSearchInput');
   const resultsContainer = document.getElementById('universalSearchResults');
+  const resultsScroll = document.getElementById('searchResultsScroll');
   const clearInputBtn = document.getElementById('clearSearchInput');
   const clearAllBtn = document.getElementById('clearAllFilters');
   const commitSearchBtn = document.getElementById('commitSearchBtn');
@@ -1836,38 +2092,71 @@ const setupUniversalSearch = () => {
     commitSearchBtn.classList.toggle('hidden', !hasInput && !resultsContainer.classList.contains('active'));
   };
 
-  document.getElementById('triggerSearchFocus').addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (resultsContainer.classList.contains('active')) { resultsContainer.classList.remove('active'); searchInput.blur(); }
-    else { searchInput.focus(); if (searchInput.value.trim().length > 0) performUniversalSearch(searchInput.value.trim()); }
+  resultsScroll.addEventListener('mousedown', (e) => { if (e.target.closest('.search-result-item')) e.preventDefault(); });
+
+  resultsScroll.addEventListener('click', (e) => {
+    const item = e.target.closest('.search-result-item');
+    if (!item || item.classList.contains('disabled')) return;
+    if (item.dataset.actionId) { runSearchAction(item.dataset.actionId); setSearchPanelOpen(false); return; }
+    toggleSearchResult(item.dataset.field, item.dataset.value);
+    refreshSearchPanel();
+    searchInput.focus();
   });
 
-  clearInputBtn.addEventListener('click', () => { searchInput.value = ''; searchInput.focus(); resultsContainer.classList.remove('active'); checkInputState(); });
-  commitSearchBtn.addEventListener('click', () => resultsContainer.classList.remove('active'));
+  document.getElementById('triggerSearchFocus').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (resultsContainer.classList.contains('active')) { setSearchPanelOpen(false); searchInput.blur(); }
+    else { searchInput.focus(); if (searchInput.value.trim().length > 0) performUniversalSearch(searchInput.value.trim()); else renderRecentSelections(); }
+  });
+
+  clearInputBtn.addEventListener('click', () => { searchInput.value = ''; searchInput.focus(); renderRecentSelections(); checkInputState(); });
+  commitSearchBtn.addEventListener('click', () => setSearchPanelOpen(false));
 
   clearAllBtn.addEventListener('click', () => {
     ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
     updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); searchInput.focus();
-    if (resultsContainer.classList.contains('active')) performUniversalSearch(searchInput.value);
+    if (resultsContainer.classList.contains('active')) refreshSearchPanel();
   });
+
+  const debouncedSearch = debounce((q) => performUniversalSearch(q), 80);
 
   searchInput.addEventListener('input', (e) => {
     checkInputState();
     const query = e.target.value.trim();
-    if (query.length < 1) { resultsContainer.classList.remove('active'); return; }
-    performUniversalSearch(query);
+    if (query.length < 1) { renderRecentSelections(); return; }
+    debouncedSearch(query);
   });
 
   searchInput.addEventListener('focus', (e) => {
-    if (e.target.value.trim().length >= 1) { performUniversalSearch(e.target.value.trim()); resultsContainer.classList.add('active'); checkInputState(); }
+    if (e.target.value.trim().length >= 1) { performUniversalSearch(e.target.value.trim()); checkInputState(); }
+    else { renderRecentSelections(); }
   });
 
-  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); resultsContainer.classList.remove('active'); } });
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!searchFlatItems.length) return;
+      searchSelectedIndex = Math.min(searchSelectedIndex + 1, searchFlatItems.length - 1);
+      updateSearchSelection();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!searchFlatItems.length) return;
+      searchSelectedIndex = Math.max(searchSelectedIndex - 1, 0);
+      updateSearchSelection();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchSelectedIndex >= 0) activateSearchItem(e.shiftKey);
+      else setSearchPanelOpen(false);
+    } else if (e.key === 'Backspace' && searchInput.value === '') {
+      if (e.metaKey || e.ctrlKey) clearAllBtn.click();
+      else removeLastChip();
+    }
+  });
 
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
     if (e.key === 'Escape') {
-      resultsContainer.classList.remove('active');
+      setSearchPanelOpen(false);
       document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
       document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
       const modal = document.getElementById('modalContainer');
@@ -1875,75 +2164,6 @@ const setupUniversalSearch = () => {
       else searchInput.blur();
     }
   });
-};
-
-const performUniversalSearch = (query) => {
-  const resultsContainer = document.getElementById('universalSearchResults');
-  const fields = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
-  const normalizedQuery = normalizeArabic(query);
-  const searchResults = {};
-  const validOptionsMap = {
-    Region: getValidOptionsForField('Region'),
-    Pharmacy: getValidOptionsForField('Pharmacy'),
-    Month: getValidOptionsForField('Month'),
-    Class: getValidOptionsForField('Class'),
-    MedClass: getAvailableMedClasses()
-  };
-
-  fields.forEach(field => {
-    if (!searchIndices[field]) return;
-    const result = searchIndices[field].search(normalizedQuery);
-    if (result.length > 0) searchResults[field] = result.map(r => r.item.item);
-  });
-
-  const createItemHtml = (itemObj, field) => {
-    const { item, isValid, isSelected } = itemObj;
-    const itemClass = !isValid && !isSelected ? 'disabled' : (isSelected ? 'selected' : '');
-    const safeJSItem = escapeHTML(String(item).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
-    return `<div class="search-result-item ${itemClass}" onmousedown="event.preventDefault()" onclick="handleSearchResultClick(event, '${field}', '${safeJSItem}')">
-      <span>${escapeHTML(item)}</span>
-      ${isSelected ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
-    </div>`;
-  };
-
-  let html = '<div class="search-results-grid">';
-  let hasResults = false;
-
-  fields.forEach(field => {
-    if (!searchResults[field] || searchResults[field].length === 0) return;
-    hasResults = true;
-    const config = searchCategoryConfig[field];
-    const validItems = [], invalidItems = [];
-    searchResults[field].forEach(item => {
-      const isValid = validOptionsMap[field].has(item);
-      const isSelected = activeFilters[field].includes(item);
-      (isValid || isSelected ? validItems : invalidItems).push({ item, isValid, isSelected });
-    });
-    html += `<div class="search-category-column"><div class="search-category-header ${config.class}">${config.label}</div>`;
-    validItems.forEach(i => html += createItemHtml(i, field));
-    invalidItems.forEach(i => html += createItemHtml(i, field));
-    html += `</div>`;
-  });
-
-  html += '</div>';
-  if (hasResults) html += `<div class="search-hint"><span>Select items to filter</span></div>`;
-  else html = emptyStateHTML('No matches found', `Nothing matches "${query}" — try a different term.`, icons.search);
-
-  resultsContainer.innerHTML = html;
-  resultsContainer.classList.add('active');
-  document.getElementById('commitSearchBtn').classList.remove('hidden');
-};
-
-const handleSearchResultClick = (e, category, value) => {
-  if (e) e.stopPropagation();
-  const validSet = category === 'MedClass' ? getAvailableMedClasses() : getValidOptionsForField(category);
-  if (!validSet.has(value) && !activeFilters[category].includes(value)) return;
-  if (activeFilters[category].includes(value)) activeFilters[category] = activeFilters[category].filter(v => v !== value);
-  else activeFilters[category].push(value);
-  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
-  const input = document.getElementById('universalSearchInput');
-  if (input.value.trim().length > 0) performUniversalSearch(input.value.trim());
-  input.focus();
 };
 
 const updateSearchVisuals = () => {
