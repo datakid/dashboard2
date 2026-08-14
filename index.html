@@ -539,11 +539,7 @@ body {
 
 .search-no-results { text-align: center; padding: 4rem 1rem; color: var(--ink-400); font-size: 1.1rem; font-weight: 400; }
 
-.cat-region    { color: var(--sys-teal); }
-.cat-pharmacy  { color: var(--sys-purple); }
-.cat-month     { color: var(--sys-green); }
-.cat-class     { color: var(--sys-orange); }
-.cat-medication{ color: var(--sys-pink); }
+.cat-region, .cat-pharmacy, .cat-month, .cat-class, .cat-medication { color: var(--ink-500); }
 
 .filters {
   display: grid;
@@ -803,7 +799,7 @@ kbd {
 #resultsCount { color: var(--accent); background: var(--accent-tint); }
 #missingResultsCount { color: var(--accent); background: var(--accent-tint); cursor: pointer; transition: transform 0.2s var(--ease-spring); }
 #missingResultsCount:hover { transform: scale(1.05); }
-#duplicateResultsCount { color: var(--sys-orange); background: rgba(255, 149, 0, 0.15); cursor: pointer; transition: transform 0.2s var(--ease-spring); }
+#duplicateResultsCount { color: var(--accent); background: var(--accent-tint); cursor: pointer; transition: transform 0.2s var(--ease-spring); }
 #duplicateResultsCount:hover { transform: scale(1.05); }
 
 .stats {
@@ -2887,7 +2883,7 @@ const showDuplicateDetails = (duplicates) => {
           <div style="padding:1rem 1.5rem;border-bottom:0.5px solid var(--separator);">
             <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;align-items:center;gap:1rem;">
               <div style="font-weight:500;font-size:0.95rem;color:var(--text-primary);">${escapeHTML(d.Year)} · ${escapeHTML(d.Pharmacy)} · ${escapeHTML(d.Month)}</div>
-              <span style="background:rgba(255,149,0,0.15);color:var(--sys-orange);padding:0.25rem 0.75rem;border-radius:var(--radius-pill);font-size:0.8rem;font-weight:600;white-space:nowrap;">${d.count} Merged</span>
+              <span style="background:var(--accent-tint);color:var(--accent);padding:0.25rem 0.75rem;border-radius:var(--radius-pill);font-size:0.8rem;font-weight:600;white-space:nowrap;">${d.count} Merged</span>
             </div>
             <div style="font-size:0.8rem;color:var(--text-tertiary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">IDs: ${escapeHTML(d.rows)}</div>
           </div>`).join('')}
