@@ -12,9 +12,9 @@
     document.documentElement.classList.add('dark');
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js" integrity="sha384-nr+9vlvYWWjGQHMMgm2yxZr3VLgC1IRZzz1DRTGu5gWkY3HMYzle0jl7hDola65B" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js" integrity="sha384-zPE55eyESN+FxCWGEnlNxGyAPJud6IZ6TtJmXb56OFRGhxZPN4akj9rjA3gw5Qqa" crossorigin="anonymous"></script>
 <style>
 :root {
   --accent: #FF6266;
@@ -28,7 +28,7 @@
   --canvas: #F7F7F7;
   --surface-1: #FFFFFF;
   --surface-2: #FBFAFA;
-  --overlay: rgba(255,255,255,.74);
+  --overlay: rgba(255,255,255,.96);
   --scrim: rgba(28,22,24,.28);
 
   --ink-900:#1A1618; --ink-700:#3D3739; --ink-500:#6B6467;
@@ -97,7 +97,7 @@
 
 html.dark {
   --canvas:#0E0D0E; --surface-1:#171517; --surface-2:#1E1B1D;
-  --overlay: rgba(30,27,29,.80);
+  --overlay: rgba(30,27,29,.96);
   --accent:#FF7A7D; --accent-hover:#FF9093; --accent-press:#E86366;
   --ink-900:#F2EFEF; --ink-700:#C9C3C5; --ink-500:#948D90; --ink-400:#6E6769; --ink-300:#4A4446;
   --line-1: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.11); --line-3: rgba(255,255,255,.16);
@@ -522,7 +522,8 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  scroll-margin: 4px;
+  scroll-margin-top: 44px;
+  scroll-margin-bottom: 4px;
 }
 
 .search-result-label mark { background: var(--accent-tint); color: var(--accent); border-radius: 2px; padding: 0 1px; }
@@ -530,6 +531,7 @@ body {
 .search-result-item.selected .search-result-count { color: inherit; }
 
 .search-result-item:hover, .search-result-item.kbd-focus { background: var(--surface-2); }
+.search-result-item.kbd-focus { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
 .search-result-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
 .search-result-item.selected:hover, .search-result-item.selected.kbd-focus { background: var(--accent-tint-2); }
 .search-result-item.disabled { opacity: 0.35; cursor: not-allowed; }
@@ -673,6 +675,7 @@ kbd {
 }
 
 .dropdown-item:hover, .dropdown-item.kbd-focus { background: var(--surface-2); }
+.dropdown-item.kbd-focus { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
 .dropdown-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
 .dropdown-item.disabled-option { color: var(--ink-400); opacity: 0.4; }
 .dropdown-item.disabled-option:hover { background: none; cursor: default; }
@@ -806,11 +809,16 @@ kbd {
 #duplicateResultsCount:hover { transform: scale(1.05); }
 
 .stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
+
+.stats-total-row { display: grid; }
+.stats-core-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+.stats-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+.stats-total-row:empty, .stats-core-row:empty, .stats-category-grid:empty { display: none; }
 
 .stat-card {
   padding: 1.75rem;
@@ -1416,10 +1424,15 @@ tbody tr:last-child td { border-bottom: none; }
 
 <div class="dashboard-view">
   <div class="stats" id="statsContainer">
-    <div class="stat-card glass-panel total-card skeleton" style="height:140px;"></div>
-    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
-    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
-    <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+    <div class="stats-total-row" id="statsTotalRow">
+      <div class="stat-card glass-panel total-card skeleton" style="height:140px;"></div>
+    </div>
+    <div class="stats-core-row" id="statsCoreRow">
+      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
+    </div>
+    <div class="stats-category-grid" id="statsCategoryGrid"></div>
   </div>
   <div class="charts-grid">
     <div class="chart-container wide glass-panel">
@@ -2395,7 +2408,8 @@ const coreStatIcons = {
 };
 
 const addStatCard = (label, value, options = {}) => {
-  const container = document.getElementById('statsContainer');
+  const targetId = options.group === 'total' ? 'statsTotalRow' : options.group === 'core' ? 'statsCoreRow' : 'statsCategoryGrid';
+  const container = document.getElementById(targetId);
   const card = document.createElement('div');
   card.className = `stat-card glass-panel ${options.cardType === 'total' ? ' total-card' : ''}`;
   card.style.setProperty('--stat-index', container.children.length);
@@ -2419,20 +2433,20 @@ const addStatCard = (label, value, options = {}) => {
 };
 
 const updateStats = (aggregates) => {
-  document.getElementById('statsContainer').innerHTML = '';
+  ['statsTotalRow', 'statsCoreRow', 'statsCategoryGrid'].forEach(id => { document.getElementById(id).innerHTML = ''; });
   const targetCats = getSelectedMedicationCategories();
   const totalPrescriptions = aggregates.totals.totalPrescriptions;
   const insuranceCovered = aggregates.totals.insuranceCovered;
   const activePharmacies = aggregates.totals.pharmacies.size;
   const totalVal = targetCats.reduce((sum, cat) => sum + (aggregates.byCategory[cat] || 0), 0);
   const yearPharmacies = new Set(data.filter(d => String(d.Year) === activeFilters.Year).map(r => r.Pharmacy).filter(Boolean)).size;
-  addStatCard('Total Value', totalVal, { cardType: 'total' });
-  addStatCard('Prescriptions', totalPrescriptions, { cardType: 'medication' });
-  addStatCard('Insurance Covered', insuranceCovered, { cardType: 'medication' });
-  addStatCard('Pharmacies', activePharmacies, { cardType: 'medication', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
+  addStatCard('Total Value', totalVal, { cardType: 'total', group: 'total' });
+  addStatCard('Prescriptions', totalPrescriptions, { cardType: 'medication', group: 'core' });
+  addStatCard('Insurance Covered', insuranceCovered, { cardType: 'medication', group: 'core' });
+  addStatCard('Pharmacies', activePharmacies, { cardType: 'medication', group: 'core', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
   targetCats.forEach(cat => {
     const val = aggregates.byCategory[cat] || 0;
-    addStatCard(cat, val, { cardType: 'medication', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
+    addStatCard(cat, val, { cardType: 'medication', group: 'category', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
   });
 };
 
@@ -2986,8 +3000,10 @@ const startSyncRelativeClock = () => {
 };
 
 const clearStatSkeletons = () => {
-  const container = document.getElementById('statsContainer');
-  if (container.querySelector('.skeleton')) container.innerHTML = '';
+  ['statsTotalRow', 'statsCoreRow', 'statsCategoryGrid'].forEach(id => {
+    const container = document.getElementById(id);
+    if (container.querySelector('.skeleton')) container.innerHTML = '';
+  });
 };
 
 const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
