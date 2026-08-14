@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>Lx Dashboard</title>
 <script>
@@ -14,7 +14,6 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
 <style>
 :root {
@@ -673,7 +672,7 @@ kbd {
   transition: background 0.15s var(--ease), color 0.15s var(--ease);
 }
 
-.dropdown-item:hover { background: var(--surface-2); }
+.dropdown-item:hover, .dropdown-item.kbd-focus { background: var(--surface-2); }
 .dropdown-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
 .dropdown-item.disabled-option { color: var(--ink-400); opacity: 0.4; }
 .dropdown-item.disabled-option:hover { background: none; cursor: default; }
@@ -1328,41 +1327,41 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="filter-group" id="regionFilterGroup">
     <label class="filter-label">Region</label>
     <div class="custom-select-container">
-      <div class="custom-select-button" data-id="region">All</div>
+      <div class="custom-select-button" data-id="region" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="regionDropdown">All</div>
       <button class="clear-filter-btn" data-target="region"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="regionDropdown"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
+      <div class="custom-dropdown" id="regionDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
     </div>
   </div>
   <div class="filter-group" id="pharmacyFilterGroup">
     <label class="filter-label">Pharmacy</label>
     <div class="custom-select-container">
-      <div class="custom-select-button" data-id="pharmacy">All</div>
+      <div class="custom-select-button" data-id="pharmacy" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="pharmacyDropdown">All</div>
       <button class="clear-filter-btn" data-target="pharmacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="pharmacyDropdown"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
+      <div class="custom-dropdown" id="pharmacyDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
     </div>
   </div>
   <div class="filter-group" id="monthFilterGroup">
     <label class="filter-label">Month</label>
     <div class="custom-select-container">
-      <div class="custom-select-button" data-id="month">All</div>
+      <div class="custom-select-button" data-id="month" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="monthDropdown">All</div>
       <button class="clear-filter-btn" data-target="month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="monthDropdown"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
+      <div class="custom-dropdown" id="monthDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
     </div>
   </div>
   <div class="filter-group" id="classFilterGroup">
     <label class="filter-label">Classification</label>
     <div class="custom-select-container">
-      <div class="custom-select-button" data-id="class">All</div>
+      <div class="custom-select-button" data-id="class" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="classDropdown">All</div>
       <button class="clear-filter-btn" data-target="class"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="classDropdown"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
+      <div class="custom-dropdown" id="classDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
     </div>
   </div>
   <div class="filter-group" id="medClassFilterGroup">
     <label class="filter-label">Medication Class</label>
     <div class="custom-select-container">
-      <div class="custom-select-button" data-id="medClass">All</div>
+      <div class="custom-select-button" data-id="medClass" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="medClassDropdown">All</div>
       <button class="clear-filter-btn" data-target="medClass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="medClassDropdown"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
+      <div class="custom-dropdown" id="medClassDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
     </div>
   </div>
 </div>
@@ -1432,15 +1431,15 @@ tbody tr:last-child td { border-bottom: none; }
           <button class="segmented-btn chart-btn" onclick="updateChartType(event, 'horizontal')">Horizontal</button>
         </div>
       </div>
-      <div class="chart-wrapper"><canvas id="medicationChart"></canvas></div>
+      <div class="chart-wrapper"><canvas id="medicationChart" dir="auto"></canvas></div>
     </div>
     <div class="chart-container glass-panel">
       <div class="chart-header"><div class="chart-title">Monthly Trend</div></div>
-      <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+      <div class="chart-wrapper"><canvas id="trendChart" dir="auto"></canvas></div>
     </div>
     <div class="chart-container glass-panel">
       <div class="chart-header"><div class="chart-title">Regional Distribution</div></div>
-      <div class="chart-wrapper"><canvas id="regionChart"></canvas></div>
+      <div class="chart-wrapper"><canvas id="regionChart" dir="auto"></canvas></div>
       <div id="regionLegend" class="region-legend"></div>
     </div>
   </div>
@@ -1583,9 +1582,15 @@ const restoreSavedFilters = () => {
   try {
     const saved = JSON.parse(sessionStorage.getItem(FILTERS_STORAGE_KEY) || 'null');
     if (saved && typeof saved === 'object') {
+      let droppedAny = false;
       ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => {
-        if (Array.isArray(saved[k])) activeFilters[k] = saved[k];
+        if (!Array.isArray(saved[k])) return;
+        const validOptions = new Set(k === 'MedClass' ? medicationCategories : getAllUniqueOptions(k));
+        const kept = saved[k].filter(v => validOptions.has(v));
+        if (kept.length !== saved[k].length) droppedAny = true;
+        activeFilters[k] = kept;
       });
+      if (droppedAny) showToast('Some saved filters no longer apply and were removed', 'info');
     }
   } catch (e) { }
 };
@@ -1656,7 +1661,7 @@ const getCustomTooltip = () => ({
   backdropFilter: 'blur(20px)'
 });
 
-const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
+const escapeHTML = (str) => String(str).replace(/[&<>'"`]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;', '`': '&#96;' }[match]));
 
 const toastIcons = {
   success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
@@ -1756,7 +1761,7 @@ const searchCategoryConfig = {
 
 const getAllUniqueOptions = (field) => {
   const values = new Set();
-  data.filter(row => row.Year === activeFilters.Year).forEach(row => {
+  data.filter(row => String(row.Year) === activeFilters.Year).forEach(row => {
     if (row[field]) values.add(String(row[field]).trim());
   });
   return Array.from(values).sort((a, b) => {
@@ -1772,7 +1777,7 @@ const getFieldOptionStats = () => {
   const stats = { Region: new Map(), Pharmacy: new Map(), Month: new Map(), Class: new Map(), MedClass: new Map() };
   const checkMap = { Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Class' };
 
-  data.filter(row => row.Year === activeFilters.Year).forEach(row => {
+  data.filter(row => String(row.Year) === activeFilters.Year).forEach(row => {
     ['Region', 'Pharmacy', 'Month', 'Class'].forEach(targetField => {
       let isValidRow = true;
       for (const [filterKey, rowKey] of Object.entries(checkMap)) {
@@ -1830,16 +1835,8 @@ const renderCustomDropdown = (field) => {
     return a.value.localeCompare(b.value);
   });
   dropdown.querySelector('.dropdown-list').innerHTML = optionsWithStatus.map(opt =>
-    `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" data-value="${escapeHTML(opt.value)}"><div class="checkbox-custom"></div><span class="dropdown-item-label">${escapeHTML(opt.value)}</span><svg class="dropdown-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
+    `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" role="option" aria-selected="${opt.isSelected}" data-value="${escapeHTML(opt.value)}"><div class="checkbox-custom"></div><span class="dropdown-item-label" dir="auto">${escapeHTML(opt.value)}</span><svg class="dropdown-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
   ).join('');
-  dropdown.querySelectorAll('.dropdown-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      const val = item.getAttribute('data-value');
-      if (item.classList.contains('disabled-option') && !item.classList.contains('selected')) return;
-      toggleFilter(key, val);
-      e.stopPropagation();
-    });
-  });
   if (currentSelection.length === 0) {
     btn.textContent = 'All';
     btn.classList.remove('has-selection');
@@ -1867,23 +1864,89 @@ const updateAllFilterOptions = () => {
   ['region', 'pharmacy', 'month', 'class', 'medClass'].forEach(field => renderCustomDropdown(field));
 };
 
+let dropdownFocusIndex = -1;
+
+const closeAllDropdowns = () => {
+  document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.custom-select-button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-expanded', 'false'); });
+  dropdownFocusIndex = -1;
+};
+
+const openDropdown = (btn) => {
+  const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
+  closeAllDropdowns();
+  dropdown.classList.add('show');
+  btn.classList.add('active');
+  btn.setAttribute('aria-expanded', 'true');
+};
+
+const updateDropdownFocus = (dropdown) => {
+  const items = Array.from(dropdown.querySelectorAll('.dropdown-item'));
+  items.forEach(el => el.classList.remove('kbd-focus'));
+  const active = items[dropdownFocusIndex];
+  if (active) { active.classList.add('kbd-focus'); active.scrollIntoView({ block: 'nearest' }); }
+};
+
 const setupDropdowns = () => {
   document.querySelectorAll('.custom-select-button').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const id = btn.dataset.id;
-      const dropdown = document.getElementById(`${id}Dropdown`);
+      const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
       const wasShown = dropdown.classList.contains('show');
-      document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
-      document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
-      if (!wasShown) { dropdown.classList.add('show'); btn.classList.add('active'); }
+      closeAllDropdowns();
+      if (!wasShown) openDropdown(btn);
+    });
+
+    btn.addEventListener('keydown', (e) => {
+      const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
+      const isOpen = dropdown.classList.contains('show');
+      const items = dropdown.querySelectorAll('.dropdown-item');
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isOpen) { openDropdown(btn); return; }
+        if (items.length) { dropdownFocusIndex = Math.min(dropdownFocusIndex + 1, items.length - 1); updateDropdownFocus(dropdown); }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (isOpen && items.length) { dropdownFocusIndex = Math.max(dropdownFocusIndex - 1, 0); updateDropdownFocus(dropdown); }
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (isOpen && dropdownFocusIndex >= 0 && items[dropdownFocusIndex]) {
+          const item = items[dropdownFocusIndex];
+          if (!(item.classList.contains('disabled-option') && !item.classList.contains('selected'))) {
+            const field = dropdown.id.replace('Dropdown', '');
+            const key = field.charAt(0).toUpperCase() + field.slice(1);
+            toggleFilter(key, item.getAttribute('data-value'));
+            const newItems = dropdown.querySelectorAll('.dropdown-item');
+            dropdownFocusIndex = Math.min(dropdownFocusIndex, newItems.length - 1);
+            updateDropdownFocus(dropdown);
+          }
+        } else if (!isOpen) {
+          openDropdown(btn);
+        } else {
+          closeAllDropdowns();
+        }
+      } else if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        closeAllDropdowns();
+      }
+    });
+  });
+
+  document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+    dropdown.querySelector('.dropdown-list').addEventListener('click', (e) => {
+      const item = e.target.closest('.dropdown-item');
+      if (!item) return;
+      if (item.classList.contains('disabled-option') && !item.classList.contains('selected')) return;
+      const field = dropdown.id.replace('Dropdown', '');
+      const key = field.charAt(0).toUpperCase() + field.slice(1);
+      toggleFilter(key, item.getAttribute('data-value'));
     });
   });
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.premium-search-wrapper')) setSearchPanelOpen(false);
-    document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
-    document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
+    if (!e.target.closest('.custom-select-container')) closeAllDropdowns();
   });
 
   document.querySelectorAll('.clear-filter-btn').forEach(btn => {
@@ -2177,7 +2240,7 @@ const updateSearchVisuals = () => {
       const chip = document.createElement('div');
       chip.className = 'search-chip';
       const config = searchCategoryConfig[field];
-      chip.innerHTML = `<span class="search-chip-category ${config.class}">${config.label}</span>${escapeHTML(val)}<span class="search-chip-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>`;
+      chip.innerHTML = `<span class="search-chip-category ${config.class}">${config.label}</span><span dir="auto">${escapeHTML(val)}</span><span class="search-chip-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>`;
       chip.querySelector('.search-chip-remove').addEventListener('click', (e) => {
         e.stopPropagation(); toggleFilter(field, val);
         const input = document.getElementById('universalSearchInput');
@@ -2204,14 +2267,23 @@ const populateYearFilter = () => {
     option.textContent = `${Number(year) - 1}–${year}`;
     yearSelect.appendChild(option);
   });
-  if (defaultYear) { yearSelect.value = defaultYear; activeFilters.Year = String(defaultYear); }
-  yearSelect.addEventListener('change', () => {
-    activeFilters.Year = yearSelect.value;
-    ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
-    destroyCharts();
-    updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); buildSearchIndices();
-  });
+  const preservedYear = activeFilters.Year && allYears.map(String).includes(String(activeFilters.Year)) ? String(activeFilters.Year) : null;
+  if (preservedYear) {
+    yearSelect.value = preservedYear;
+    activeFilters.Year = preservedYear;
+  } else if (defaultYear) {
+    yearSelect.value = defaultYear;
+    activeFilters.Year = String(defaultYear);
+  }
 };
+
+document.getElementById('yearFilter').addEventListener('change', () => {
+  const yearSelect = document.getElementById('yearFilter');
+  activeFilters.Year = yearSelect.value;
+  ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
+  destroyCharts();
+  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); buildSearchIndices();
+});
 
 const processDataAndHandleDuplicates = (rawData) => {
   const groupedData = {};
@@ -2257,6 +2329,64 @@ const applyFilters = () => {
 
 const getSelectedMedicationCategories = () => activeFilters.MedClass.length > 0 ? activeFilters.MedClass : medicationCategories;
 
+const computeAggregates = (rows) => {
+  const totals = { totalPrescriptions: 0, insuranceCovered: 0, pharmacies: new Set() };
+  const byCategory = {};
+  const byMonth = {};
+  const byRegion = {};
+  medicationCategories.forEach(cat => { byCategory[cat] = 0; });
+
+  rows.forEach(row => {
+    const month = row.Month || 'Unknown';
+    const region = row.Region || 'Unknown';
+    if (!byMonth[month]) byMonth[month] = { byCategory: {}, totalPrescriptions: 0, insuranceCovered: 0, pharmacies: new Set() };
+    if (!byRegion[region]) byRegion[region] = { byCategory: {} };
+
+    const totalPresc = parseFloat(row['Total Prescription'] || 0);
+    const insCovered = parseFloat(row['Insurance Covered Prescription'] || 0);
+    totals.totalPrescriptions += totalPresc;
+    totals.insuranceCovered += insCovered;
+    if (row.Pharmacy) totals.pharmacies.add(row.Pharmacy);
+
+    byMonth[month].totalPrescriptions += totalPresc;
+    byMonth[month].insuranceCovered += insCovered;
+    if (row.Pharmacy) byMonth[month].pharmacies.add(row.Pharmacy);
+
+    medicationCategories.forEach(cat => {
+      const v = parseFloat(row[cat] || 0);
+      if (v) {
+        byCategory[cat] += v;
+        byMonth[month].byCategory[cat] = (byMonth[month].byCategory[cat] || 0) + v;
+        byRegion[region].byCategory[cat] = (byRegion[region].byCategory[cat] || 0) + v;
+      }
+    });
+  });
+
+  return { byCategory, byMonth, byRegion, totals };
+};
+
+const computeExploreRows = (aggregates) => {
+  const months = Object.keys(aggregates.byMonth).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+  const targetMetrics = getSelectedMedicationCategories();
+  const metricsList = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...targetMetrics];
+  const rows = metricsList.map(metric => {
+    const rowData = { Metric: metric, _hasData: false };
+    months.forEach(m => {
+      const mAgg = aggregates.byMonth[m];
+      let val = 0;
+      if (metric === 'Total') val = targetMetrics.reduce((s, c) => s + (mAgg.byCategory[c] || 0), 0);
+      else if (metric === 'Total Prescriptions') val = mAgg.totalPrescriptions;
+      else if (metric === 'Insurance Covered') val = mAgg.insuranceCovered;
+      else if (metric === 'Active Pharmacies') val = mAgg.pharmacies.size;
+      else val = mAgg.byCategory[metric] || 0;
+      rowData[m] = val;
+      if (val > 0) rowData._hasData = true;
+    });
+    return rowData;
+  }).filter(r => r._hasData);
+  return { months, rows };
+};
+
 const coreStatIcons = {
   'Total Value': icons.layers,
   'Prescriptions': icons.pill,
@@ -2288,20 +2418,20 @@ const addStatCard = (label, value, options = {}) => {
   });
 };
 
-const updateStats = () => {
+const updateStats = (aggregates) => {
   document.getElementById('statsContainer').innerHTML = '';
   const targetCats = getSelectedMedicationCategories();
-  const totalPrescriptions = filteredData.reduce((sum, row) => sum + parseFloat(row['Total Prescription'] || 0), 0);
-  const insuranceCovered = filteredData.reduce((sum, row) => sum + parseFloat(row['Insurance Covered Prescription'] || 0), 0);
-  const activePharmacies = new Set(filteredData.map(row => row.Pharmacy).filter(Boolean)).size;
-  const totalVal = targetCats.reduce((sum, cat) => sum + filteredData.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
-  const yearPharmacies = new Set(data.filter(d => d.Year === activeFilters.Year).map(r => r.Pharmacy).filter(Boolean)).size;
+  const totalPrescriptions = aggregates.totals.totalPrescriptions;
+  const insuranceCovered = aggregates.totals.insuranceCovered;
+  const activePharmacies = aggregates.totals.pharmacies.size;
+  const totalVal = targetCats.reduce((sum, cat) => sum + (aggregates.byCategory[cat] || 0), 0);
+  const yearPharmacies = new Set(data.filter(d => String(d.Year) === activeFilters.Year).map(r => r.Pharmacy).filter(Boolean)).size;
   addStatCard('Total Value', totalVal, { cardType: 'total' });
   addStatCard('Prescriptions', totalPrescriptions, { cardType: 'medication' });
   addStatCard('Insurance Covered', insuranceCovered, { cardType: 'medication' });
   addStatCard('Pharmacies', activePharmacies, { cardType: 'medication', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
   targetCats.forEach(cat => {
-    const val = filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0);
+    const val = aggregates.byCategory[cat] || 0;
     addStatCard(cat, val, { cardType: 'medication', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
   });
 };
@@ -2329,7 +2459,17 @@ const updateChartType = (e, type) => {
   if (e && e.currentTarget) e.currentTarget.classList.add('active');
   else if (e && e.target) e.target.classList.add('active');
   positionSegmentedThumb(document.getElementById('medChartTypeToggle'));
-  updateMedicationChart();
+  updateMedicationChart(computeAggregates(filteredData));
+};
+
+const trendGradient = (context) => {
+  const { chart } = context;
+  const { ctx: c, chartArea } = chart;
+  if (!chartArea) return getThemeColor('--accent-tint');
+  const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+  gradient.addColorStop(0, getThemeColor('--accent-tint'));
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  return gradient;
 };
 
 const barGradient = (context, isHorizontal) => {
@@ -2349,15 +2489,14 @@ const barGradient = (context, isHorizontal) => {
   return gradient;
 };
 
-const updateMedicationChart = () => {
+const updateMedicationChart = (aggregates) => {
   const ctx = document.getElementById('medicationChart').getContext('2d');
   const targetCats = getSelectedMedicationCategories();
-  const chartData = targetCats.map(cat => filteredData.reduce((sum, row) => sum + parseFloat(row[cat] || 0), 0));
+  const chartData = targetCats.map(cat => aggregates.byCategory[cat] || 0);
   const isHorizontal = currentChartType === 'horizontal';
 
   const categoryAxisScale = {
     grid: { display: false, drawBorder: false },
-    border: { display: false },
     ticks: {
       color: getThemeColor('--ink-500'),
       font: { size: 12, weight: '500' },
@@ -2370,7 +2509,6 @@ const updateMedicationChart = () => {
 
   const valueAxisScale = {
     grid: { color: getThemeColor('--line-1'), drawBorder: false },
-    border: { display: false },
     grace: '5%',
     ticks: {
       color: getThemeColor('--ink-500'),
@@ -2440,24 +2578,17 @@ const updateMedicationChart = () => {
   });
 };
 
-const updateMonthlyTrendChart = () => {
+const updateMonthlyTrendChart = (aggregates) => {
   const ctx = document.getElementById('trendChart').getContext('2d');
   const targetCats = getSelectedMedicationCategories();
-  const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-  const monthlyTotals = months.map(m => {
-    const monthRows = filteredData.filter(r => r.Month === m);
-    return targetCats.reduce((sum, cat) => sum + monthRows.reduce((rSum, row) => rSum + parseFloat(row[cat] || 0), 0), 0);
-  });
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-  gradient.addColorStop(0, getThemeColor('--accent-tint'));
-  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  const months = Object.keys(aggregates.byMonth).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+  const monthlyTotals = months.map(m => targetCats.reduce((sum, cat) => sum + (aggregates.byMonth[m].byCategory[cat] || 0), 0));
 
   if (trendChartInstance) {
     trendChartInstance.data.labels = months;
     trendChartInstance.data.datasets[0].data = monthlyTotals;
     trendChartInstance.data.datasets[0].borderColor = getThemeColor('--accent');
-    trendChartInstance.data.datasets[0].backgroundColor = gradient;
+    trendChartInstance.data.datasets[0].backgroundColor = trendGradient;
     trendChartInstance.data.datasets[0].pointBackgroundColor = getThemeColor('--accent');
     trendChartInstance.data.datasets[0].pointBorderColor = getThemeColor('--surface-1');
     trendChartInstance.options.scales.x.ticks.color = getThemeColor('--ink-500');
@@ -2477,7 +2608,7 @@ const updateMonthlyTrendChart = () => {
         label: 'Trend',
         data: monthlyTotals,
         borderColor: getThemeColor('--accent'),
-        backgroundColor: gradient,
+        backgroundColor: trendGradient,
         fill: true,
         tension: 0.4,
         pointRadius: 0,
@@ -2509,12 +2640,10 @@ const updateMonthlyTrendChart = () => {
       scales: {
         x: {
           grid: { display: false, drawBorder: false },
-          border: { display: false },
           ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, maxRotation: 45, minRotation: 0, padding: 8 }
         },
         y: {
           grid: { color: getThemeColor('--line-1'), drawBorder: false },
-          border: { display: false },
           grace: '5%',
           afterFit: (scale) => { scale.width = Math.max(scale.width, 50); },
           ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, callback: (value) => compactNum(value), padding: 8 }
@@ -2524,16 +2653,12 @@ const updateMonthlyTrendChart = () => {
   });
 };
 
-const updateRegionChart = () => {
+const updateRegionChart = (aggregates) => {
   const ctx = document.getElementById('regionChart').getContext('2d');
   const targetCats = getSelectedMedicationCategories();
-  const regions = {};
-  filteredData.forEach(row => {
-    const reg = row.Region || 'Unknown';
-    const val = targetCats.reduce((sum, cat) => sum + parseFloat(row[cat] || 0), 0);
-    regions[reg] = (regions[reg] || 0) + val;
-  });
-  const sortedRegions = Object.entries(regions).sort((a, b) => b[1] - a[1]);
+  const sortedRegions = Object.entries(aggregates.byRegion)
+    .map(([region, r]) => [region, targetCats.reduce((sum, cat) => sum + (r.byCategory[cat] || 0), 0)])
+    .sort((a, b) => b[1] - a[1]);
   const colors = ['#FF6266', '#FF8A6F', '#F2A65A', '#D96A8B', '#A96FA8', '#7B7BB8', '#5B93B0', '#6FB09B'];
 
   if (regionChartInstance) {
@@ -2602,7 +2727,7 @@ const findMissingTotals = () => {
     eligiblePharmacies.length = 0; eligiblePharmacies.push(...filtered);
   }
   const pharmacyRegions = {};
-  data.forEach(r => { if (r.Pharmacy) pharmacyRegions[r.Pharmacy] = r.Region; });
+  data.filter(r => String(r.Year) === activeFilters.Year).forEach(r => { if (r.Pharmacy) pharmacyRegions[r.Pharmacy] = r.Region; });
   monthsToCheck.forEach(month => {
     const activeInMonth = new Set(baseDataset.filter(r => r.Month === month).map(r => r.Pharmacy));
     eligiblePharmacies.forEach(pharmacy => {
@@ -2620,30 +2745,13 @@ const getTrendIndicator = (c, p) => {
 
 const createSortIcon = () => `<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m0-16l-6 6m6-6l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-const updateExploreView = () => {
+const updateExploreView = (aggregates) => {
   const tbody = document.querySelector('#exploreTable tbody');
   const thead = document.querySelector('#exploreTable thead tr');
-  const months = Array.from(new Set(filteredData.map(r => r.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
+  const { months, rows: rowsData } = computeExploreRows(aggregates);
   let headersHTML = `<th class="sortable" data-col="Metric">Metric ${createSortIcon()}</th>`;
-  months.forEach(m => { headersHTML += `<th class="sortable" data-col="${escapeHTML(m)}">${escapeHTML(m)} ${createSortIcon()}</th>`; });
+  months.forEach(m => { headersHTML += `<th class="sortable" data-col="${escapeHTML(m)}" dir="auto">${escapeHTML(m)} ${createSortIcon()}</th>`; });
   thead.innerHTML = headersHTML;
-  const targetMetrics = activeFilters.MedClass.length > 0 ? activeFilters.MedClass : medicationCategories;
-  const metricsList = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...targetMetrics];
-  let rowsData = metricsList.map(metric => {
-    const rowData = { Metric: metric, _hasData: false };
-    months.forEach(m => {
-      const md = filteredData.filter(r => r.Month === m);
-      let val = 0;
-      if (metric === 'Total') val = targetMetrics.reduce((s, c) => s + md.reduce((ms, r) => ms + parseFloat(r[c] || 0), 0), 0);
-      else if (metric === 'Total Prescriptions') val = md.reduce((s, r) => s + parseFloat(r['Total Prescription'] || 0), 0);
-      else if (metric === 'Insurance Covered') val = md.reduce((s, r) => s + parseFloat(r['Insurance Covered Prescription'] || 0), 0);
-      else if (metric === 'Active Pharmacies') val = new Set(md.map(r => r.Pharmacy)).size;
-      else val = md.reduce((s, r) => s + parseFloat(r[metric] || 0), 0);
-      rowData[m] = val;
-      if (val > 0) rowData._hasData = true;
-    });
-    return rowData;
-  }).filter(r => r._hasData);
   if (exploreSort.col) {
     rowsData.sort((a, b) => {
       let valA = a[exploreSort.col] || 0;
@@ -2663,9 +2771,9 @@ const updateExploreView = () => {
         const val = row[m] || 0;
         const trend = getTrendIndicator(val, prev);
         prev = val;
-        return `<td>${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${trend}</td>`;
+        return `<td dir="auto">${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${trend}</td>`;
       }).join('');
-      return `<tr><td>${escapeHTML(row.Metric)}</td>${cells}</tr>`;
+      return `<tr><td dir="auto">${escapeHTML(row.Metric)}</td>${cells}</tr>`;
     }).join('');
   }
   thead.querySelectorAll('th.sortable').forEach(th => {
@@ -2673,7 +2781,7 @@ const updateExploreView = () => {
       const col = th.getAttribute('data-col');
       if (exploreSort.col === col) { exploreSort.dir *= -1; }
       else { exploreSort.col = col; exploreSort.dir = col === 'Metric' ? 1 : -1; }
-      updateExploreView();
+      updateDashboard();
     });
   });
 };
@@ -2699,7 +2807,7 @@ const updateMissingView = () => {
     return;
   }
   tbody.innerHTML = dataToSort.map(i =>
-    `<tr><td>${escapeHTML(i.Region)}</td><td><strong>${escapeHTML(i.Pharmacy)}</strong></td><td>${escapeHTML(i.Month)}</td><td><span class="status-inactive">Inactive</span></td></tr>`
+    `<tr><td dir="auto">${escapeHTML(i.Region)}</td><td dir="auto"><strong>${escapeHTML(i.Pharmacy)}</strong></td><td dir="auto">${escapeHTML(i.Month)}</td><td><span class="status-inactive">Inactive</span></td></tr>`
   ).join('');
   thead.querySelectorAll('th.sortable').forEach(th => {
     th.addEventListener('click', () => {
@@ -2721,7 +2829,7 @@ const updateDashboard = debounce(() => {
     document.querySelector('.dashboard-view').classList.add('hidden');
     document.querySelector('.missing-view').classList.add('hidden');
     document.querySelector('.explore-view').classList.remove('hidden');
-    updateExploreView();
+    updateExploreView(computeAggregates(filteredData));
     resCount.innerHTML = `Metrics across ${Array.from(new Set(filteredData.map(r => r.Month))).length} months`;
     misCount.classList.add('hidden'); dupeCount.classList.add('hidden');
   } else if (isMissingMode) {
@@ -2735,17 +2843,19 @@ const updateDashboard = debounce(() => {
     document.querySelector('.explore-view').classList.add('hidden');
     document.querySelector('.missing-view').classList.add('hidden');
     document.querySelector('.dashboard-view').classList.remove('hidden');
-    updateStats(); updateMedicationChart(); updateMonthlyTrendChart(); updateRegionChart();
+    const aggregates = computeAggregates(filteredData);
+    updateStats(aggregates); updateMedicationChart(aggregates); updateMonthlyTrendChart(aggregates); updateRegionChart(aggregates);
     resCount.innerHTML = `${filteredData.length} Results`;
     if (missingData.length > 0) {
       misCount.classList.remove('hidden');
       misCount.innerHTML = `${missingData.length} Missing`;
       misCount.onclick = () => document.getElementById('toggleMissingBtn').click();
     } else { misCount.classList.add('hidden'); }
-    if (mergedDuplicates.length > 0) {
+    const yearScopedDuplicates = mergedDuplicates.filter(d => String(d.Year) === activeFilters.Year);
+    if (yearScopedDuplicates.length > 0) {
       dupeCount.classList.remove('hidden');
-      dupeCount.innerHTML = `${mergedDuplicates.length} Duplicates`;
-      dupeCount.onclick = () => showDuplicateDetails(mergedDuplicates);
+      dupeCount.innerHTML = `${yearScopedDuplicates.length} Duplicates`;
+      dupeCount.onclick = () => showDuplicateDetails(yearScopedDuplicates);
     } else { dupeCount.classList.add('hidden'); }
   }
 }, 150);
@@ -2779,8 +2889,9 @@ const exportData = () => {
   const filterText = `Fiscal Year: ${activeFilters.Year || 'All'} | Filters: ${getFilterSummary()}`;
   let aoa = [[filterText], []];
   if (isExploreMode) {
-    const tempSheet = XLSX.utils.table_to_sheet(document.getElementById('exploreTable'));
-    aoa = aoa.concat(XLSX.utils.sheet_to_json(tempSheet, { header: 1 }));
+    const { months, rows } = computeExploreRows(computeAggregates(filteredData));
+    aoa.push(['Metric', ...months]);
+    rows.forEach(row => aoa.push([row.Metric, ...months.map(m => row[m] || 0)]));
   } else {
     const sourceData = isMissingMode ? missingData : filteredData;
     if (sourceData.length > 0) {
@@ -2824,9 +2935,29 @@ document.getElementById('toggleMissingBtn').addEventListener('click', () => {
   updateDashboard();
 });
 
+let xlsxLoadPromise = null;
+const ensureXLSXLoaded = () => {
+  if (window.XLSX) return Promise.resolve();
+  if (xlsxLoadPromise) return xlsxLoadPromise;
+  xlsxLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return xlsxLoadPromise;
+};
+
 document.getElementById('exportExcelBtn').addEventListener('click', () => {
-  exportData();
-  showToast('Export ready — check your downloads', 'success');
+  const btn = document.getElementById('exportExcelBtn');
+  btn.disabled = true;
+  ensureXLSXLoaded().then(() => {
+    exportData();
+    showToast('Export ready — check your downloads', 'success');
+  }).catch(() => {
+    showToast('Could not load the export module — check your connection', 'error');
+  }).finally(() => { btn.disabled = false; });
 });
 
 let lastSyncDate = null;
@@ -2863,6 +2994,8 @@ const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 let isFirstLoad = true;
 
+let activeFetchController = null;
+
 const loadDashboardData = (isManualRefresh = false) => {
   const refreshBtn = document.getElementById('syncRefreshBtn');
   const timestampEl = document.getElementById('syncTimestamp');
@@ -2870,7 +3003,11 @@ const loadDashboardData = (isManualRefresh = false) => {
   timestampEl.textContent = 'Syncing…';
   setSyncState('is-syncing');
 
-  fetch(SHEET_URL)
+  if (activeFetchController) activeFetchController.abort();
+  const controller = new AbortController();
+  activeFetchController = controller;
+
+  fetch(`${SHEET_URL}&t=${Date.now()}`, { cache: 'no-store', signal: controller.signal })
     .then(r => { if (!r.ok) throw new Error('Network response was not ok'); return r.text(); })
     .then(csv => {
       Papa.parse(csv, {
@@ -2904,12 +3041,13 @@ const loadDashboardData = (isManualRefresh = false) => {
         }
       });
     })
-    .catch(() => {
+    .catch((err) => {
+      if (err.name === 'AbortError') return;
       timestampEl.textContent = 'Sync failed';
       setSyncState('is-error');
       showToast('Could not reach the data source — check your connection', 'error');
     })
-    .finally(() => { refreshBtn.classList.remove('spinning'); });
+    .finally(() => { if (activeFetchController === controller) refreshBtn.classList.remove('spinning'); });
 };
 
 document.getElementById('syncRefreshBtn').addEventListener('click', () => loadDashboardData(true));
