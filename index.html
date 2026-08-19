@@ -1,3068 +1,1757 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Dashboard Arena</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-<title>Lx Dashboard</title>
-<script>
-  const savedTheme = localStorage.getItem('lx-theme-pref') || 'auto';
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (savedTheme === 'dark' || (savedTheme === 'auto' && prefersDark)) {
-    document.documentElement.classList.add('dark');
-  }
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js" integrity="sha384-nr+9vlvYWWjGQHMMgm2yxZr3VLgC1IRZzz1DRTGu5gWkY3HMYzle0jl7hDola65B" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js" integrity="sha384-zPE55eyESN+FxCWGEnlNxGyAPJud6IZ6TtJmXb56OFRGhxZPN4akj9rjA3gw5Qqa" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <style>
 :root {
-  --accent: #FF6266;
-  --accent-hover: #F04E52;
-  --accent-press: #D93F43;
-  --accent-fg: #FFFFFF;
-  --accent-tint: rgba(255,98,102,.10);
-  --accent-tint-2: rgba(255,98,102,.16);
-  --accent-ring: rgba(255,98,102,.28);
-
-  --canvas: #F7F7F7;
-  --surface-1: #FFFFFF;
-  --surface-2: #FBFAFA;
-  --overlay: rgba(255,255,255,.96);
-  --scrim: rgba(28,22,24,.28);
-
-  --ink-900:#1A1618; --ink-700:#3D3739; --ink-500:#6B6467;
-  --ink-400:#8E8689; --ink-300:#B8B1B3;
-  --line-1: rgba(26,22,24,.06);
-  --line-2: rgba(26,22,24,.10);
-  --line-3: rgba(26,22,24,.16);
-
-  --shadow-1: 0 1px 2px rgba(26,22,24,.04), 0 0 0 1px var(--line-1);
-  --shadow-2: 0 4px 16px -4px rgba(26,22,24,.10), 0 0 0 1px var(--line-1);
-  --shadow-pop: 0 24px 48px -12px rgba(26,22,24,.18), 0 0 0 1px var(--line-2);
-
-  --r-xs:6px; --r-sm:8px; --r-md:10px; --r-lg:14px; --r-xl:18px; --r-2xl:24px; --r-pill:999px;
-
-  --dur-1:120ms; --dur-2:180ms; --dur-3:260ms;
-  --ease: cubic-bezier(.2,.8,.2,1);
-  --ease-spring: cubic-bezier(.2,1.3,.35,1);
-
-  --bg-color: var(--canvas);
-  --card-bg: var(--surface-1);
-  --card-bg-solid: var(--surface-1);
-  --popover-bg: var(--overlay);
-  --glass-border: var(--line-1);
-  --glass-highlight: rgba(255, 255, 255, 0);
-
-  --text-primary: var(--ink-900);
-  --text-secondary: var(--ink-500);
-  --text-tertiary: var(--ink-400);
-
-  --border-light: var(--line-1);
-  --border-medium: var(--line-2);
-  --border-focus: var(--accent-ring);
-  --separator: var(--line-2);
-
-  --shadow-sm: var(--shadow-1);
-  --shadow-md: var(--shadow-2);
-  --shadow-lg: var(--shadow-pop);
-  --shadow-popover: var(--shadow-pop);
-
-  --radius-xs: var(--r-xs);
-  --radius-sm: var(--r-sm);
-  --radius-md: var(--r-md);
-  --radius-lg: var(--r-lg);
-  --radius-xl: var(--r-xl);
-  --radius-pill: var(--r-pill);
-
-  --ease-out: var(--ease);
-
-  --sys-blue: var(--accent);
-  --sys-blue-light: var(--accent-tint);
-  --sys-blue-dark: var(--accent-hover);
-  --sys-red: var(--accent);
-  --sys-red-light: var(--accent-tint);
-  --sys-green: #34C759;
-  --sys-green-light: rgba(52, 199, 89, 0.12);
-  --sys-indigo: #5856D6;
-  --sys-orange: #FF9500;
-  --sys-pink: #FF2D55;
-  --sys-purple: #AF52DE;
-  --sys-teal: #32ADE6;
-  --sys-yellow: #FFCC00;
-
-  --live-dot: var(--sys-green);
-  --live-dot-glow: rgba(52, 199, 89, 0.35);
+  --bg-primary: #F7F6F4;
+  --bg-secondary: #FFFDFC;
+  --bg-tertiary: #F1EEEC;
+  --bg-accent: rgba(255,98,102,0.055);
+  --bg-card: rgba(255,253,252,0.66);
+  --text-primary: #1A1618;
+  --text-secondary: #6B6265;
+  --text-tertiary: #7A7173;
+  --accent-primary: #FF6266;
+  --accent-primary-dark: #D94A50;
+  --accent-secondary: #1A1618;
+  --accent-secondary-dark: #3A3234;
+  --accent-success: #4E7C67;
+  --accent-danger: #C2454B;
+  --border-primary: rgba(26,22,24,0.09);
+  --border-light: rgba(255,255,255,0.6);
+  --shadow-sm: 0 1px 2px rgba(26,22,24,0.04);
+  --shadow-md: 0 1px 2px rgba(26,22,24,0.04), 0 10px 28px -14px rgba(26,22,24,0.12);
+  --shadow-lg: var(--shadow-md);
+  --shadow-xl: 0 24px 60px -28px rgba(26,22,24,0.20);
+  --shadow-btn: 0 6px 18px -8px rgba(255,98,102,0.55);
+  --glow-primary: rgba(255,98,102,0.13);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --tf: 0.18s cubic-bezier(0.4,0,0.2,1);
+  --ts: 0.4s cubic-bezier(0.175,0.885,0.32,1.1);
+  --noise-opacity: 0.018;
+  --sticky-bg: rgba(247,246,244,0.94);
+  --thead-bg: rgba(247,246,244,0.96);
+  --sticky-col-odd: #FFFDFC;
+  --sticky-col-even: #FFFDFC;
 }
 
-html.dark {
-  --canvas:#0E0D0E; --surface-1:#171517; --surface-2:#1E1B1D;
-  --overlay: rgba(30,27,29,.96);
-  --accent:#FF7A7D; --accent-hover:#FF9093; --accent-press:#E86366;
-  --ink-900:#F2EFEF; --ink-700:#C9C3C5; --ink-500:#948D90; --ink-400:#6E6769; --ink-300:#4A4446;
-  --line-1: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.11); --line-3: rgba(255,255,255,.16);
-  --shadow-1: 0 0 0 1px var(--line-1);
-  --shadow-2: 0 8px 24px -8px rgba(0,0,0,.6), 0 0 0 1px var(--line-1);
-  --shadow-pop: 0 32px 64px -16px rgba(0,0,0,.7), 0 0 0 1px var(--line-2);
-
-  --bg-color: var(--canvas);
-  --card-bg: var(--surface-1);
-  --card-bg-solid: var(--surface-1);
-  --popover-bg: var(--overlay);
-  --glass-border: var(--line-1);
-  --glass-highlight: rgba(255, 255, 255, 0);
-
-  --text-primary: var(--ink-900);
-  --text-secondary: var(--ink-500);
-  --text-tertiary: var(--ink-400);
-
-  --border-light: var(--line-1);
-  --border-medium: var(--line-2);
-  --border-focus: var(--accent-ring);
-  --separator: var(--line-2);
-
-  --shadow-sm: var(--shadow-1);
-  --shadow-md: var(--shadow-2);
-  --shadow-lg: var(--shadow-pop);
-  --shadow-popover: var(--shadow-pop);
-
-  --sys-blue: var(--accent);
-  --sys-blue-light: var(--accent-tint);
-  --sys-blue-dark: var(--accent-hover);
-  --sys-red: var(--accent);
-  --sys-red-light: var(--accent-tint);
-  --sys-green: #30D158;
-  --sys-green-light: rgba(48, 209, 88, 0.15);
-  --sys-indigo: #5E5CE6;
-  --sys-orange: #FF9F0A;
-  --sys-pink: #FF375F;
-  --sys-purple: #BF5AF2;
-  --sys-teal: #64D2FF;
-  --sys-yellow: #FFD60A;
-
-  --live-dot: var(--sys-green);
-  --live-dot-glow: rgba(48, 209, 88, 0.4);
+[data-theme="dark"] {
+  --bg-primary: #14100F;
+  --bg-secondary: #1B1615;
+  --bg-tertiary: #241E1D;
+  --bg-accent: rgba(255,122,125,0.07);
+  --bg-card: rgba(27,22,21,0.72);
+  --text-primary: #F2EBE9;
+  --text-secondary: #A2958F;
+  --text-tertiary: #9A8D87;
+  --accent-primary: #FF7A7D;
+  --accent-primary-dark: #E4595E;
+  --accent-secondary: #E8DFDC;
+  --accent-secondary-dark: #C9BDB9;
+  --accent-success: #7FA98F;
+  --accent-danger: #FF7A7D;
+  --border-primary: rgba(255,255,255,0.075);
+  --border-light: rgba(255,255,255,0.04);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -14px rgba(0,0,0,0.5);
+  --shadow-lg: var(--shadow-md);
+  --shadow-xl: 0 24px 60px -28px rgba(0,0,0,0.6);
+  --shadow-btn: 0 6px 18px -8px rgba(255,122,125,0.4);
+  --glow-primary: rgba(255,122,125,0.14);
+  --noise-opacity: 0.03;
+  --sticky-bg: rgba(20,16,15,0.94);
+  --thead-bg: rgba(20,16,15,0.96);
+  --sticky-col-odd: #1B1615;
+  --sticky-col-even: #1B1615;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-tertiary) 35%, transparent); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text-tertiary) 55%, transparent); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
-  margin: 0 auto;
-  padding: 3rem 5vw 6rem;
-  max-width: 1800px;
-  background-color: var(--canvas);
-  color: var(--ink-900);
-  line-height: 1.5;
-  min-height: 100vh;
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
-  position: relative;
-  isolation: isolate;
 }
 
-.ambient-bg {
+html {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 1.75rem;
+  min-height: 100vh;
+  position: relative;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+body::before {
+  content: '';
   position: fixed;
   inset: 0;
-  z-index: -1;
-  overflow: hidden;
+  background-image: radial-gradient(ellipse at 88% 8%, var(--glow-primary) 0%, transparent 45%);
   pointer-events: none;
-  background-image: radial-gradient(60% 40% at 50% -10%, rgba(255,98,102,.10), transparent 70%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, repeat;
-  background-size: 100% 100%, 220px 220px;
+  z-index: 0;
+  transition: opacity 0.35s ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
-}
-
-@keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(16px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleInPop {
-  0% { opacity: 0; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -300px 0; }
-  100% { background-position: 300px 0; }
-}
-
-.skeleton {
-  background: linear-gradient(90deg, var(--line-1) 25%, var(--line-2) 37%, var(--line-1) 63%);
-  background-size: 400px 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
-  border-radius: var(--r-sm);
-  color: transparent !important;
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
   pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: soft-light;
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: var(--r-pill); border: 3px solid var(--canvas); background-clip: padding-box; }
-::-webkit-scrollbar-thumb:hover { background-color: var(--ink-400); }
-
-.glass-panel {
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-2);
-  border-radius: var(--r-xl);
-}
-
-.dashboard-header {
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3rem;
-  animation: slideUpFade 0.6s var(--ease) both;
+  flex-direction: column;
   gap: 1.5rem;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.brand-lx {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  border-radius: 8px;
-}
-
-.dashboard-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink-900);
-  margin: 0;
-}
-
-.header-right { display: flex; align-items: center; gap: 1.25rem; }
-
-.segmented {
-  position: relative;
-  display: flex;
-  background: var(--surface-1);
-  padding: 4px;
-  border-radius: var(--r-pill);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-1);
-}
-
-.segmented-thumb {
-  position: absolute;
-  top: 4px;
-  left: 0;
-  height: calc(100% - 8px);
-  width: 0;
-  background: var(--surface-2);
-  border-radius: var(--r-pill);
-  box-shadow: var(--shadow-1);
-  transition: transform 0.25s var(--ease-spring), width 0.25s var(--ease-spring);
-}
-
-.segmented-btn {
   position: relative;
   z-index: 1;
-  background: transparent;
-  border: none;
-  color: var(--ink-400);
-  cursor: pointer;
-  transition: color 0.2s var(--ease);
+}
+
+.glass-panel {
+  background-color: var(--bg-card);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 1px 0 0 var(--border-light), var(--shadow-md);
+  border: 1px solid var(--border-primary);
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-family: inherit;
-}
-
-.segmented-btn:hover { color: var(--ink-900); }
-.segmented-btn.active { color: var(--ink-900); }
-
-.theme-switcher { height: 2.75rem; }
-.theme-btn { width: 2.25rem; height: 100%; }
-.theme-btn svg { width: 16px; height: 16px; }
-
-.year-filter-container { display: flex; align-items: center; gap: 0.75rem; }
-
-.year-filter-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ink-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-#yearFilter {
-  appearance: none;
-  background-color: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  border-radius: var(--r-sm);
-  padding: 0 2.25rem 0 1rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--ink-900);
-  cursor: pointer;
-  box-shadow: var(--shadow-1);
-  transition: all 0.2s var(--ease);
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.875rem center;
-  height: 2.75rem;
-  font-family: inherit;
-}
-
-#yearFilter:hover { box-shadow: var(--shadow-2); border-color: var(--line-2); }
-#yearFilter:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
-
-.search-bar-container {
-  margin-bottom: 2.5rem;
-  position: relative;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.1rem 1.75rem;
+  position: sticky;
+  top: 1rem;
   z-index: 100;
-  animation: slideUpFade 0.6s var(--ease) 0.1s both;
 }
 
-.premium-search-wrapper {
-  background: var(--surface-1);
-  backdrop-filter: blur(60px) saturate(200%);
-  -webkit-backdrop-filter: blur(60px) saturate(200%);
-  border: 0.5px solid var(--line-1);
-  box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--shadow-2);
-  border-radius: var(--r-xl);
+.header-brand {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem 0.5rem 1.25rem;
-  gap: 1rem;
-  transition: all 0.3s var(--ease);
-  min-height: 4rem;
-}
-
-.premium-search-wrapper:focus-within {
-  box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--shadow-pop), 0 0 0 3px var(--accent-ring);
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-
-.search-icon-premium {
-  color: var(--ink-400);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: color 0.3s;
-}
-
-.premium-search-wrapper:focus-within .search-icon-premium { color: var(--accent); }
-
-.search-chips-container { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-
-.search-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--r-sm);
-  font-size: 0.85rem;
-  font-weight: 500;
-  background-color: var(--line-1);
-  color: var(--ink-900);
-  border: 0.5px solid var(--line-1);
-  animation: scaleInPop 0.3s var(--ease-spring) both;
-}
-
-.search-chip-category {
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-right: 0.4rem;
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.search-chip-remove {
-  margin-left: 0.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  color: var(--ink-500);
-  transition: color 0.2s;
-  padding: 2px;
-  border-radius: 50%;
-}
-
-.search-chip-remove:hover { color: var(--accent); background: var(--accent-tint); }
-
-#universalSearchInput {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--ink-900);
-  flex-grow: 1;
-  min-width: 150px;
-  letter-spacing: -0.01em;
-}
-
-#universalSearchInput::placeholder { color: var(--ink-400); font-weight: 400; }
-
-.search-actions { display: flex; align-items: center; gap: 0.5rem; }
-
-.search-action-btn {
-  background: none;
-  border: none;
-  color: var(--ink-500);
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-pill);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s var(--ease);
-  flex-shrink: 0;
-}
-
-.search-action-btn:hover { background: var(--line-1); color: var(--ink-900); }
-.search-action-btn.danger:hover { background: var(--accent-tint); color: var(--accent); }
-.search-action-btn.primary { color: var(--accent); }
-.search-action-btn.primary:hover { background: var(--accent-tint); }
-.search-action-btn svg { width: 16px; height: 16px; }
-
-.search-shortcut {
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-2);
-  border-radius: 6px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--ink-500);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  box-shadow: var(--shadow-1);
-  letter-spacing: 0.05em;
-}
-
-.universal-search-results {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 0;
-  width: 100%;
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-pop);
-  max-height: 60vh;
-  display: none;
-  flex-direction: column;
-  opacity: 0;
-  transform: translateY(-10px) scale(0.98);
-  transition: all 0.3s var(--ease-spring);
-  z-index: 999;
-  transform-origin: top center;
-  overflow: hidden;
-}
-
-.universal-search-results.active {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.search-results-scroll { overflow-y: auto; padding: 1rem; flex: 1 1 auto; min-height: 0; }
-.search-results-list { display: flex; flex-direction: column; gap: 2px; }
-
-.search-category-header {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ink-500);
-  padding: 0.6rem 0.5rem 0.4rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  position: sticky;
-  top: 0;
-  background: var(--surface-1);
-  z-index: 2;
-}
-
-.search-result-item {
-  padding: 0.6rem 0.8rem;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: var(--ink-900);
-  transition: background 0.15s var(--ease);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-  scroll-margin-top: 44px;
-  scroll-margin-bottom: 4px;
 }
 
-.search-result-label mark { background: var(--accent-tint); color: var(--accent); border-radius: 2px; padding: 0 1px; }
-.search-result-count { font-size: 0.78rem; color: var(--ink-400); white-space: nowrap; }
-.search-result-item.selected .search-result-count { color: inherit; }
-
-.search-result-item:hover, .search-result-item.kbd-focus { background: var(--surface-2); }
-.search-result-item.kbd-focus { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
-.search-result-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
-.search-result-item.selected:hover, .search-result-item.selected.kbd-focus { background: var(--accent-tint-2); }
-.search-result-item.disabled { opacity: 0.35; cursor: not-allowed; }
-.search-result-item.disabled:hover { background: none; }
-.search-result-item.is-action { color: var(--ink-700); font-weight: 500; }
-.search-result-item.is-action:hover, .search-result-item.is-action.kbd-focus { background: var(--surface-2); color: var(--ink-900); }
-
-.search-no-results { text-align: center; padding: 4rem 1rem; color: var(--ink-400); font-size: 1.1rem; font-weight: 400; }
-
-.cat-region, .cat-pharmacy, .cat-month, .cat-class, .cat-medication { color: var(--ink-500); }
-
-.filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-  position: relative;
-  z-index: 10;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  animation: slideUpFade 0.6s var(--ease) backwards;
-}
-
-.filter-group:nth-child(1) { animation-delay: 0.15s; }
-.filter-group:nth-child(2) { animation-delay: 0.20s; }
-.filter-group:nth-child(3) { animation-delay: 0.25s; }
-.filter-group:nth-child(4) { animation-delay: 0.30s; }
-.filter-group:nth-child(5) { animation-delay: 0.35s; }
-
-.filter-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ink-500);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding-left: 0.25rem;
-}
-
-.custom-select-container { position: relative; width: 100%; }
-
-.custom-select-button {
-  width: 100%;
-  padding: 0.75rem 2.5rem 0.75rem 1rem;
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-1);
-  border-radius: var(--r-md);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--ink-900);
-  cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all 0.2s var(--ease);
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='7' viewBox='0 0 12 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  font-family: inherit;
-}
-
-.custom-select-button:hover { box-shadow: var(--shadow-2); border-color: var(--line-2); }
-.custom-select-button.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
-
-.custom-select-button.has-selection {
-  background-color: var(--accent-tint);
-  border-color: var(--accent-tint);
-  color: var(--accent);
-  font-weight: 600;
-  background-image: none;
-  padding-right: 2.75rem;
-}
-
-.custom-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 100%;
-  max-height: 320px;
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-pop);
-  z-index: 50;
-  display: none;
-  flex-direction: column;
-  opacity: 0;
-  transform: translateY(-8px) scale(0.98);
-  transform-origin: top center;
-  transition: all 0.3s var(--ease-spring);
-  overflow: hidden;
-}
-
-.custom-dropdown.show { display: flex; opacity: 1; transform: translateY(0) scale(1); }
-
-.dropdown-list { overflow-y: auto; padding: 0.5rem; flex: 1 1 auto; min-height: 0; }
-
-.dropdown-footer {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.5rem 0.75rem;
-  border-top: 0.5px solid var(--line-1);
-  background: var(--surface-2);
-}
-
-.kbd-hint { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--ink-500); }
-
-kbd {
-  font-family: inherit;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--ink-700);
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-2);
-  border-radius: 4px;
-  padding: 1px 5px;
-  box-shadow: 0 1px 0 var(--line-2);
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 0.65rem;
-  cursor: pointer;
-  border-radius: var(--r-sm);
-  font-size: 0.9rem;
-  color: var(--ink-900);
-  transition: background 0.15s var(--ease), color 0.15s var(--ease);
-}
-
-.dropdown-item:hover, .dropdown-item.kbd-focus { background: var(--surface-2); }
-.dropdown-item.kbd-focus { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
-.dropdown-item.selected { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
-.dropdown-item.disabled-option { color: var(--ink-400); opacity: 0.4; }
-.dropdown-item.disabled-option:hover { background: none; cursor: default; }
-
-.dropdown-item-label { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.checkbox-custom {
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--line-2);
-  border-radius: 3px;
-  margin-right: 10px;
-  flex-shrink: 0;
-  transition: all 0.15s var(--ease);
-}
-
-.dropdown-item.selected .checkbox-custom { background: var(--accent); border-color: var(--accent); }
-
-.dropdown-item-check {
-  flex-shrink: 0;
-  margin-left: 8px;
-  color: var(--accent);
-  opacity: 0;
-  transform: scale(0.6);
-  transition: all 0.15s var(--ease-spring);
-}
-
-.dropdown-item.selected .dropdown-item-check { opacity: 1; transform: scale(1); }
-
-.clear-filter-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.2s var(--ease-spring);
-  border: none;
-  padding: 0;
-}
-
-.custom-select-button.has-selection ~ .clear-filter-btn { opacity: 1; pointer-events: auto; }
-.clear-filter-btn:hover { background: var(--accent-hover); transform: translateY(-50%) scale(1.1); }
-.clear-filter-btn svg { width: 14px; height: 14px; stroke-width: 2.5; }
-
-.controls-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-  animation: slideUpFade 0.6s var(--ease) 0.4s both;
-}
-
-.button-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-
-.action-btn {
+.brand-icon {
+  width: 34px;
   height: 34px;
-  padding: 0 1rem;
-  border-radius: var(--r-md);
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  border: 0.5px solid var(--line-1);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
-  box-shadow: var(--shadow-1);
-  background: var(--surface-1);
-  color: var(--ink-900);
-  font-family: inherit;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.action-btn:hover { background: var(--surface-2); border-color: var(--line-2); box-shadow: var(--shadow-2); }
-.action-btn:active { transform: scale(0.97); }
-
-.filter-count-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  animation: scaleInPop 0.25s var(--ease-spring) both;
-}
-
-.btn-explore { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-.btn-explore:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-
-.results-info {
-  margin-bottom: 2rem;
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  animation: slideUpFade 0.6s var(--ease) 0.45s both;
-}
-
-.status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: var(--r-pill);
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  box-shadow: var(--shadow-1);
-  letter-spacing: 0.02em;
-}
-
-#resultsCount { color: var(--accent); background: var(--accent-tint); }
-#missingResultsCount { color: var(--accent); background: var(--accent-tint); cursor: pointer; transition: transform 0.2s var(--ease-spring); }
-#missingResultsCount:hover { transform: scale(1.05); }
-#duplicateResultsCount { color: var(--accent); background: var(--accent-tint); cursor: pointer; transition: transform 0.2s var(--ease-spring); }
-#duplicateResultsCount:hover { transform: scale(1.05); }
-
-.stats {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.stats-total-row { display: grid; width: 100%; }
-.stats-core-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; width: 100%; }
-.stats-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; width: 100%; }
-.stats-total-row:empty, .stats-core-row:empty, .stats-category-grid:empty { display: none; }
-
-.stat-card {
-  padding: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  animation: slideUpFade 0.5s var(--ease) both;
-  animation-delay: calc(var(--stat-index, 0) * 0.05s);
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
-  position: relative;
-  overflow: hidden;
-  min-height: 140px;
-}
-
-.stat-card-content { width: 100%; display: flex; flex-direction: column; gap: 0.25rem; }
-
-.stat-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.4rem; }
-
-.stat-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--r-sm);
+  border-radius: 10px;
+  background: transparent;
+  border: 1.5px solid var(--accent-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  background: var(--accent-tint);
-  color: var(--accent);
-  transition: transform 0.3s var(--ease-spring);
-}
-
-.stat-card:hover .stat-icon { transform: scale(1.08) rotate(-4deg); }
-.stat-icon svg { width: 18px; height: 18px; }
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--ink-500);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.stat-value {
-  font-size: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  color: var(--ink-900);
-  transition: color 0.3s;
-}
-
-.stat-card:hover .stat-value { color: var(--accent); }
-
-.stat-card-footer { margin-top: auto; padding-top: 1.5rem; }
-.stat-percentage { font-size: 0.85rem; font-weight: 600; color: var(--accent); display: block; margin-bottom: 0.5rem; text-align: right;}
-
-.stat-progress-container { width: 100%; height: 6px; background: var(--line-1); border-radius: var(--r-pill); overflow: hidden; }
-.stat-progress-bar {
-  height: 100%;
-  width: 0%;
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  transition: width 1s var(--ease);
-}
-
-.total-card { grid-column: 1 / -1; position: relative; }
-.total-card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--accent); }
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.chart-container {
-  padding: 1.75rem;
-  animation: slideUpFade 0.6s var(--ease) both;
-  height: 480px;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.3s var(--ease);
-}
-
-.chart-container:hover { box-shadow: var(--shadow-pop), inset 0 1px 0 0 var(--glass-highlight); }
-
-.chart-container.wide { grid-column: 1 / -1; height: 550px; }
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-shrink: 0;
-}
-
-.chart-title { font-size: 1.15rem; font-weight: 600; color: var(--ink-900); letter-spacing: -0.01em; }
-
-.chart-actions { border-radius: var(--r-sm); }
-.chart-actions .segmented-thumb { border-radius: var(--r-xs); }
-
-.chart-btn {
-  padding: 0.4rem 0.75rem;
-  border-radius: var(--r-xs);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.chart-wrapper {
-  flex: 1 1 0;
-  position: relative;
-  width: 100%;
-  min-height: 0;
-}
-
-.region-legend {
-  flex-shrink: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
-  padding-top: 1.5rem;
-  margin-top: 0.5rem;
-  max-height: 6rem;
-  overflow-y: auto;
-}
-
-.region-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--ink-500);
-  white-space: nowrap;
-}
-
-.region-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  color: var(--accent-primary);
   flex-shrink: 0;
 }
 
-.explore-table-container,
-.missing-table-container {
-  overflow: hidden;
-  animation: slideUpFade 0.6s var(--ease) both;
-  transition: box-shadow 0.3s var(--ease);
-}
-
-.table-scroll-wrapper { overflow-x: auto; max-height: 75vh; }
-
-table { width: 100%; border-collapse: collapse; text-align: left; }
-
-th, td {
-  padding: 1rem 1.5rem;
-  white-space: nowrap;
-  border-bottom: 0.5px solid var(--line-2);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.96rem;
+.header h1 {
+  font-family: 'Instrument Serif', 'IBM Plex Sans Arabic', serif;
+  font-size: 1.5rem;
+  font-weight: 400;
   letter-spacing: -0.005em;
+  color: var(--text-primary);
 }
 
-th {
-  background: var(--surface-1);
-  font-weight: 700;
-  color: var(--ink-500);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.header h1::after {
+  content: '.';
+  color: var(--accent-primary);
 }
 
-th.sortable { cursor: pointer; user-select: none; transition: background 0.2s, color 0.2s; }
-th.sortable:hover { background: var(--surface-2); color: var(--ink-900); }
-
-.sort-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0.2;
-  transition: all 0.3s var(--ease-spring);
-  margin-left: 6px;
-  vertical-align: text-bottom;
+.controls {
+  display: flex;
+  gap: 1.1rem;
+  align-items: center;
 }
 
-th.sortable:hover .sort-icon { opacity: 0.5; }
-th.sort-asc .sort-icon { opacity: 1; color: var(--accent); transform: rotate(0deg); }
-th.sort-desc .sort-icon { opacity: 1; color: var(--accent); transform: rotate(180deg); }
-
-th:first-child, td:first-child {
-  position: sticky;
-  left: 0;
-  background: var(--surface-1);
-  z-index: 11;
-  font-weight: 500;
-  border-right: 0.5px solid var(--line-2);
+.control-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-primary);
+  flex-shrink: 0;
 }
 
-th:first-child { z-index: 12; }
-
-tbody tr { transition: background 0.2s, box-shadow 0.2s; }
-tbody tr:hover { background: var(--surface-2); box-shadow: inset 3px 0 0 0 var(--accent); }
-tbody tr:last-child td { border-bottom: none; }
-
-.status-inactive {
-  color: var(--accent);
-  font-weight: 600;
-  background: var(--accent-tint);
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--r-pill);
-  font-size: 0.8rem;
+.sync-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
 }
-
-.hidden { display: none !important; }
 
 .sync-status {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 0.8rem;
-  color: var(--ink-500);
-  font-weight: 500;
-  margin-left: auto;
-  background: var(--surface-1);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-1);
-  border-radius: var(--r-pill);
-  padding: 0.4rem 0.4rem 0.4rem 0.9rem;
-  transition: box-shadow 0.25s var(--ease);
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
-.sync-status:hover { box-shadow: var(--shadow-2); }
-
-.sync-dot-wrap {
-  position: relative;
-  width: 8px;
-  height: 8px;
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-success) 18%, transparent);
   flex-shrink: 0;
+  transition: background-color var(--tf), box-shadow var(--tf);
+}
+
+.sync-dot.stale {
+  background: var(--text-tertiary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-tertiary) 14%, transparent);
+}
+
+.sync-dot.pulsing {
+  animation: syncPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes syncPulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-success) 18%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-success) 6%, transparent); }
+}
+
+.auto-sync-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.sync-dot-wrap .sync-dot-core {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--live-dot);
-  box-shadow: 0 0 0 3px var(--live-dot-glow);
-  transition: background 0.3s, box-shadow 0.3s;
-}
-
-.sync-dot-wrap .sync-dot-ping {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--live-dot);
-  animation: syncPing 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
-}
-
-.sync-status.is-syncing .sync-dot-wrap .sync-dot-core,
-.sync-status.is-syncing .sync-dot-wrap .sync-dot-ping { background: var(--accent); }
-.sync-status.is-error .sync-dot-wrap .sync-dot-core,
-.sync-status.is-error .sync-dot-wrap .sync-dot-ping { background: var(--accent); }
-.sync-status.is-syncing .sync-dot-wrap .sync-dot-core { box-shadow: 0 0 0 3px var(--accent-tint); }
-
-@keyframes syncPing {
-  0% { transform: scale(1); opacity: 0.55; }
-  75%, 100% { transform: scale(2.6); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sync-dot-wrap .sync-dot-ping { animation: none; display: none; }
-}
-
-#syncTimestamp { letter-spacing: -0.005em; white-space: nowrap; }
-
-.sync-refresh-btn {
-  background: none;
-  border: none;
-  color: var(--ink-500);
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 99px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   cursor: pointer;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-pill);
+  transition: var(--tf);
+  font-family: inherit;
+}
+
+.auto-sync-toggle:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+.auto-sync-toggle i { font-size: 0.68rem; }
+
+.auto-sync-toggle.active {
+  background: var(--bg-accent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.auto-sync-toggle.active i { color: var(--accent-success); }
+
+.sync-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s var(--ease-spring);
+  font-size: 0.88rem;
+  transition: var(--tf);
+  box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
 
-.sync-refresh-btn:hover { background: var(--accent-tint); color: var(--accent); transform: rotate(-24deg); }
-.sync-refresh-btn:active { transform: scale(0.9) rotate(-24deg); }
-.sync-refresh-btn.spinning { color: var(--accent); background: var(--accent-tint); }
-.sync-refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
+.sync-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); box-shadow: var(--shadow-md); }
+.sync-btn:active { transform: scale(0.92); }
+.sync-btn.syncing { color: var(--accent-primary); border-color: var(--accent-primary); pointer-events: none; }
+.sync-btn.syncing i { animation: spin 0.85s linear infinite; }
+.sync-btn:disabled { opacity: 0.6; pointer-events: none; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 4.5rem 2rem;
-  color: var(--ink-400);
-  gap: 0.75rem;
-  animation: slideUpFade 0.5s var(--ease) both;
-}
-
-.empty-state-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: var(--line-1);
-  color: var(--ink-400);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-}
-
-.empty-state-icon svg { width: 26px; height: 26px; }
-.empty-state-title { font-size: 1.05rem; font-weight: 600; color: var(--ink-500); }
-.empty-state-desc { font-size: 0.9rem; max-width: 360px; }
-
-#toastStack {
+.toast-stack {
   position: fixed;
-  bottom: 1.75rem;
-  right: 1.75rem;
-  z-index: 10001;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 2000;
   display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  align-items: flex-end;
+  flex-direction: column-reverse;
+  gap: 0.6rem;
+  pointer-events: none;
 }
 
 .toast {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.7rem;
   padding: 0.85rem 1.1rem;
-  background: var(--surface-1);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-pop);
-  border-radius: var(--r-md);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--ink-900);
-  animation: toastIn 0.35s var(--ease-spring) both;
+  min-width: 220px;
   max-width: 340px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-size: 0.83rem;
+  font-weight: 600;
+  transform: translateX(24px);
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(0.175,0.885,0.32,1.1), opacity 0.32s ease;
 }
 
-.toast.leaving { animation: toastOut 0.25s var(--ease) forwards; }
+.toast.visible { transform: translateX(0); opacity: 1; }
+.toast i { font-size: 0.95rem; flex-shrink: 0; }
+.toast.success i { color: var(--accent-success); }
+.toast.error i { color: var(--accent-danger); }
+.toast.info i { color: var(--accent-primary); }
 
-@keyframes toastIn { 0% { opacity: 0; transform: translateY(12px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes toastOut { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(8px) scale(0.96); } }
+@media (max-width: 900px) {
+  .sync-status span.sync-label-full { display: none; }
+  .control-divider { display: none; }
+}
 
-.toast-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.toast.success .toast-icon { color: var(--sys-green); }
-.toast.error .toast-icon { color: var(--accent); }
-.toast.info .toast-icon { color: var(--accent); }
-.toast { cursor: pointer; }
-
-.scroll-top-btn {
-  position: fixed;
-  bottom: 1.75rem;
-  left: 1.75rem;
-  width: 46px;
-  height: 46px;
+.theme-toggle {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: var(--surface-1);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 0.5px solid var(--line-1);
-  box-shadow: var(--shadow-2);
-  color: var(--ink-500);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: var(--tf);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:active { transform: scale(0.92); }
+
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  position: absolute;
+  transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.1), opacity 0.3s ease;
+}
+
+[data-theme="light"] .icon-sun { transform: scale(1); opacity: 1; }
+[data-theme="light"] .icon-moon { transform: scale(0) rotate(90deg); opacity: 0; }
+[data-theme="dark"] .icon-sun { transform: scale(0) rotate(-90deg); opacity: 0; }
+[data-theme="dark"] .icon-moon { transform: scale(1); opacity: 1; }
+
+.toggle-switch {
+  display: flex;
+  background-color: var(--bg-tertiary);
+  border-radius: 99px;
+  padding: 3px;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--border-primary);
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.toggle-switch button {
+  padding: 0.55rem 1.35rem;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.835rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 2;
+  transition: color var(--tf);
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  border-radius: 99px;
+}
+
+.toggle-switch button.active { color: white; }
+
+.toggle-indicator {
+  position: absolute;
+  top: 3px;
+  height: calc(100% - 6px);
+  border-radius: 99px;
+  background: var(--accent-primary);
+  transition: var(--ts);
+  z-index: 1;
+  box-shadow: 0 2px 10px var(--glow-primary);
+}
+
+.toggle-switch .active:nth-child(1) ~ .toggle-indicator { left: 3px; width: calc(50% - 3px); }
+.toggle-switch .active:nth-child(2) ~ .toggle-indicator { left: calc(50%); width: calc(50% - 3px); }
+
+.action-btn {
+  background: var(--accent-primary);
+  color: white;
+  padding: 0.58rem 1.35rem;
+  border: none;
+  font-weight: 600;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: var(--tf);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: var(--shadow-btn), inset 0 1px 0 rgba(255,255,255,0.2);
+  font-size: 0.855rem;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  will-change: transform;
+}
+
+.action-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 24px 0 color-mix(in srgb, var(--accent-primary) 35%, transparent), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.action-btn:active { transform: translateY(0.5px) scale(0.975); }
+
+.main-controls-panel {
+  padding: 1.35rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scope-title {
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.year-control-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+#selectedYearsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.year-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 0.38rem 0.45rem 0.38rem 0.9rem;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 0.83rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--tf);
+}
+
+.year-tag:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--glow-primary);
+}
+
+.year-tag i.fa-check-circle { color: var(--accent-primary); font-size: 0.85rem; }
+
+.remove-tag-btn {
+  background: var(--bg-tertiary);
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--tf);
+  font-size: 0.7rem;
+  will-change: transform;
+}
+
+.remove-tag-btn:hover {
+  background: var(--accent-danger);
+  color: white;
+  transform: scale(1.1);
+}
+
+.filters-area {
+  display: grid;
+  gap: 1.5rem;
+  transition: var(--ts);
+}
+
+.filters-area.single-view { grid-template-columns: 1fr; }
+.filters-area.compare-view { grid-template-columns: 1fr auto 1fr; align-items: stretch; }
+
+.comparison-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1.5rem;
+}
+
+.comparison-divider span {
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md), 0 0 0 4px var(--bg-primary);
+}
+
+.filter-set {
+  padding: 1.6rem 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow var(--tf);
+}
+
+.filter-set:hover { box-shadow: inset 0 1px 0 0 var(--border-light), var(--shadow-md); }
+
+.filter-set::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  opacity: 0.9;
+}
+
+.filter-set.side-a::before { background: var(--accent-primary); }
+.filter-set.side-b::before { background: var(--accent-secondary); }
+
+.filter-set-title {
+  margin-bottom: 1.4rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.35rem;
+}
+
+.filter-group { position: relative; }
+
+.filter-group label {
+  position: absolute;
+  top: -0.58rem;
+  left: 0.85rem;
+  background-color: var(--bg-secondary);
+  padding: 0 0.45rem;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+  border-radius: 4px;
+  z-index: 5;
+  border: 1px solid var(--border-primary);
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 0.82rem 3.5rem 0.82rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  background-color: var(--bg-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  appearance: none;
+  cursor: pointer;
+  transition: border-color var(--tf), box-shadow var(--tf), background-color 0.35s ease, color 0.35s ease;
+  font-family: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A79FA1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
+  background-size: 0.85rem;
+}
+
+.filter-group select:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--border-primary));
+  box-shadow: 0 0 0 3px var(--glow-primary);
+}
+
+.filter-group select:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+  box-shadow: 0 0 0 4px var(--glow-primary);
+}
+
+[data-theme="dark"] .filter-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B5D58'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.reset-filter-btn {
+  position: absolute;
+  top: 50%;
+  right: 2.6rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: var(--tf);
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-size: 0.78rem;
+}
+
+.reset-filter-btn:hover { color: var(--accent-danger); transform: translateY(-50%) rotate(180deg); }
+
+.results-container {
+  overflow: hidden;
+  transition: box-shadow 0.35s ease;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.results-table th, .results-table td {
+  padding: 1.15rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-primary);
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums lining-nums;
+  transition: background-color 0.18s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+.results-table thead th {
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: var(--thead-bg);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.results-table tbody tr {
+  transition: background-color var(--tf);
+  cursor: pointer;
+}
+
+.results-table tbody tr:hover td {
+  background-color: var(--bg-accent) !important;
+}
+
+.results-table tbody tr.row-focused td { background-color: color-mix(in srgb, var(--accent-primary) 9%, transparent) !important; }
+.results-table tbody tr.row-dimmed { opacity: 0.45; }
+.results-table tbody tr:last-child td { border-bottom: none; }
+.results-table tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+.metric-name { font-family: 'Instrument Serif', 'IBM Plex Sans Arabic', serif; font-weight: 400; color: var(--text-primary); font-size: 1.05rem; }
+.numeric { text-align: right; font-weight: 500; color: var(--text-primary); font-size: 0.9rem; font-variant-numeric: tabular-nums lining-nums; }
+
+.single-view-scroll-wrapper { overflow-x: auto; width: 100%; }
+
+.results-table.single-view-table { table-layout: auto; min-width: 100%; }
+
+.results-table.single-view-table th:first-child,
+.results-table.single-view-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background-color: var(--sticky-col-odd);
+  border-right: 1px solid var(--border-primary);
+  min-width: 230px;
+  max-width: 290px;
+}
+
+.results-table.single-view-table thead th:first-child {
+  z-index: 40;
+  background-color: var(--thead-bg);
+}
+
+.results-table.single-view-table tbody tr:hover td:first-child { background-color: var(--bg-accent); }
+.results-table.single-view-table tbody tr.row-focused td:first-child { background-color: color-mix(in srgb, var(--accent-primary) 9%, transparent); }
+
+.cell-max {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cell-max::before {
+  content: '●';
+  color: var(--accent-primary);
+  font-size: 0.45em;
+  vertical-align: middle;
+  margin-right: 0.4em;
+}
+
+.cell-min { color: var(--text-tertiary); font-weight: 400; }
+
+.compare-tables-container { display: flex; gap: 1.25rem; padding: 1.25rem; }
+
+.compare-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  transition: box-shadow var(--tf), border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.compare-table:hover { box-shadow: var(--shadow-md); }
+
+.compare-table-header {
+  font-family: 'Instrument Serif', 'IBM Plex Sans Arabic', serif;
+  font-weight: 400;
+  color: var(--text-primary);
+  padding: 0.9rem 1rem;
+  text-align: center;
+  font-size: 1.05rem;
+  letter-spacing: 0.005em;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary));
+  border-bottom: 1px solid var(--border-primary);
+  position: relative;
+  z-index: 2;
+}
+
+.compare-table.side-b .compare-table-header {
+  background: color-mix(in srgb, var(--accent-secondary) 8%, var(--bg-secondary));
+}
+
+.compare-table-content { height: 500px; overflow-y: auto; background: var(--bg-secondary); }
+.results-table.compare-view-table { table-layout: fixed; }
+.results-table.compare-view-table th:nth-child(1),
+.results-table.compare-view-table td:nth-child(1) { width: 45%; }
+.results-table.compare-view-table th:nth-child(2),
+.results-table.compare-view-table td:nth-child(2) { width: 55%; }
+
+.numeric-cell-content { display: flex; justify-content: flex-end; align-items: center; gap: 0.65rem; }
+
+.comparison-pill {
+  font-size: 0.72rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.comparison-pill.positive { background: color-mix(in srgb, var(--accent-success) 12%, transparent); color: var(--accent-success); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-success) 20%, transparent); }
+.comparison-pill.negative { background: color-mix(in srgb, var(--accent-danger) 10%, transparent); color: var(--accent-danger); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-danger) 20%, transparent); }
+
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(20,16,15,0.6);
+  z-index: 1000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  backdrop-filter: blur(10px) saturate(0.8);
+  -webkit-backdrop-filter: blur(10px) saturate(0.8);
+}
+
+.popup-overlay.visible { display: flex; opacity: 1; }
+
+.popup-content {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  width: 90%;
+  max-width: 480px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  transform: scale(0.94) translateY(12px);
+  transition: transform var(--ts), background-color 0.35s ease;
+  border: 1px solid var(--border-primary);
+}
+
+.popup-overlay.visible .popup-content { transform: scale(1) translateY(0); }
+
+.popup-header {
+  padding: 1.35rem 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.popup-header h2 {
+  font-family: 'Instrument Serif', 'IBM Plex Sans Arabic', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+}
+
+.popup-close-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 500;
-  opacity: 0;
-  transform: translateY(12px) scale(0.9);
-  pointer-events: none;
-  transition: all 0.3s var(--ease-spring);
+  transition: var(--tf);
+  font-size: 0.9rem;
 }
 
-.scroll-top-btn.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-.scroll-top-btn:hover { color: var(--accent); box-shadow: var(--shadow-pop); transform: translateY(-2px); }
-.scroll-top-btn svg { width: 18px; height: 18px; }
+.popup-close-btn:hover { background: var(--text-secondary); color: white; transform: rotate(90deg); }
 
-#modalContainer {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 10000;
+.popup-toolbar {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s var(--ease);
-  pointer-events: none;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: var(--bg-tertiary);
+  transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
-#modalContainer:not(.hidden) { opacity: 1; pointer-events: auto; }
+.popup-search {
+  flex-grow: 1;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  transition: var(--tf);
+  outline: none;
+  font-family: inherit;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
 
-.modal-content {
-  background: var(--surface-1);
-  width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
-  border: 0.5px solid var(--line-1);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-pop);
+.popup-search:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 4px var(--glow-primary);
+}
+
+.popup-toolbar button {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82rem;
+  transition: var(--tf);
+  color: var(--text-secondary);
+  font-family: inherit;
+  box-shadow: var(--shadow-sm);
+}
+
+.popup-toolbar button:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--glow-primary);
+}
+
+.popup-list { overflow-y: auto; padding: 0.6rem 1.25rem; flex: 1; }
+
+.popup-list-item {
+  padding: 0.78rem 0.9rem;
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  cursor: pointer;
+  transition: var(--tf);
+  border-radius: var(--radius);
+  margin-bottom: 0.2rem;
+}
+
+.popup-list-item:hover { background-color: var(--bg-tertiary); }
+.popup-list-item:last-child { border-bottom: none; margin-bottom: 0; }
+
+.popup-list-item input[type="checkbox"] {
+  appearance: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid var(--text-tertiary);
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
+  transition: var(--tf);
+  flex-shrink: 0;
+}
+
+.popup-list-item input[type="checkbox"]:checked {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--glow-primary);
+}
+
+.popup-list-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.popup-list-item span {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.popup-footer {
+  padding: 1.1rem 1.5rem;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  display: flex;
+  justify-content: flex-end;
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.state-message {
+  padding: 5rem 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  transform: scale(0.95) translateY(20px);
-  transition: all 0.4s var(--ease-spring);
+  align-items: center;
+  gap: 1rem;
 }
 
-#modalContainer:not(.hidden) .modal-content { transform: scale(1) translateY(0); }
+.state-message i { font-size: 2.2rem; color: var(--text-tertiary); }
+.state-message.error i { color: var(--accent-danger); }
 
-@media (max-width: 1200px) { .charts-grid { grid-template-columns: 1fr; } .chart-container { height: 450px; } }
-@media (max-width: 768px) {
-  body { padding: 2rem 1.5rem 4rem; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .chart-container { height: 400px; padding: 1.25rem; }
-  .dashboard-header { flex-direction: column; align-items: flex-start; }
-  .header-right { width: 100%; justify-content: space-between; }
+.export-textarea {
+  width: 100%;
+  height: 200px;
+  padding: 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  resize: none;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  outline: none;
+  white-space: pre;
+  overflow: auto;
+  transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+}
+
+.export-info {
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--accent-primary) 7%, transparent);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.835rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .filter-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  body { padding: 0.875rem; }
+  .header { top: 0.5rem; padding: 0.9rem 1.1rem; border-radius: var(--radius-lg); gap: 0.875rem; }
+  .filters-area.compare-view { grid-template-columns: 1fr; }
+  .comparison-divider { display: none; }
+  .compare-tables-container { flex-direction: column; padding: 0.875rem; }
+  .compare-table-content { height: auto; max-height: 380px; }
+  .controls { width: 100%; justify-content: space-between; }
+  .toggle-switch { flex-grow: 1; justify-content: center; }
+  .toggle-switch button { flex-grow: 1; text-align: center; }
+  .filter-set { padding: 1.25rem 1.1rem; }
+  .main-controls-panel { padding: 1.1rem; }
+  .container { gap: 1rem; }
+}
+
+@media (max-width: 480px) {
+  body { padding: 0.625rem; }
+  .header h1 { font-size: 1.15rem; }
+  .action-btn { padding: 0.52rem 1rem; font-size: 0.82rem; }
+  .action-btn span { display: none; }
+  .results-table th, .results-table td { padding: 0.78rem 0.9rem; }
+  .auto-sync-toggle { font-size: 0; padding: 0.4rem 0.55rem; gap: 0; }
+  .auto-sync-toggle i { font-size: 0.72rem; }
+  .toast-stack { left: 0.75rem; right: 0.75rem; bottom: 0.75rem; }
+  .toast { max-width: none; }
+}
+
+@keyframes fadeInRow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.results-table tbody tr {
+  animation: fadeInRow 0.16s ease forwards;
 }
 </style>
 </head>
 <body>
 
-<div class="ambient-bg" aria-hidden="true"></div>
-
-<div id="toastStack" aria-live="polite"></div>
-
-<button class="scroll-top-btn" id="scrollTopBtn" title="Back to top" aria-label="Scroll to top">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-</button>
-
-<div class="dashboard-header">
-  <div class="brand">
-    <div class="brand-lx">Lx</div>
-    <h1>Dashboard</h1>
-  </div>
-  <div class="header-right">
-    <div class="segmented theme-switcher" id="themeSwitcher">
-      <div class="segmented-thumb"></div>
-      <button class="segmented-btn theme-btn" data-theme-value="light" title="Light Mode">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
-      <button class="segmented-btn theme-btn" data-theme-value="auto" title="System">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      </button>
-      <button class="segmented-btn theme-btn" data-theme-value="dark" title="Dark Mode">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
+<div class="container">
+  <header class="header glass-panel">
+    <div class="header-brand">
+      <div class="brand-icon"><i class="fas fa-chart-column"></i></div>
+      <h1>Dashboard Arena</h1>
     </div>
-    <div class="year-filter-container">
-      <label for="yearFilter" class="year-filter-label">Fiscal Year</label>
-      <select id="yearFilter"></select>
-    </div>
-  </div>
-</div>
-
-<div class="search-bar-container">
-  <div class="premium-search-wrapper">
-    <div class="search-icon-premium" id="triggerSearchFocus">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    </div>
-    <div class="search-chips-container" id="searchChips"></div>
-    <input type="text" id="universalSearchInput" placeholder="Search across all filters..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="universalSearchResults" aria-autocomplete="list" aria-activedescendant=""/>
-    <div class="search-actions">
-      <button id="clearSearchInput" class="search-action-btn hidden" title="Clear">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-      <button id="commitSearchBtn" class="search-action-btn primary hidden" title="Apply">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-      </button>
-      <button id="clearAllFilters" class="search-action-btn danger hidden" title="Clear Filters">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-      </button>
-    </div>
-    <div class="search-shortcut">⌘K</div>
-    <div class="universal-search-results" id="universalSearchResults" role="listbox">
-      <div class="search-results-scroll" id="searchResultsScroll"></div>
-      <div class="dropdown-footer">
-        <span class="kbd-hint"><kbd>↑↓</kbd> Navigate</span>
-        <span class="kbd-hint"><kbd>↵</kbd> Toggle</span>
-        <span class="kbd-hint"><kbd>⇧↵</kbd> Keep open</span>
-        <span class="kbd-hint"><kbd>Esc</kbd> Close</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="modalContainer" class="hidden"></div>
-
-<div class="filters">
-  <div class="filter-group" id="regionFilterGroup">
-    <label class="filter-label">Region</label>
-    <div class="custom-select-container">
-      <div class="custom-select-button" data-id="region" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="regionDropdown">All</div>
-      <button class="clear-filter-btn" data-target="region"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="regionDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
-    </div>
-  </div>
-  <div class="filter-group" id="pharmacyFilterGroup">
-    <label class="filter-label">Pharmacy</label>
-    <div class="custom-select-container">
-      <div class="custom-select-button" data-id="pharmacy" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="pharmacyDropdown">All</div>
-      <button class="clear-filter-btn" data-target="pharmacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="pharmacyDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
-    </div>
-  </div>
-  <div class="filter-group" id="monthFilterGroup">
-    <label class="filter-label">Month</label>
-    <div class="custom-select-container">
-      <div class="custom-select-button" data-id="month" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="monthDropdown">All</div>
-      <button class="clear-filter-btn" data-target="month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="monthDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
-    </div>
-  </div>
-  <div class="filter-group" id="classFilterGroup">
-    <label class="filter-label">Classification</label>
-    <div class="custom-select-container">
-      <div class="custom-select-button" data-id="class" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="classDropdown">All</div>
-      <button class="clear-filter-btn" data-target="class"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="classDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
-    </div>
-  </div>
-  <div class="filter-group" id="medClassFilterGroup">
-    <label class="filter-label">Medication Class</label>
-    <div class="custom-select-container">
-      <div class="custom-select-button" data-id="medClass" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="medClassDropdown">All</div>
-      <button class="clear-filter-btn" data-target="medClass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-      <div class="custom-dropdown" id="medClassDropdown" role="listbox"><div class="dropdown-list"></div><div class="dropdown-footer"><span class="kbd-hint"><kbd>Esc</kbd> Close</span></div></div>
-    </div>
-  </div>
-</div>
-
-<div class="controls-container">
-  <div class="button-group">
-    <button class="action-btn btn-reset" id="resetFiltersBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Reset
-      <span class="filter-count-badge hidden" id="filterCountBadge">0</span>
-    </button>
-    <button class="action-btn btn-explore" id="toggleExploreBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-      Explore
-    </button>
-    <button class="action-btn btn-missing" id="toggleMissingBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Missing
-    </button>
-    <button class="action-btn btn-compare" onclick="window.open('https://dashboard-yearly.vercel.app/', '_blank')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L20 4M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
-      Compare
-    </button>
-  </div>
-  <div class="button-group">
-    <button class="action-btn btn-import" onclick="window.open('https://josn.vercel.app/', '_blank')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Import
-    </button>
-    <button class="action-btn btn-export" id="exportExcelBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export
-    </button>
-  </div>
-</div>
-
-<div class="results-info">
-  <div id="resultsCount" class="status-badge skeleton">Loading results</div>
-  <div id="missingResultsCount" class="status-badge hidden"></div>
-  <div id="duplicateResultsCount" class="status-badge hidden"></div>
-  <div class="sync-status is-syncing" id="syncStatus">
-    <span class="sync-dot-wrap" aria-hidden="true">
-      <span class="sync-dot-ping"></span>
-      <span class="sync-dot-core"></span>
-    </span>
-    <span id="syncTimestamp">Syncing…</span>
-    <button class="sync-refresh-btn" id="syncRefreshBtn" title="Refresh data">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-    </button>
-  </div>
-</div>
-
-<div class="dashboard-view">
-  <div class="stats" id="statsContainer">
-    <div class="stats-total-row" id="statsTotalRow">
-      <div class="stat-card glass-panel total-card skeleton" style="height:140px;"></div>
-    </div>
-    <div class="stats-core-row" id="statsCoreRow">
-      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
-      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
-      <div class="stat-card glass-panel skeleton" style="height:140px;"></div>
-    </div>
-    <div class="stats-category-grid" id="statsCategoryGrid"></div>
-  </div>
-  <div class="charts-grid">
-    <div class="chart-container wide glass-panel">
-      <div class="chart-header">
-        <div class="chart-title">Medication Distribution</div>
-        <div class="segmented chart-actions" id="medChartTypeToggle">
-          <div class="segmented-thumb"></div>
-          <button class="segmented-btn chart-btn active" onclick="updateChartType(event, 'vertical')">Vertical</button>
-          <button class="segmented-btn chart-btn" onclick="updateChartType(event, 'horizontal')">Horizontal</button>
+    <div class="controls">
+      <div class="sync-cluster">
+        <div class="sync-status" id="syncStatus">
+          <span class="sync-dot" id="syncDot"></span>
+          <span class="sync-label-full" id="syncLabel">Syncing…</span>
         </div>
-      </div>
-      <div class="chart-wrapper"><canvas id="medicationChart" dir="auto"></canvas></div>
-    </div>
-    <div class="chart-container glass-panel">
-      <div class="chart-header"><div class="chart-title">Monthly Trend</div></div>
-      <div class="chart-wrapper"><canvas id="trendChart" dir="auto"></canvas></div>
-    </div>
-    <div class="chart-container glass-panel">
-      <div class="chart-header"><div class="chart-title">Regional Distribution</div></div>
-      <div class="chart-wrapper"><canvas id="regionChart" dir="auto"></canvas></div>
-      <div id="regionLegend" class="region-legend"></div>
-    </div>
-  </div>
-</div>
-
-<div class="explore-view hidden">
-  <div class="explore-table-container glass-panel">
-    <div class="table-scroll-wrapper">
-      <table id="exploreTable"><thead><tr><th>Metric</th></tr></thead><tbody></tbody></table>
-    </div>
-  </div>
-</div>
-
-<div class="missing-view hidden">
-  <div class="missing-table-container glass-panel">
-    <div class="table-scroll-wrapper">
-      <table id="missingTable"><thead><tr><th>Region</th><th>Pharmacy</th><th>Month</th><th>Status</th></tr></thead><tbody></tbody></table>
-    </div>
-  </div>
-</div>
-
-<script>
-let data = [], filteredData = [], missingData = [], mergedDuplicates = [];
-let allYears = [];
-let defaultYear = null;
-let currentChart = null;
-let trendChartInstance = null;
-let regionChartInstance = null;
-
-const destroyCharts = () => {
-  if (currentChart) { currentChart.destroy(); currentChart = null; }
-  if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
-  if (regionChartInstance) { regionChartInstance.destroy(); regionChartInstance = null; }
-};
-
-const centerTotalPlugin = {
-  id: 'centerTotal',
-  afterDraw(chart) {
-    const { ctx, chartArea: { left, right, top, bottom } } = chart;
-    const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-    const cx = (left + right) / 2;
-    const cy = (top + bottom) / 2;
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = getThemeColor('--ink-900');
-    ctx.font = `700 20px ${Chart.defaults.font.family}`;
-    ctx.fillText(compactNum(total), cx, cy - 8);
-    ctx.fillStyle = getThemeColor('--ink-500');
-    ctx.font = `500 11px ${Chart.defaults.font.family}`;
-    ctx.fillText('Total', cx, cy + 13);
-    ctx.restore();
-  }
-};
-let currentChartType = 'vertical';
-let isExploreMode = false;
-let isMissingMode = false;
-let searchIndices = {};
-let searchSelectedIndex = -1;
-let searchFlatItems = [];
-let fieldStatsCache = { signature: null, stats: null };
-
-const RECENTS_KEY = 'lx-recent-selections';
-
-const getRecentSelections = () => {
-  try { return JSON.parse(sessionStorage.getItem(RECENTS_KEY) || '[]'); } catch (err) { return []; }
-};
-
-const addRecentSelection = (field, value) => {
-  let recents = getRecentSelections().filter(r => !(r.field === field && r.value === value));
-  recents.unshift({ field, value });
-  recents = recents.slice(0, 8);
-  try { sessionStorage.setItem(RECENTS_KEY, JSON.stringify(recents)); } catch (err) {}
-};
-
-const searchScopePrefixes = { 'region:': 'Region', 'ph:': 'Pharmacy', 'month:': 'Month', 'class:': 'Class', 'med:': 'MedClass' };
-
-const parseSearchScope = (query) => {
-  const lower = query.toLowerCase();
-  for (const prefix in searchScopePrefixes) {
-    if (lower.startsWith(prefix)) return { field: searchScopePrefixes[prefix], text: query.slice(prefix.length).trim() };
-  }
-  return { field: null, text: query };
-};
-
-const searchActions = [
-  { id: 'reset', label: 'Reset filters', keywords: 'reset clear filters', run: () => document.getElementById('resetFiltersBtn').click() },
-  { id: 'explore', label: 'Toggle Explore', keywords: 'explore metrics view', run: () => document.getElementById('toggleExploreBtn').click() },
-  { id: 'missing', label: 'Toggle Missing', keywords: 'missing inactive records', run: () => document.getElementById('toggleMissingBtn').click() },
-  { id: 'export', label: 'Export', keywords: 'export excel download xlsx', run: () => exportData() },
-  { id: 'theme', label: 'Switch theme', keywords: 'theme dark light auto appearance', run: () => {
-    const order = ['light', 'dark', 'auto'];
-    currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
-    localStorage.setItem(themeKey, currentTheme);
-    applyTheme(currentTheme);
-  } },
-  { id: 'refresh', label: 'Refresh data', keywords: 'refresh reload sync data', run: () => document.getElementById('syncRefreshBtn').click() }
-];
-
-const runSearchAction = (id) => {
-  const action = searchActions.find(a => a.id === id);
-  if (action) action.run();
-};
-
-const highlightMatches = (text, indices) => {
-  if (!indices || !indices.length) return escapeHTML(text);
-  let result = '';
-  let last = 0;
-  indices.forEach(([start, end]) => {
-    if (start > last) result += escapeHTML(text.slice(last, start));
-    result += `<mark>${escapeHTML(text.slice(start, end + 1))}</mark>`;
-    last = end + 1;
-  });
-  result += escapeHTML(text.slice(last));
-  return result;
-};
-
-const setSearchPanelOpen = (open) => {
-  const resultsContainer = document.getElementById('universalSearchResults');
-  const searchInput = document.getElementById('universalSearchInput');
-  resultsContainer.classList.toggle('active', open);
-  searchInput.setAttribute('aria-expanded', String(open));
-  if (!open) {
-    searchSelectedIndex = -1;
-    searchInput.setAttribute('aria-activedescendant', '');
-  }
-};
-let activeFilters = { Year: null, Region: [], Pharmacy: [], Month: [], Class: [], MedClass: [] };
-const FILTERS_STORAGE_KEY = 'lx-dashboard-filters';
-
-const persistFilters = () => {
-  try {
-    const { Year, ...rest } = activeFilters;
-    sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(rest));
-  } catch (e) { }
-};
-
-const restoreSavedFilters = () => {
-  if (!isFirstLoad) return;
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(FILTERS_STORAGE_KEY) || 'null');
-    if (saved && typeof saved === 'object') {
-      let droppedAny = false;
-      ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => {
-        if (!Array.isArray(saved[k])) return;
-        const validOptions = new Set(k === 'MedClass' ? medicationCategories : getAllUniqueOptions(k));
-        const kept = saved[k].filter(v => validOptions.has(v));
-        if (kept.length !== saved[k].length) droppedAny = true;
-        activeFilters[k] = kept;
-      });
-      if (droppedAny) showToast('Some saved filters no longer apply and were removed', 'info');
-    }
-  } catch (e) { }
-};
-let exploreSort = { col: null, dir: 1 };
-let missingSort = { col: null, dir: 1 };
-
-const themeKey = 'lx-theme-pref';
-let currentTheme = localStorage.getItem(themeKey) || 'auto';
-
-const positionSegmentedThumb = (container) => {
-  if (!container) return;
-  const thumb = container.querySelector('.segmented-thumb');
-  const active = container.querySelector('.segmented-btn.active');
-  if (!thumb || !active) return;
-  thumb.style.width = `${active.offsetWidth}px`;
-  thumb.style.transform = `translateX(${active.offsetLeft}px)`;
-};
-
-const applyTheme = (theme) => {
-  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.classList.toggle('dark', isDark);
-  document.documentElement.setAttribute('data-theme', theme);
-  document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.themeValue === theme);
-  });
-  positionSegmentedThumb(document.getElementById('themeSwitcher'));
-  if (currentChart || trendChartInstance || regionChartInstance) {
-    Chart.defaults.color = getThemeColor('--text-secondary');
-    updateDashboard();
-  }
-};
-
-document.querySelectorAll('.theme-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentTheme = btn.dataset.themeValue;
-    localStorage.setItem(themeKey, currentTheme);
-    applyTheme(currentTheme);
-  });
-});
-
-applyTheme(currentTheme);
-positionSegmentedThumb(document.getElementById('medChartTypeToggle'));
-
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (currentTheme === 'auto') applyTheme('auto');
-});
-
-const getThemeColor = (varName) => getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-
-Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif';
-Chart.defaults.color = '#86868B';
-
-const getCustomTooltip = () => ({
-  backgroundColor: getThemeColor('--popover-bg'),
-  titleColor: getThemeColor('--text-primary'),
-  bodyColor: getThemeColor('--text-secondary'),
-  titleFont: { size: 13, weight: '600' },
-  bodyFont: { size: 12, weight: '500' },
-  padding: { top: 10, right: 14, bottom: 10, left: 14 },
-  cornerRadius: 12,
-  displayColors: true,
-  boxPadding: 6,
-  borderColor: getThemeColor('--glass-border'),
-  borderWidth: 1,
-  boxHeight: 8,
-  boxWidth: 8,
-  usePointStyle: true,
-  backdropFilter: 'blur(20px)'
-});
-
-const escapeHTML = (str) => String(str).replace(/[&<>'"`]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;', '`': '&#96;' }[match]));
-
-const toastIcons = {
-  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
-  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-};
-
-const showToast = (message, type = 'info', duration = 3200) => {
-  const stack = document.getElementById('toastStack');
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span class="toast-icon">${toastIcons[type] || toastIcons.info}</span><span>${escapeHTML(message)}</span>`;
-  const dismiss = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 260); };
-  el.addEventListener('click', dismiss);
-  stack.appendChild(el);
-  setTimeout(dismiss, duration);
-};
-
-const scrollTopBtn = document.getElementById('scrollTopBtn');
-scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
-const animateValue = (el, endValue, duration = 700) => {
-  const startValue = 0;
-  const startTime = performance.now();
-  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (isReducedMotion || !isFinite(endValue)) {
-    el.textContent = Number(endValue).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    return;
-  }
-  const step = (now) => {
-    const progress = Math.min((now - startTime) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = startValue + (endValue - startValue) * eased;
-    el.textContent = Math.round(current).toLocaleString();
-    if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = Number(endValue).toLocaleString(undefined, { maximumFractionDigits: 0 });
-  };
-  requestAnimationFrame(step);
-};
-
-const emptyStateHTML = (title, desc, iconSvg) => `
-  <div class="empty-state">
-    <div class="empty-state-icon">${iconSvg}</div>
-    <div class="empty-state-title">${escapeHTML(title)}</div>
-    <div class="empty-state-desc">${escapeHTML(desc)}</div>
-  </div>`;
-
-const icons = {
-  checkCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-  layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
-  pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5L3.5 13.5a5 5 0 1 1 7-7l7 7a5 5 0 1 1-7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>',
-  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
-  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="7" x2="9" y2="7.01"/><line x1="15" y1="7" x2="15" y2="7.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="15" y1="12" x2="15" y2="12.01"/><line x1="9" y1="17" x2="9" y2="17.01"/><line x1="15" y1="17" x2="15" y2="17.01"/></svg>'
-};
-
-const monthOrder = {
-  july: 1, august: 2, september: 3, october: 4, november: 5, december: 6,
-  january: 7, february: 8, march: 9, april: 10, may: 11, june: 12,
-  'يوليو': 1, 'أغسطس': 2, 'سبتمبر': 3, 'أكتوبر': 4, 'نوفمبر': 5, 'ديسمبر': 6,
-  'يناير': 7, 'فبراير': 8, 'مارس': 9, 'أبريل': 10, 'مايو': 11, 'يونيو': 12,
-};
-
-const getMonthOrderValue = (month) => month ? monthOrder[String(month).trim().toLowerCase()] || 99 : 99;
-
-const debounce = (func, wait) => {
-  let timeout;
-  return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); };
-};
-
-window.addEventListener('scroll', debounce(() => {
-  scrollTopBtn.classList.toggle('visible', window.scrollY > 480);
-}, 80), { passive: true });
-
-const normalizeArabic = (str) => {
-  if (!str) return '';
-  return String(str).toLowerCase()
-    .replace(/[\u064B-\u065F\u0670]/g, '')
-    .replace(/[إأآا]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي');
-};
-
-const medicationCategories = [
-  'المسكنات', 'مضادات حيوية', 'كلي', 'نفسية و عصبية', 'قلب', 'سكر حقن',
-  'سكر فم', 'نسا', 'كبد', 'جهاز هضمي', 'جهاز تنفسي', 'امراض جلدية',
-  'عيون و رمد', 'انف و اذن', 'مضادات تقلصات', 'اورام', 'فيتامينات', 'مختلفة'
-];
-
-const searchCategoryConfig = {
-  Region: { label: 'Region', class: 'cat-region' },
-  Pharmacy: { label: 'Pharmacy', class: 'cat-pharmacy' },
-  Month: { label: 'Month', class: 'cat-month' },
-  Class: { label: 'Class', class: 'cat-class' },
-  MedClass: { label: 'Medication', class: 'cat-medication' }
-};
-
-const getAllUniqueOptions = (field) => {
-  const values = new Set();
-  data.filter(row => String(row.Year) === activeFilters.Year).forEach(row => {
-    if (row[field]) values.add(String(row[field]).trim());
-  });
-  return Array.from(values).sort((a, b) => {
-    if (field === 'Month') return getMonthOrderValue(a) - getMonthOrderValue(b);
-    return a.localeCompare(b);
-  });
-};
-
-const getFieldOptionStats = () => {
-  const signature = JSON.stringify([activeFilters.Year, activeFilters.Region, activeFilters.Pharmacy, activeFilters.Month, activeFilters.Class, activeFilters.MedClass]);
-  if (fieldStatsCache.signature === signature) return fieldStatsCache.stats;
-
-  const stats = { Region: new Map(), Pharmacy: new Map(), Month: new Map(), Class: new Map(), MedClass: new Map() };
-  const checkMap = { Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Class' };
-
-  data.filter(row => String(row.Year) === activeFilters.Year).forEach(row => {
-    ['Region', 'Pharmacy', 'Month', 'Class'].forEach(targetField => {
-      let isValidRow = true;
-      for (const [filterKey, rowKey] of Object.entries(checkMap)) {
-        if (rowKey === targetField) continue;
-        const activeVals = activeFilters[filterKey];
-        if (activeVals.length > 0) {
-          const rowVal = row[rowKey] ? String(row[rowKey]).trim() : '';
-          if (!activeVals.includes(rowVal)) { isValidRow = false; break; }
-        }
-      }
-      if (isValidRow && activeFilters.MedClass.length > 0) {
-        if (!activeFilters.MedClass.some(cat => parseFloat(row[cat] || 0) > 0)) isValidRow = false;
-      }
-      if (isValidRow) {
-        const val = row[targetField] ? String(row[targetField]).trim() : '';
-        if (val) stats[targetField].set(val, (stats[targetField].get(val) || 0) + 1);
-      }
-    });
-
-    let medRowValid = true;
-    for (const [filterKey, rowKey] of Object.entries(checkMap)) {
-      const activeVals = activeFilters[filterKey];
-      if (activeVals.length > 0) {
-        const rowVal = row[rowKey] ? String(row[rowKey]).trim() : '';
-        if (!activeVals.includes(rowVal)) { medRowValid = false; break; }
-      }
-    }
-    if (medRowValid) {
-      medicationCategories.forEach(cat => {
-        if (parseFloat(row[cat] || 0) > 0) stats.MedClass.set(cat, (stats.MedClass.get(cat) || 0) + 1);
-      });
-    }
-  });
-
-  fieldStatsCache = { signature, stats };
-  return stats;
-};
-
-const renderCustomDropdown = (field) => {
-  const dropdown = document.getElementById(`${field}Dropdown`);
-  const btn = document.querySelector(`.custom-select-button[data-id="${field}"]`);
-  const key = field.charAt(0).toUpperCase() + field.slice(1);
-  let allOptions = field === 'medClass' ? medicationCategories : getAllUniqueOptions(key);
-  const validSet = getFieldOptionStats()[key];
-  const currentSelection = activeFilters[key];
-  const optionsWithStatus = allOptions.map(opt => ({
-    value: opt,
-    isValid: validSet.has(opt),
-    isSelected: currentSelection.includes(opt)
-  }));
-  optionsWithStatus.sort((a, b) => {
-    if (a.isValid && !b.isValid) return -1;
-    if (!a.isValid && b.isValid) return 1;
-    if (field === 'month') return getMonthOrderValue(a.value) - getMonthOrderValue(b.value);
-    return a.value.localeCompare(b.value);
-  });
-  dropdown.querySelector('.dropdown-list').innerHTML = optionsWithStatus.map(opt =>
-    `<div class="dropdown-item ${opt.isSelected ? 'selected' : ''} ${!opt.isValid ? 'disabled-option' : ''}" role="option" aria-selected="${opt.isSelected}" data-value="${escapeHTML(opt.value)}"><div class="checkbox-custom"></div><span class="dropdown-item-label" dir="auto">${escapeHTML(opt.value)}</span><svg class="dropdown-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
-  ).join('');
-  if (currentSelection.length === 0) {
-    btn.textContent = 'All';
-    btn.classList.remove('has-selection');
-  } else if (currentSelection.length === 1) {
-    btn.textContent = currentSelection[0];
-    btn.classList.add('has-selection');
-  } else {
-    btn.textContent = `${currentSelection.length} Selected`;
-    btn.classList.add('has-selection');
-  }
-};
-
-const toggleFilter = (category, value) => {
-  if (activeFilters[category].includes(value)) {
-    activeFilters[category] = activeFilters[category].filter(v => v !== value);
-  } else {
-    activeFilters[category].push(value);
-  }
-  updateAllFilterOptions();
-  updateDashboard();
-  updateSearchVisuals();
-};
-
-const updateAllFilterOptions = () => {
-  ['region', 'pharmacy', 'month', 'class', 'medClass'].forEach(field => renderCustomDropdown(field));
-};
-
-let dropdownFocusIndex = -1;
-
-const closeAllDropdowns = () => {
-  document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
-  document.querySelectorAll('.custom-select-button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-expanded', 'false'); });
-  dropdownFocusIndex = -1;
-};
-
-const openDropdown = (btn) => {
-  const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
-  closeAllDropdowns();
-  dropdown.classList.add('show');
-  btn.classList.add('active');
-  btn.setAttribute('aria-expanded', 'true');
-};
-
-const updateDropdownFocus = (dropdown) => {
-  const items = Array.from(dropdown.querySelectorAll('.dropdown-item'));
-  items.forEach(el => el.classList.remove('kbd-focus'));
-  const active = items[dropdownFocusIndex];
-  if (active) { active.classList.add('kbd-focus'); active.scrollIntoView({ block: 'nearest' }); }
-};
-
-const setupDropdowns = () => {
-  document.querySelectorAll('.custom-select-button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
-      const wasShown = dropdown.classList.contains('show');
-      closeAllDropdowns();
-      if (!wasShown) openDropdown(btn);
-    });
-
-    btn.addEventListener('keydown', (e) => {
-      const dropdown = document.getElementById(`${btn.dataset.id}Dropdown`);
-      const isOpen = dropdown.classList.contains('show');
-      const items = dropdown.querySelectorAll('.dropdown-item');
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (!isOpen) { openDropdown(btn); return; }
-        if (items.length) { dropdownFocusIndex = Math.min(dropdownFocusIndex + 1, items.length - 1); updateDropdownFocus(dropdown); }
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (isOpen && items.length) { dropdownFocusIndex = Math.max(dropdownFocusIndex - 1, 0); updateDropdownFocus(dropdown); }
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (isOpen && dropdownFocusIndex >= 0 && items[dropdownFocusIndex]) {
-          const item = items[dropdownFocusIndex];
-          if (!(item.classList.contains('disabled-option') && !item.classList.contains('selected'))) {
-            const field = dropdown.id.replace('Dropdown', '');
-            const key = field.charAt(0).toUpperCase() + field.slice(1);
-            toggleFilter(key, item.getAttribute('data-value'));
-            const newItems = dropdown.querySelectorAll('.dropdown-item');
-            dropdownFocusIndex = Math.min(dropdownFocusIndex, newItems.length - 1);
-            updateDropdownFocus(dropdown);
-          }
-        } else if (!isOpen) {
-          openDropdown(btn);
-        } else {
-          closeAllDropdowns();
-        }
-      } else if (e.key === 'Escape' && isOpen) {
-        e.preventDefault();
-        closeAllDropdowns();
-      }
-    });
-  });
-
-  document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
-    dropdown.querySelector('.dropdown-list').addEventListener('click', (e) => {
-      const item = e.target.closest('.dropdown-item');
-      if (!item) return;
-      if (item.classList.contains('disabled-option') && !item.classList.contains('selected')) return;
-      const field = dropdown.id.replace('Dropdown', '');
-      const key = field.charAt(0).toUpperCase() + field.slice(1);
-      toggleFilter(key, item.getAttribute('data-value'));
-    });
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.premium-search-wrapper')) setSearchPanelOpen(false);
-    if (!e.target.closest('.custom-select-container')) closeAllDropdowns();
-  });
-
-  document.querySelectorAll('.clear-filter-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const field = btn.dataset.target;
-      activeFilters[field.charAt(0).toUpperCase() + field.slice(1)] = [];
-      updateAllFilterOptions();
-      updateDashboard();
-      updateSearchVisuals();
-    });
-  });
-};
-
-const buildSearchIndices = () => {
-  searchIndices = {};
-  ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(field => {
-    const options = field === 'MedClass' ? medicationCategories : getAllUniqueOptions(field);
-    const normalizedOptions = options.map(opt => ({ item: opt, searchKey: normalizeArabic(opt) }));
-    searchIndices[field] = new Fuse(normalizedOptions, {
-      threshold: 0.35,
-      includeScore: true,
-      includeMatches: true,
-      ignoreLocation: true,
-      distance: 100,
-      minMatchCharLength: 1,
-      keys: ['searchKey']
-    });
-  });
-};
-
-const renderSearchRow = (id, field, value, isValid, isSelected, count, indices) => {
-  const cls = ['search-result-item'];
-  if (!isValid && !isSelected) cls.push('disabled');
-  if (isSelected) cls.push('selected');
-  const meta = isSelected
-    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
-    : `<span class="search-result-count">${count}</span>`;
-  return `<div class="${cls.join(' ')}" id="${id}" role="option" data-field="${field}" data-value="${escapeHTML(value)}">
-    <span class="search-result-label">${highlightMatches(value, indices)}</span>
-    <span class="search-result-meta">${meta}</span>
-  </div>`;
-};
-
-const renderActionRow = (id, action) => {
-  return `<div class="search-result-item is-action" id="${id}" role="option" data-action-id="${action.id}">
-    <span class="search-result-label">${escapeHTML(action.label)}</span>
-  </div>`;
-};
-
-const refreshSearchFlatItems = () => {
-  searchFlatItems = Array.from(document.querySelectorAll('#searchResultsScroll .search-result-item'));
-  searchSelectedIndex = searchFlatItems.length > 0 ? 0 : -1;
-  updateSearchSelection();
-};
-
-const updateSearchSelection = () => {
-  const searchInput = document.getElementById('universalSearchInput');
-  searchFlatItems.forEach(el => el.classList.remove('kbd-focus'));
-  const active = searchFlatItems[searchSelectedIndex];
-  if (active) {
-    active.classList.add('kbd-focus');
-    active.scrollIntoView({ block: 'nearest' });
-    searchInput.setAttribute('aria-activedescendant', active.id);
-  } else {
-    searchInput.setAttribute('aria-activedescendant', '');
-  }
-};
-
-const toggleSearchResult = (field, value) => {
-  const stats = getFieldOptionStats();
-  const isCurrentlyValid = (stats[field].get(value) || 0) > 0;
-  const isSelected = activeFilters[field].includes(value);
-  if (!isCurrentlyValid && !isSelected) return;
-  if (isSelected) {
-    activeFilters[field] = activeFilters[field].filter(v => v !== value);
-  } else {
-    activeFilters[field].push(value);
-    addRecentSelection(field, value);
-  }
-  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
-};
-
-const refreshSearchPanel = () => {
-  const searchInput = document.getElementById('universalSearchInput');
-  const q = searchInput.value.trim();
-  if (q.length > 0) performUniversalSearch(q); else renderRecentSelections();
-};
-
-const activateSearchItem = (keepOpen) => {
-  const el = searchFlatItems[searchSelectedIndex];
-  if (!el) return;
-  const searchInput = document.getElementById('universalSearchInput');
-  if (el.dataset.actionId) {
-    runSearchAction(el.dataset.actionId);
-    setSearchPanelOpen(false);
-    return;
-  }
-  if (el.classList.contains('disabled')) return;
-  toggleSearchResult(el.dataset.field, el.dataset.value);
-  if (keepOpen) { refreshSearchPanel(); searchInput.focus(); }
-  else setSearchPanelOpen(false);
-};
-
-const removeLastChip = () => {
-  const order = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
-  for (let i = order.length - 1; i >= 0; i--) {
-    if (activeFilters[order[i]].length > 0) {
-      activeFilters[order[i]] = activeFilters[order[i]].slice(0, -1);
-      updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
-      return;
-    }
-  }
-};
-
-const performUniversalSearch = (query) => {
-  const scroll = document.getElementById('searchResultsScroll');
-  const fields = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'];
-  const scope = parseSearchScope(query);
-  const stats = getFieldOptionStats();
-  let idx = 0;
-  let html = '';
-  let hasResults = false;
-
-  if (!scope.field) {
-    const q = query.trim().toLowerCase();
-    const matchedActions = searchActions.filter(a => a.label.toLowerCase().includes(q) || a.keywords.includes(q));
-    if (matchedActions.length > 0) {
-      html += `<div class="search-category-header">Actions</div>`;
-      matchedActions.forEach(a => { html += renderActionRow(`search-item-${idx++}`, a); });
-      hasResults = true;
-    }
-  }
-
-  const fieldsToSearch = scope.field ? [scope.field] : fields;
-
-  fieldsToSearch.forEach(field => {
-    let items;
-    if (scope.field && scope.text === '') {
-      const all = field === 'MedClass' ? medicationCategories : getAllUniqueOptions(field);
-      items = all.map(item => ({ item, indices: null }));
-    } else {
-      if (!searchIndices[field]) return;
-      const normalizedQuery = normalizeArabic(scope.field ? scope.text : query);
-      if (!normalizedQuery) return;
-      const result = searchIndices[field].search(normalizedQuery);
-      items = result.map(r => ({ item: r.item.item, indices: r.matches && r.matches[0] ? r.matches[0].indices : null }));
-    }
-    if (!items.length) return;
-
-    const validItems = [], invalidItems = [];
-    items.forEach(({ item, indices }) => {
-      const count = stats[field].get(item) || 0;
-      const isSelected = activeFilters[field].includes(item);
-      const isValid = count > 0;
-      (isValid || isSelected ? validItems : invalidItems).push({ item, indices, count, isValid, isSelected });
-    });
-
-    hasResults = true;
-    html += `<div class="search-category-header ${searchCategoryConfig[field].class}">${searchCategoryConfig[field].label}</div>`;
-    [...validItems, ...invalidItems].forEach(r => {
-      html += renderSearchRow(`search-item-${idx++}`, field, r.item, r.isValid, r.isSelected, r.count, r.indices);
-    });
-  });
-
-  scroll.innerHTML = hasResults ? `<div class="search-results-list">${html}</div>` : emptyStateHTML('No matches found', `Nothing matches "${query}" — try a different term.`, icons.search);
-
-  setSearchPanelOpen(true);
-  document.getElementById('commitSearchBtn').classList.remove('hidden');
-  refreshSearchFlatItems();
-};
-
-const renderRecentSelections = () => {
-  const scroll = document.getElementById('searchResultsScroll');
-  const recents = getRecentSelections();
-  if (!recents.length) {
-    scroll.innerHTML = '';
-    setSearchPanelOpen(false);
-    refreshSearchFlatItems();
-    return;
-  }
-  const stats = getFieldOptionStats();
-  let idx = 0;
-  let html = `<div class="search-category-header">Recent</div>`;
-  recents.forEach(r => {
-    const count = stats[r.field] ? (stats[r.field].get(r.value) || 0) : 0;
-    const isSelected = activeFilters[r.field] ? activeFilters[r.field].includes(r.value) : false;
-    html += renderSearchRow(`search-item-${idx++}`, r.field, r.value, count > 0, isSelected, count, null);
-  });
-  scroll.innerHTML = `<div class="search-results-list">${html}</div>`;
-  setSearchPanelOpen(true);
-  refreshSearchFlatItems();
-};
-
-const setupUniversalSearch = () => {
-  const searchInput = document.getElementById('universalSearchInput');
-  const resultsContainer = document.getElementById('universalSearchResults');
-  const resultsScroll = document.getElementById('searchResultsScroll');
-  const clearInputBtn = document.getElementById('clearSearchInput');
-  const clearAllBtn = document.getElementById('clearAllFilters');
-  const commitSearchBtn = document.getElementById('commitSearchBtn');
-
-  const checkInputState = () => {
-    const hasInput = searchInput.value.trim().length > 0;
-    clearInputBtn.classList.toggle('hidden', !hasInput);
-    commitSearchBtn.classList.toggle('hidden', !hasInput && !resultsContainer.classList.contains('active'));
-  };
-
-  resultsScroll.addEventListener('mousedown', (e) => { if (e.target.closest('.search-result-item')) e.preventDefault(); });
-
-  resultsScroll.addEventListener('click', (e) => {
-    const item = e.target.closest('.search-result-item');
-    if (!item || item.classList.contains('disabled')) return;
-    if (item.dataset.actionId) { runSearchAction(item.dataset.actionId); setSearchPanelOpen(false); return; }
-    toggleSearchResult(item.dataset.field, item.dataset.value);
-    refreshSearchPanel();
-    searchInput.focus();
-  });
-
-  document.getElementById('triggerSearchFocus').addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (resultsContainer.classList.contains('active')) { setSearchPanelOpen(false); searchInput.blur(); }
-    else { searchInput.focus(); if (searchInput.value.trim().length > 0) performUniversalSearch(searchInput.value.trim()); else renderRecentSelections(); }
-  });
-
-  clearInputBtn.addEventListener('click', () => { searchInput.value = ''; searchInput.focus(); renderRecentSelections(); checkInputState(); });
-  commitSearchBtn.addEventListener('click', () => setSearchPanelOpen(false));
-
-  clearAllBtn.addEventListener('click', () => {
-    ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
-    updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); searchInput.focus();
-    if (resultsContainer.classList.contains('active')) refreshSearchPanel();
-  });
-
-  const debouncedSearch = debounce((q) => performUniversalSearch(q), 80);
-
-  searchInput.addEventListener('input', (e) => {
-    checkInputState();
-    const query = e.target.value.trim();
-    if (query.length < 1) { renderRecentSelections(); return; }
-    debouncedSearch(query);
-  });
-
-  searchInput.addEventListener('focus', (e) => {
-    if (e.target.value.trim().length >= 1) { performUniversalSearch(e.target.value.trim()); checkInputState(); }
-    else { renderRecentSelections(); }
-  });
-
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (!searchFlatItems.length) return;
-      searchSelectedIndex = Math.min(searchSelectedIndex + 1, searchFlatItems.length - 1);
-      updateSearchSelection();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (!searchFlatItems.length) return;
-      searchSelectedIndex = Math.max(searchSelectedIndex - 1, 0);
-      updateSearchSelection();
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (searchSelectedIndex >= 0) activateSearchItem(e.shiftKey);
-      else setSearchPanelOpen(false);
-    } else if (e.key === 'Backspace' && searchInput.value === '') {
-      if (e.metaKey || e.ctrlKey) clearAllBtn.click();
-      else removeLastChip();
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
-    if (e.key === 'Escape') {
-      setSearchPanelOpen(false);
-      document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('show'));
-      document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
-      const modal = document.getElementById('modalContainer');
-      if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
-      else searchInput.blur();
-    }
-  });
-};
-
-const updateSearchVisuals = () => {
-  const container = document.getElementById('searchChips');
-  const clearAllBtn = document.getElementById('clearAllFilters');
-  container.innerHTML = '';
-  let hasFilters = false;
-  ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(field => {
-    if (activeFilters[field].length > 0) hasFilters = true;
-    activeFilters[field].forEach(val => {
-      const chip = document.createElement('div');
-      chip.className = 'search-chip';
-      const config = searchCategoryConfig[field];
-      chip.innerHTML = `<span class="search-chip-category ${config.class}">${config.label}</span><span dir="auto">${escapeHTML(val)}</span><span class="search-chip-remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>`;
-      chip.querySelector('.search-chip-remove').addEventListener('click', (e) => {
-        e.stopPropagation(); toggleFilter(field, val);
-        const input = document.getElementById('universalSearchInput');
-        if (document.getElementById('universalSearchResults').classList.contains('active') && input.value.trim().length > 0) performUniversalSearch(input.value.trim());
-      });
-      container.appendChild(chip);
-    });
-  });
-  if (hasFilters) clearAllBtn.classList.remove('hidden'); else clearAllBtn.classList.add('hidden');
-
-  const totalActive = ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].reduce((sum, f) => sum + activeFilters[f].length, 0);
-  const badge = document.getElementById('filterCountBadge');
-  if (totalActive > 0) { badge.textContent = totalActive; badge.classList.remove('hidden'); }
-  else badge.classList.add('hidden');
-};
-
-const populateYearFilter = () => {
-  const yearSelect = document.getElementById('yearFilter');
-  if (!allYears.length) return;
-  yearSelect.innerHTML = '';
-  allYears.forEach(year => {
-    const option = document.createElement('option');
-    option.value = year;
-    option.textContent = `${Number(year) - 1}–${year}`;
-    yearSelect.appendChild(option);
-  });
-  const preservedYear = activeFilters.Year && allYears.map(String).includes(String(activeFilters.Year)) ? String(activeFilters.Year) : null;
-  if (preservedYear) {
-    yearSelect.value = preservedYear;
-    activeFilters.Year = preservedYear;
-  } else if (defaultYear) {
-    yearSelect.value = defaultYear;
-    activeFilters.Year = String(defaultYear);
-  }
-};
-
-document.getElementById('yearFilter').addEventListener('change', () => {
-  const yearSelect = document.getElementById('yearFilter');
-  activeFilters.Year = yearSelect.value;
-  ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
-  destroyCharts();
-  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals(); buildSearchIndices();
-});
-
-const processDataAndHandleDuplicates = (rawData) => {
-  const groupedData = {};
-  const duplicateTracker = [];
-  const categoriesToSum = ['Total Prescription', 'Insurance Covered Prescription', ...medicationCategories];
-  rawData.forEach(row => {
-    const year = row.Year ? String(row.Year).trim() : '';
-    const region = row.Region ? String(row.Region).trim() : '';
-    const pharmacy = row.Pharmacy ? String(row.Pharmacy).trim() : '';
-    const month = row.Month ? String(row.Month).trim() : '';
-    const rowClass = row.Class ? String(row.Class).trim() : 'Unknown';
-    if (!year && !pharmacy) return;
-    const uniqueKey = `${year}_${region}_${pharmacy}_${month}_${rowClass}`.toLowerCase();
-    const currentRowNum = row._rowNum || 'Unknown';
-    if (groupedData[uniqueKey]) {
-      groupedData[uniqueKey]._duplicateCount = (groupedData[uniqueKey]._duplicateCount || 1) + 1;
-      groupedData[uniqueKey]._rows.push(currentRowNum);
-      categoriesToSum.forEach(cat => { groupedData[uniqueKey][cat] = (parseFloat(groupedData[uniqueKey][cat] || 0) + parseFloat(row[cat] || 0)); });
-    } else {
-      groupedData[uniqueKey] = { ...row, _duplicateCount: 1, _rows: [currentRowNum], Year: year, Region: region, Pharmacy: pharmacy, Month: month, Class: rowClass };
-      categoriesToSum.forEach(cat => groupedData[uniqueKey][cat] = parseFloat(row[cat] || 0));
-    }
-  });
-  const cleanData = Object.values(groupedData);
-  cleanData.forEach(row => {
-    if (row._duplicateCount > 1) duplicateTracker.push({ Year: row.Year, Pharmacy: row.Pharmacy, Region: row.Region, Month: row.Month, Class: row.Class, count: row._duplicateCount, rows: row._rows.join(', ') });
-    delete row._duplicateCount; delete row._rows;
-  });
-  return { cleanData, duplicateTracker };
-};
-
-const applyFilters = () => {
-  filteredData = data.filter((row) => {
-    if (String(row.Year) !== activeFilters.Year) return false;
-    if (activeFilters.Region.length > 0 && !activeFilters.Region.includes(String(row.Region).trim())) return false;
-    if (activeFilters.Pharmacy.length > 0 && !activeFilters.Pharmacy.includes(String(row.Pharmacy).trim())) return false;
-    if (activeFilters.Month.length > 0 && !activeFilters.Month.includes(String(row.Month).trim())) return false;
-    if (activeFilters.Class.length > 0 && !activeFilters.Class.includes(String(row.Class).trim())) return false;
-    if (activeFilters.MedClass.length > 0 && !activeFilters.MedClass.some(cls => parseFloat(row[cls] || 0) > 0)) return false;
-    return true;
-  });
-};
-
-const getSelectedMedicationCategories = () => activeFilters.MedClass.length > 0 ? activeFilters.MedClass : medicationCategories;
-
-const computeAggregates = (rows) => {
-  const totals = { totalPrescriptions: 0, insuranceCovered: 0, pharmacies: new Set() };
-  const byCategory = {};
-  const byMonth = {};
-  const byRegion = {};
-  medicationCategories.forEach(cat => { byCategory[cat] = 0; });
-
-  rows.forEach(row => {
-    const month = row.Month || 'Unknown';
-    const region = row.Region || 'Unknown';
-    if (!byMonth[month]) byMonth[month] = { byCategory: {}, totalPrescriptions: 0, insuranceCovered: 0, pharmacies: new Set() };
-    if (!byRegion[region]) byRegion[region] = { byCategory: {} };
-
-    const totalPresc = parseFloat(row['Total Prescription'] || 0);
-    const insCovered = parseFloat(row['Insurance Covered Prescription'] || 0);
-    totals.totalPrescriptions += totalPresc;
-    totals.insuranceCovered += insCovered;
-    if (row.Pharmacy) totals.pharmacies.add(row.Pharmacy);
-
-    byMonth[month].totalPrescriptions += totalPresc;
-    byMonth[month].insuranceCovered += insCovered;
-    if (row.Pharmacy) byMonth[month].pharmacies.add(row.Pharmacy);
-
-    medicationCategories.forEach(cat => {
-      const v = parseFloat(row[cat] || 0);
-      if (v) {
-        byCategory[cat] += v;
-        byMonth[month].byCategory[cat] = (byMonth[month].byCategory[cat] || 0) + v;
-        byRegion[region].byCategory[cat] = (byRegion[region].byCategory[cat] || 0) + v;
-      }
-    });
-  });
-
-  return { byCategory, byMonth, byRegion, totals };
-};
-
-const computeExploreRows = (aggregates) => {
-  const months = Object.keys(aggregates.byMonth).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-  const targetMetrics = getSelectedMedicationCategories();
-  const metricsList = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...targetMetrics];
-  const rows = metricsList.map(metric => {
-    const rowData = { Metric: metric, _hasData: false };
-    months.forEach(m => {
-      const mAgg = aggregates.byMonth[m];
-      let val = 0;
-      if (metric === 'Total') val = targetMetrics.reduce((s, c) => s + (mAgg.byCategory[c] || 0), 0);
-      else if (metric === 'Total Prescriptions') val = mAgg.totalPrescriptions;
-      else if (metric === 'Insurance Covered') val = mAgg.insuranceCovered;
-      else if (metric === 'Active Pharmacies') val = mAgg.pharmacies.size;
-      else val = mAgg.byCategory[metric] || 0;
-      rowData[m] = val;
-      if (val > 0) rowData._hasData = true;
-    });
-    return rowData;
-  }).filter(r => r._hasData);
-  return { months, rows };
-};
-
-const coreStatIcons = {
-  'Total Value': icons.layers,
-  'Prescriptions': icons.pill,
-  'Insurance Covered': icons.shield,
-  'Pharmacies': icons.building
-};
-
-const addStatCard = (label, value, options = {}) => {
-  const targetId = options.group === 'total' ? 'statsTotalRow' : options.group === 'core' ? 'statsCoreRow' : 'statsCategoryGrid';
-  const container = document.getElementById(targetId);
-  const card = document.createElement('div');
-  card.className = `stat-card glass-panel ${options.cardType === 'total' ? ' total-card' : ''}`;
-  card.style.setProperty('--stat-index', container.children.length);
-  const numericValue = Number(value) || 0;
-  let footer = '';
-  if (options.cardType === 'medication' && options.percentage !== undefined) {
-    const pct = Math.max(0, Math.min(100, parseFloat(options.percentage) || 0));
-    footer = `<div class="stat-card-footer"><span class="stat-percentage">${pct.toFixed(1)}%</span><div class="stat-progress-container"><div class="stat-progress-bar" style="width:0%" data-target-width="${pct}"></div></div></div>`;
-  }
-  let iconMarkup = '';
-  if (coreStatIcons[label]) {
-    iconMarkup = `<div class="stat-icon">${coreStatIcons[label]}</div>`;
-  }
-  card.innerHTML = `<div class="stat-card-content">${iconMarkup ? `<div class="stat-card-top">${iconMarkup}</div>` : ''}<div class="stat-label">${escapeHTML(label)}</div><div class="stat-value" title="${numericValue.toLocaleString()}">0</div></div>${footer}`;
-  container.appendChild(card);
-  requestAnimationFrame(() => {
-    animateValue(card.querySelector('.stat-value'), numericValue);
-    const bar = card.querySelector('.stat-progress-bar');
-    if (bar) bar.style.width = bar.dataset.targetWidth + '%';
-  });
-};
-
-const updateStats = (aggregates) => {
-  ['statsTotalRow', 'statsCoreRow', 'statsCategoryGrid'].forEach(id => { document.getElementById(id).innerHTML = ''; });
-  const targetCats = getSelectedMedicationCategories();
-  const totalPrescriptions = aggregates.totals.totalPrescriptions;
-  const insuranceCovered = aggregates.totals.insuranceCovered;
-  const activePharmacies = aggregates.totals.pharmacies.size;
-  const totalVal = targetCats.reduce((sum, cat) => sum + (aggregates.byCategory[cat] || 0), 0);
-  const yearPharmacies = new Set(data.filter(d => String(d.Year) === activeFilters.Year).map(r => r.Pharmacy).filter(Boolean)).size;
-  addStatCard('Total Value', totalVal, { cardType: 'total', group: 'total' });
-  addStatCard('Prescriptions', totalPrescriptions, { cardType: 'medication', group: 'core' });
-  addStatCard('Insurance Covered', insuranceCovered, { cardType: 'medication', group: 'core' });
-  addStatCard('Pharmacies', activePharmacies, { cardType: 'medication', group: 'core', percentage: yearPharmacies > 0 ? (activePharmacies / yearPharmacies) * 100 : 0 });
-  targetCats.forEach(cat => {
-    const val = aggregates.byCategory[cat] || 0;
-    addStatCard(cat, val, { cardType: 'medication', group: 'category', percentage: totalVal > 0 ? (val / totalVal) * 100 : 0 });
-  });
-};
-
-const compactNum = (value) => {
-  const abs = Math.abs(value);
-  if (abs >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
-  if (abs >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (abs >= 1e3) return (value / 1e3).toFixed(0) + 'K';
-  return value;
-};
-
-const getFilterSummary = () => {
-  const parts = [];
-  ['Region', 'Pharmacy', 'Month', 'Class'].forEach(k => {
-    if (activeFilters[k].length > 0) parts.push(`${k}: ${activeFilters[k].length > 2 ? activeFilters[k].length + ' selected' : activeFilters[k].join(', ')}`);
-  });
-  if (activeFilters.MedClass.length > 0) parts.push(`Med: ${activeFilters.MedClass.length > 2 ? activeFilters.MedClass.length + ' selected' : activeFilters.MedClass.join(', ')}`);
-  return parts.length === 0 ? 'All Data' : parts.join(' · ');
-};
-
-const updateChartType = (e, type) => {
-  currentChartType = type;
-  document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
-  if (e && e.currentTarget) e.currentTarget.classList.add('active');
-  else if (e && e.target) e.target.classList.add('active');
-  positionSegmentedThumb(document.getElementById('medChartTypeToggle'));
-  updateMedicationChart(computeAggregates(filteredData));
-};
-
-const trendGradient = (context) => {
-  const { chart } = context;
-  const { ctx: c, chartArea } = chart;
-  if (!chartArea) return getThemeColor('--accent-tint');
-  const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  gradient.addColorStop(0, getThemeColor('--accent-tint'));
-  gradient.addColorStop(1, 'rgba(255,255,255,0)');
-  return gradient;
-};
-
-const barGradient = (context, isHorizontal) => {
-  const { chart } = context;
-  const { ctx: c, chartArea } = chart;
-  if (!chartArea) return getThemeColor('--accent');
-  const gradient = isHorizontal
-    ? c.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
-    : c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  if (isHorizontal) {
-    gradient.addColorStop(0, getThemeColor('--accent-tint-2'));
-    gradient.addColorStop(1, getThemeColor('--accent'));
-  } else {
-    gradient.addColorStop(0, getThemeColor('--accent'));
-    gradient.addColorStop(1, getThemeColor('--accent-tint-2'));
-  }
-  return gradient;
-};
-
-const updateMedicationChart = (aggregates) => {
-  const ctx = document.getElementById('medicationChart').getContext('2d');
-  const targetCats = getSelectedMedicationCategories();
-  const chartData = targetCats.map(cat => aggregates.byCategory[cat] || 0);
-  const isHorizontal = currentChartType === 'horizontal';
-
-  const categoryAxisScale = {
-    grid: { display: false, drawBorder: false },
-    ticks: {
-      color: getThemeColor('--ink-500'),
-      font: { size: 12, weight: '500' },
-      autoSkip: false,
-      maxRotation: isHorizontal ? 0 : 45,
-      minRotation: 0,
-      padding: 8
-    }
-  };
-
-  const valueAxisScale = {
-    grid: { color: getThemeColor('--line-1'), drawBorder: false },
-    grace: '5%',
-    ticks: {
-      color: getThemeColor('--ink-500'),
-      font: { size: 12, weight: '500' },
-      callback: (value) => compactNum(value),
-      padding: 8
-    }
-  };
-
-  if (!isHorizontal) {
-    valueAxisScale.afterFit = (scale) => { scale.width = Math.max(scale.width, 50); };
-  } else {
-    categoryAxisScale.afterFit = (scale) => { scale.width = 120; };
-  }
-
-  if (currentChart) {
-    currentChart.data.labels = targetCats;
-    currentChart.data.datasets[0].data = chartData;
-    currentChart.data.datasets[0].backgroundColor = (context) => barGradient(context, isHorizontal);
-    currentChart.data.datasets[0].hoverBackgroundColor = getThemeColor('--accent-hover');
-    currentChart.options.indexAxis = isHorizontal ? 'y' : 'x';
-    currentChart.options.scales.x = isHorizontal ? valueAxisScale : categoryAxisScale;
-    currentChart.options.scales.y = isHorizontal ? categoryAxisScale : valueAxisScale;
-    currentChart.options.plugins.subtitle.text = getFilterSummary();
-    currentChart.options.plugins.subtitle.color = getThemeColor('--ink-400');
-    currentChart.update('none');
-    return;
-  }
-
-  currentChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: targetCats,
-      datasets: [{
-        label: 'Value',
-        data: chartData,
-        backgroundColor: (context) => barGradient(context, isHorizontal),
-        hoverBackgroundColor: getThemeColor('--accent-hover'),
-        borderRadius: 4,
-        borderSkipped: false,
-        barPercentage: 0.62,
-        categoryPercentage: 0.75
-      }]
-    },
-    options: {
-      indexAxis: isHorizontal ? 'y' : 'x',
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { left: 10, right: 25, top: 20, bottom: 10 } },
-      plugins: {
-        tooltip: getCustomTooltip(),
-        legend: { display: false },
-        subtitle: {
-          display: true,
-          text: getFilterSummary(),
-          color: getThemeColor('--ink-400'),
-          padding: { bottom: 20 },
-          font: { size: 13, weight: '400' },
-          align: 'start'
-        }
-      },
-      scales: {
-        x: isHorizontal ? valueAxisScale : categoryAxisScale,
-        y: isHorizontal ? categoryAxisScale : valueAxisScale
-      }
-    }
-  });
-};
-
-const updateMonthlyTrendChart = (aggregates) => {
-  const ctx = document.getElementById('trendChart').getContext('2d');
-  const targetCats = getSelectedMedicationCategories();
-  const months = Object.keys(aggregates.byMonth).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-  const monthlyTotals = months.map(m => targetCats.reduce((sum, cat) => sum + (aggregates.byMonth[m].byCategory[cat] || 0), 0));
-
-  if (trendChartInstance) {
-    trendChartInstance.data.labels = months;
-    trendChartInstance.data.datasets[0].data = monthlyTotals;
-    trendChartInstance.data.datasets[0].borderColor = getThemeColor('--accent');
-    trendChartInstance.data.datasets[0].backgroundColor = trendGradient;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = getThemeColor('--accent');
-    trendChartInstance.data.datasets[0].pointBorderColor = getThemeColor('--surface-1');
-    trendChartInstance.options.scales.x.ticks.color = getThemeColor('--ink-500');
-    trendChartInstance.options.scales.y.grid.color = getThemeColor('--line-1');
-    trendChartInstance.options.scales.y.ticks.color = getThemeColor('--ink-500');
-    trendChartInstance.options.plugins.subtitle.text = getFilterSummary();
-    trendChartInstance.options.plugins.subtitle.color = getThemeColor('--ink-400');
-    trendChartInstance.update('none');
-    return;
-  }
-
-  trendChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [{
-        label: 'Trend',
-        data: monthlyTotals,
-        borderColor: getThemeColor('--accent'),
-        backgroundColor: trendGradient,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 6,
-        pointBackgroundColor: getThemeColor('--accent'),
-        pointBorderWidth: 2,
-        pointBorderColor: getThemeColor('--surface-1'),
-        borderWidth: 3,
-        clip: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      layout: { padding: { left: 15, right: 25, top: 25, bottom: 10 } },
-      plugins: {
-        tooltip: getCustomTooltip(),
-        legend: { display: false },
-        subtitle: {
-          display: true,
-          text: getFilterSummary(),
-          color: getThemeColor('--ink-400'),
-          padding: { bottom: 20 },
-          font: { size: 13, weight: '400' },
-          align: 'start'
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false, drawBorder: false },
-          ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, maxRotation: 45, minRotation: 0, padding: 8 }
-        },
-        y: {
-          grid: { color: getThemeColor('--line-1'), drawBorder: false },
-          grace: '5%',
-          afterFit: (scale) => { scale.width = Math.max(scale.width, 50); },
-          ticks: { color: getThemeColor('--ink-500'), font: { size: 12, weight: '500' }, callback: (value) => compactNum(value), padding: 8 }
-        }
-      }
-    }
-  });
-};
-
-const updateRegionChart = (aggregates) => {
-  const ctx = document.getElementById('regionChart').getContext('2d');
-  const targetCats = getSelectedMedicationCategories();
-  const sortedRegions = Object.entries(aggregates.byRegion)
-    .map(([region, r]) => [region, targetCats.reduce((sum, cat) => sum + (r.byCategory[cat] || 0), 0)])
-    .sort((a, b) => b[1] - a[1]);
-  const colors = ['#FF6266', '#FF8A6F', '#F2A65A', '#D96A8B', '#A96FA8', '#7B7BB8', '#5B93B0', '#6FB09B'];
-
-  if (regionChartInstance) {
-    regionChartInstance.data.labels = sortedRegions.map(i => i[0]);
-    regionChartInstance.data.datasets[0].data = sortedRegions.map(i => i[1]);
-    regionChartInstance.options.plugins.subtitle.text = getFilterSummary();
-    regionChartInstance.options.plugins.subtitle.color = getThemeColor('--ink-400');
-    regionChartInstance.update('none');
-  } else {
-    regionChartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: sortedRegions.map(i => i[0]),
-        datasets: [{
-          data: sortedRegions.map(i => i[1]),
-          backgroundColor: colors,
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      plugins: [centerTotalPlugin],
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '80%',
-        layout: { padding: 10 },
-        plugins: {
-          tooltip: getCustomTooltip(),
-          legend: { display: false },
-          subtitle: {
-            display: true,
-            text: getFilterSummary(),
-            color: getThemeColor('--ink-400'),
-            padding: { bottom: 10 },
-            font: { size: 13, weight: '400' },
-            align: 'start'
-          }
-        }
-      }
-    });
-  }
-
-  const legendEl = document.getElementById('regionLegend');
-  legendEl.innerHTML = sortedRegions.map((item, i) => {
-    const color = colors[i % colors.length];
-    const label = item[0].length > 18 ? item[0].slice(0, 18) + '…' : item[0];
-    return `<div class="region-legend-item" title="${escapeHTML(item[0])}">
-      <div class="region-legend-dot" style="background:${color}"></div>
-      <span>${escapeHTML(label)}</span>
-    </div>`;
-  }).join('');
-};
-
-const findMissingTotals = () => {
-  missingData = [];
-  const baseDataset = data.filter(d =>
-    String(d.Year) === activeFilters.Year &&
-    (activeFilters.Region.length === 0 || activeFilters.Region.includes(d.Region)) &&
-    (activeFilters.Class.length === 0 || activeFilters.Class.includes(d.Class))
-  );
-  const allMonths = Array.from(new Set(data.filter(d => String(d.Year) === activeFilters.Year).map(r => r.Month))).filter(Boolean).sort((a, b) => getMonthOrderValue(a) - getMonthOrderValue(b));
-  const monthsToCheck = activeFilters.Month.length > 0 ? activeFilters.Month : allMonths;
-  const eligiblePharmacies = Array.from(new Set(baseDataset.map(r => r.Pharmacy))).filter(Boolean);
-  if (activeFilters.Pharmacy.length > 0) {
-    const filtered = eligiblePharmacies.filter(p => activeFilters.Pharmacy.includes(p));
-    eligiblePharmacies.length = 0; eligiblePharmacies.push(...filtered);
-  }
-  const pharmacyRegions = {};
-  data.filter(r => String(r.Year) === activeFilters.Year).forEach(r => { if (r.Pharmacy) pharmacyRegions[r.Pharmacy] = r.Region; });
-  monthsToCheck.forEach(month => {
-    const activeInMonth = new Set(baseDataset.filter(r => r.Month === month).map(r => r.Pharmacy));
-    eligiblePharmacies.forEach(pharmacy => {
-      if (!activeInMonth.has(pharmacy)) missingData.push({ Region: pharmacyRegions[pharmacy] || 'Unknown', Pharmacy: pharmacy, Month: month, Status: 'Inactive' });
-    });
-  });
-  missingData.sort((a, b) => a.Region.localeCompare(b.Region) || a.Pharmacy.localeCompare(b.Pharmacy) || getMonthOrderValue(a.Month) - getMonthOrderValue(b.Month));
-};
-
-const getTrendIndicator = (c, p) => {
-  if (p == null || c == null) return '';
-  if (c === p) return '<span style="color:var(--text-tertiary)">—</span>';
-  return c > p ? '<span style="color:var(--sys-green);font-weight:600">↑</span>' : '<span style="color:var(--sys-red);font-weight:600">↓</span>';
-};
-
-const createSortIcon = () => `<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m0-16l-6 6m6-6l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-const updateExploreView = (aggregates) => {
-  const tbody = document.querySelector('#exploreTable tbody');
-  const thead = document.querySelector('#exploreTable thead tr');
-  const { months, rows: rowsData } = computeExploreRows(aggregates);
-  let headersHTML = `<th class="sortable" data-col="Metric">Metric ${createSortIcon()}</th>`;
-  months.forEach(m => { headersHTML += `<th class="sortable" data-col="${escapeHTML(m)}" dir="auto">${escapeHTML(m)} ${createSortIcon()}</th>`; });
-  thead.innerHTML = headersHTML;
-  if (exploreSort.col) {
-    rowsData.sort((a, b) => {
-      let valA = a[exploreSort.col] || 0;
-      let valB = b[exploreSort.col] || 0;
-      if (typeof valA === 'string' && typeof valB === 'string') return exploreSort.dir * valA.localeCompare(valB);
-      return exploreSort.dir * (valA - valB);
-    });
-    const activeTh = thead.querySelector(`th[data-col="${exploreSort.col}"]`);
-    if (activeTh) activeTh.classList.add(exploreSort.dir === 1 ? 'sort-asc' : 'sort-desc');
-  }
-  if (rowsData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${months.length + 1}">${emptyStateHTML('No metrics to explore', 'Adjust your filters — there is no data for this selection yet.', icons.layers)}</td></tr>`;
-  } else {
-    tbody.innerHTML = rowsData.map(row => {
-      let prev = null;
-      const cells = months.map(m => {
-        const val = row[m] || 0;
-        const trend = getTrendIndicator(val, prev);
-        prev = val;
-        return `<td dir="auto">${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${trend}</td>`;
-      }).join('');
-      return `<tr><td dir="auto">${escapeHTML(row.Metric)}</td>${cells}</tr>`;
-    }).join('');
-  }
-  thead.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.getAttribute('data-col');
-      if (exploreSort.col === col) { exploreSort.dir *= -1; }
-      else { exploreSort.col = col; exploreSort.dir = col === 'Metric' ? 1 : -1; }
-      updateDashboard();
-    });
-  });
-};
-
-const updateMissingView = () => {
-  const thead = document.querySelector('#missingTable thead tr');
-  const tbody = document.querySelector('#missingTable tbody');
-  const cols = ['Region', 'Pharmacy', 'Month', 'Status'];
-  thead.innerHTML = cols.map(c => `<th class="sortable" data-col="${c}">${c} ${createSortIcon()}</th>`).join('');
-  let dataToSort = [...missingData];
-  if (missingSort.col) {
-    dataToSort.sort((a, b) => {
-      let valA = a[missingSort.col];
-      let valB = b[missingSort.col];
-      if (missingSort.col === 'Month') return missingSort.dir * (getMonthOrderValue(valA) - getMonthOrderValue(valB));
-      return missingSort.dir * String(valA).localeCompare(String(valB));
-    });
-    const activeTh = thead.querySelector(`th[data-col="${missingSort.col}"]`);
-    if (activeTh) activeTh.classList.add(missingSort.dir === 1 ? 'sort-asc' : 'sort-desc');
-  }
-  if (dataToSort.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${cols.length}">${emptyStateHTML('All pharmacies reporting', 'No inactive records for the current filters — every eligible pharmacy submitted data.', icons.checkCircle)}</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = dataToSort.map(i =>
-    `<tr><td dir="auto">${escapeHTML(i.Region)}</td><td dir="auto"><strong>${escapeHTML(i.Pharmacy)}</strong></td><td dir="auto">${escapeHTML(i.Month)}</td><td><span class="status-inactive">Inactive</span></td></tr>`
-  ).join('');
-  thead.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.getAttribute('data-col');
-      if (missingSort.col === col) { missingSort.dir *= -1; }
-      else { missingSort.col = col; missingSort.dir = 1; }
-      updateMissingView();
-    });
-  });
-};
-
-const updateDashboard = debounce(() => {
-  applyFilters(); findMissingTotals(); persistFilters();
-  const resCount = document.getElementById('resultsCount');
-  const misCount = document.getElementById('missingResultsCount');
-  const dupeCount = document.getElementById('duplicateResultsCount');
-  resCount.classList.remove('skeleton');
-  if (isExploreMode) {
-    document.querySelector('.dashboard-view').classList.add('hidden');
-    document.querySelector('.missing-view').classList.add('hidden');
-    document.querySelector('.explore-view').classList.remove('hidden');
-    updateExploreView(computeAggregates(filteredData));
-    resCount.innerHTML = `Metrics across ${Array.from(new Set(filteredData.map(r => r.Month))).length} months`;
-    misCount.classList.add('hidden'); dupeCount.classList.add('hidden');
-  } else if (isMissingMode) {
-    document.querySelector('.dashboard-view').classList.add('hidden');
-    document.querySelector('.explore-view').classList.add('hidden');
-    document.querySelector('.missing-view').classList.remove('hidden');
-    updateMissingView();
-    resCount.innerHTML = `${missingData.length} inactive records`;
-    misCount.classList.add('hidden'); dupeCount.classList.add('hidden');
-  } else {
-    document.querySelector('.explore-view').classList.add('hidden');
-    document.querySelector('.missing-view').classList.add('hidden');
-    document.querySelector('.dashboard-view').classList.remove('hidden');
-    const aggregates = computeAggregates(filteredData);
-    updateStats(aggregates); updateMedicationChart(aggregates); updateMonthlyTrendChart(aggregates); updateRegionChart(aggregates);
-    resCount.innerHTML = `${filteredData.length} Results`;
-    if (missingData.length > 0) {
-      misCount.classList.remove('hidden');
-      misCount.innerHTML = `${missingData.length} Missing`;
-      misCount.onclick = () => document.getElementById('toggleMissingBtn').click();
-    } else { misCount.classList.add('hidden'); }
-    const yearScopedDuplicates = mergedDuplicates.filter(d => String(d.Year) === activeFilters.Year);
-    if (yearScopedDuplicates.length > 0) {
-      dupeCount.classList.remove('hidden');
-      dupeCount.innerHTML = `${yearScopedDuplicates.length} Duplicates`;
-      dupeCount.onclick = () => showDuplicateDetails(yearScopedDuplicates);
-    } else { dupeCount.classList.add('hidden'); }
-  }
-}, 150);
-
-const showDuplicateDetails = (duplicates) => {
-  const modal = document.getElementById('modalContainer');
-  modal.innerHTML = `
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div style="padding:1.5rem;border-bottom:0.5px solid var(--separator);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-        <h3 style="margin:0;font-size:1.1rem;font-weight:600;color:var(--text-primary);letter-spacing:-0.01em;">Merged Duplicates</h3>
-        <button style="background:var(--border-light);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='var(--border-medium)';this.style.color='var(--text-primary)'" onmouseout="this.style.background='var(--border-light)';this.style.color='var(--text-secondary)'" onclick="document.getElementById('modalContainer').classList.add('hidden')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <button class="auto-sync-toggle" id="autoSyncToggle" type="button" aria-pressed="false">
+          <i class="fas fa-circle"></i> Auto
+        </button>
+        <button class="sync-btn" id="syncBtn" aria-label="Sync now">
+          <i class="fas fa-arrows-rotate"></i>
         </button>
       </div>
-      <div style="overflow-y:auto; max-height: 60vh;">
-        ${duplicates.map(d => `
-          <div style="padding:1rem 1.5rem;border-bottom:0.5px solid var(--separator);">
-            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;align-items:center;gap:1rem;">
-              <div style="font-weight:500;font-size:0.95rem;color:var(--text-primary);">${escapeHTML(d.Year)} · ${escapeHTML(d.Pharmacy)} · ${escapeHTML(d.Month)}</div>
-              <span style="background:var(--accent-tint);color:var(--accent);padding:0.25rem 0.75rem;border-radius:var(--radius-pill);font-size:0.8rem;font-weight:600;white-space:nowrap;">${d.count} Merged</span>
-            </div>
-            <div style="font-size:0.8rem;color:var(--text-tertiary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">IDs: ${escapeHTML(d.rows)}</div>
-          </div>`).join('')}
+      <div class="control-divider"></div>
+      <div class="toggle-switch">
+        <button id="singleViewBtn" class="active">Single View</button>
+        <button id="compareViewBtn">Compare</button>
+        <div class="toggle-indicator"></div>
       </div>
-    </div>`;
-  modal.classList.remove('hidden');
-  modal.onclick = () => modal.classList.add('hidden');
-};
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <i class="fas fa-sun icon-sun"></i>
+        <i class="fas fa-moon icon-moon"></i>
+      </button>
+      <button id="exportBtn" class="action-btn">
+        <i class="fas fa-download"></i> <span>Export CSV</span>
+      </button>
+    </div>
+  </header>
 
-const exportData = () => {
-  const filterText = `Fiscal Year: ${activeFilters.Year || 'All'} | Filters: ${getFilterSummary()}`;
-  let aoa = [[filterText], []];
-  if (isExploreMode) {
-    const { months, rows } = computeExploreRows(computeAggregates(filteredData));
-    aoa.push(['Metric', ...months]);
-    rows.forEach(row => aoa.push([row.Metric, ...months.map(m => row[m] || 0)]));
-  } else {
-    const sourceData = isMissingMode ? missingData : filteredData;
-    if (sourceData.length > 0) {
-      const headers = Object.keys(sourceData[0]);
-      aoa.push(headers);
-      sourceData.forEach(row => aoa.push(headers.map(h => row[h])));
-    } else { aoa.push(['No data available']); }
-  }
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Data');
-  XLSX.writeFile(wb, 'Export.xlsx');
-};
+  <section class="main-controls-panel glass-panel" id="mainControlsPanel">
+    <div class="scope-title">Single View Scope</div>
+    <div class="year-control-area">
+      <button class="action-btn" id="selectYearsBtn">
+        <i class="fas fa-calendar-alt"></i> <span>Select Years</span>
+      </button>
+      <div id="selectedYearsContainer"></div>
+    </div>
+  </section>
 
-document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-  ['Region', 'Pharmacy', 'Month', 'Class', 'MedClass'].forEach(k => activeFilters[k] = []);
-  updateAllFilterOptions(); updateDashboard(); updateSearchVisuals();
-});
+  <section id="filtersArea" class="filters-area"></section>
+  <section id="resultsContainer" class="results-container glass-panel"></section>
+</div>
 
-document.getElementById('toggleExploreBtn').addEventListener('click', () => {
-  isExploreMode = !isExploreMode; isMissingMode = false;
-  const btn = document.getElementById('toggleExploreBtn');
-  if (isExploreMode) {
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back`;
-    document.getElementById('toggleMissingBtn').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Missing`;
-  } else {
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Explore`;
-  }
-  updateDashboard();
-});
+<div class="popup-overlay" id="yearSelectorPopup">
+  <div class="popup-content">
+    <div class="popup-header">
+      <h2>Select Years</h2>
+      <button class="popup-close-btn" id="closePopupBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="popup-toolbar">
+      <input type="search" id="yearSearchInput" class="popup-search" placeholder="Filter years…">
+      <button id="sortYearsBtn"><i class="fas fa-sort"></i></button>
+      <button id="selectAllYearsBtn">All</button>
+      <button id="deselectAllYearsBtn">None</button>
+    </div>
+    <div class="popup-list" id="yearList"></div>
+    <div class="popup-footer">
+      <button id="donePopupBtn" class="action-btn">Apply Selection</button>
+    </div>
+  </div>
+</div>
 
-document.getElementById('toggleMissingBtn').addEventListener('click', () => {
-  isMissingMode = !isMissingMode; isExploreMode = false;
-  const btn = document.getElementById('toggleMissingBtn');
-  if (isMissingMode) {
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back`;
-    document.getElementById('toggleExploreBtn').innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Explore`;
-  } else {
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Missing`;
-  }
-  updateDashboard();
-});
+<div class="popup-overlay" id="exportModalPopup">
+  <div class="popup-content" style="max-width: 600px;">
+    <div class="popup-header">
+      <h2><i class="fas fa-file-csv" style="color: var(--accent-success); margin-right: 8px;"></i> Export Generated</h2>
+      <button class="popup-close-btn" id="closeExportPopupBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding: 1.5rem;">
+      <div class="export-info">
+        <strong>Download initiated.</strong><br>
+        If your browser blocked it, copy the CSV below and paste into a .csv file or directly into Excel.
+      </div>
+      <textarea id="exportTextarea" class="export-textarea" readonly></textarea>
+    </div>
+    <div class="popup-footer">
+      <button id="copyCsvBtn" class="action-btn"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
 
-let xlsxLoadPromise = null;
-const ensureXLSXLoaded = () => {
-  if (window.XLSX) return Promise.resolve();
-  if (xlsxLoadPromise) return xlsxLoadPromise;
-  xlsxLoadPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[match]));
+
+document.addEventListener('DOMContentLoaded', () => {
+  const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
+  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+  const METRICS_CONFIG = ['المسكنات','مضادات حيوية','كلي','نفسية و عصبية','قلب','سكر حقن','سكر فم','نسا','كبد','جهاز هضمي','جهاز تنفسي','امراض جلدية','عيون و رمد','انف و اذن','مضادات تقلصات','اورام','فيتامينات','مختلفة'];
+  const MONTH_ORDER = {july:1,august:2,september:3,october:4,november:5,december:6,january:7,february:8,march:9,april:10,may:11,june:12,'يوليو':1,'أغسطس':2,'سبتمبر':3,'أكتوبر':4,'نوفمبر':5,'ديسمبر':6,'يناير':7,'فبراير':8,'مارس':9,'أبريل':10,'مايو':11,'يونيو':12};
+
+  const state = {
+    allData: [],
+    allYears: [],
+    viewMode: 'single',
+    analysisScopeYears: [],
+    singleFilters: {Region:'all',Pharmacy:'all',Month:'all',Class:'all'},
+    compareFiltersA: {Year:'all',Region:'all',Pharmacy:'all',Month:'all',Class:'all'},
+    compareFiltersB: {Year:'all',Region:'all',Pharmacy:'all',Month:'all',Class:'all'},
+    cachedMetrics: new Map(),
+    yearSortOrder: 'desc',
+    lastSyncedAt: null,
+    autoSyncEnabled: localStorage.getItem('da-auto-sync') === 'true',
+    isSyncing: false
+  };
+
+  const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+  let autoSyncTimer = null;
+  let syncLabelTimer = null;
+
+  const DOM = {
+    syncBtn: document.getElementById('syncBtn'),
+    syncDot: document.getElementById('syncDot'),
+    syncLabel: document.getElementById('syncLabel'),
+    autoSyncToggle: document.getElementById('autoSyncToggle'),
+    toastStack: document.getElementById('toastStack'),
+    singleViewBtn: document.getElementById('singleViewBtn'),
+    compareViewBtn: document.getElementById('compareViewBtn'),
+    filtersArea: document.getElementById('filtersArea'),
+    resultsContainer: document.getElementById('resultsContainer'),
+    mainControlsPanel: document.getElementById('mainControlsPanel'),
+    yearPopup: {
+      overlay: document.getElementById('yearSelectorPopup'),
+      list: document.getElementById('yearList'),
+      search: document.getElementById('yearSearchInput'),
+      sortBtn: document.getElementById('sortYearsBtn'),
+      selectAll: document.getElementById('selectAllYearsBtn'),
+      deselectAll: document.getElementById('deselectAllYearsBtn'),
+      doneBtn: document.getElementById('donePopupBtn'),
+      closeBtn: document.getElementById('closePopupBtn')
+    }
+  };
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  };
+
+  const formatNumber = (num) => num ? num.toLocaleString(undefined, {maximumFractionDigits:0}) : '0';
+
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+  const savedTheme = localStorage.getItem('da-theme') || 'light';
+  html.setAttribute('data-theme', savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('da-theme', next);
   });
-  return xlsxLoadPromise;
-};
 
-document.getElementById('exportExcelBtn').addEventListener('click', () => {
-  const btn = document.getElementById('exportExcelBtn');
-  btn.disabled = true;
-  ensureXLSXLoaded().then(() => {
-    exportData();
-    showToast('Export ready — check your downloads', 'success');
-  }).catch(() => {
-    showToast('Could not load the export module — check your connection', 'error');
-  }).finally(() => { btn.disabled = false; });
-});
+  const showToast = (message, type = 'info', icon = 'fa-circle-info') => {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${escapeHTML(message)}</span>`;
+    DOM.toastStack.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('visible'));
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.remove(), 350);
+    }, 3200);
+  };
 
-let lastSyncDate = null;
-let syncRelativeTimer = null;
+  const formatRelativeSync = (date) => {
+    if (!date) return 'Not synced yet';
+    const seconds = Math.round((Date.now() - date.getTime()) / 1000);
+    if (seconds < 10) return 'Synced just now';
+    if (seconds < 60) return `Synced ${seconds}s ago`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `Synced ${minutes}m ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `Synced ${hours}h ago`;
+    return `Synced ${date.toLocaleDateString(undefined, {month:'short', day:'numeric'})}`;
+  };
 
-const formatSyncTime = (date) => {
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return 'Synced just now';
-  if (diffMin === 1) return 'Synced 1m ago';
-  if (diffMin < 60) return `Synced ${diffMin}m ago`;
-  return `Synced at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
-};
+  const refreshSyncLabel = () => {
+    DOM.syncLabel.textContent = formatRelativeSync(state.lastSyncedAt);
+    const isStale = state.lastSyncedAt && (Date.now() - state.lastSyncedAt.getTime()) > AUTO_SYNC_INTERVAL_MS;
+    DOM.syncDot.classList.toggle('stale', !state.lastSyncedAt || isStale);
+  };
 
-const setSyncState = (state) => {
-  const statusEl = document.getElementById('syncStatus');
-  statusEl.classList.remove('is-syncing', 'is-error', 'is-idle');
-  statusEl.classList.add(state);
-};
+  const setSyncingUI = (syncing) => {
+    state.isSyncing = syncing;
+    DOM.syncBtn.classList.toggle('syncing', syncing);
+    DOM.syncDot.classList.toggle('pulsing', syncing);
+    if (syncing) DOM.syncLabel.textContent = 'Syncing…';
+  };
 
-const startSyncRelativeClock = () => {
-  clearInterval(syncRelativeTimer);
-  syncRelativeTimer = setInterval(() => {
-    if (lastSyncDate) document.getElementById('syncTimestamp').textContent = formatSyncTime(lastSyncDate);
-  }, 30000);
-};
+  const applyAutoSyncUI = () => {
+    DOM.autoSyncToggle.classList.toggle('active', state.autoSyncEnabled);
+    DOM.autoSyncToggle.setAttribute('aria-pressed', String(state.autoSyncEnabled));
+    if (autoSyncTimer) clearInterval(autoSyncTimer);
+    if (state.autoSyncEnabled) {
+      autoSyncTimer = setInterval(() => syncData(false), AUTO_SYNC_INTERVAL_MS);
+    }
+  };
 
-const clearStatSkeletons = () => {
-  ['statsTotalRow', 'statsCoreRow', 'statsCategoryGrid'].forEach(id => {
-    const container = document.getElementById(id);
-    if (container.querySelector('.skeleton')) container.innerHTML = '';
-  });
-};
+  const syncData = async (isManual, isInitial = false) => {
+    if (state.isSyncing) return;
+    setSyncingUI(true);
+    if (isInitial) {
+      DOM.resultsContainer.innerHTML = '<div class="state-message"><i class="fas fa-circle-notch fa-spin" style="color: var(--accent-primary);"></i><span>Loading data…</span></div>';
+    }
+    try {
+      const res = await fetch(`${SHEET_URL}${SHEET_URL.includes('?') ? '&' : '?'}_ts=${Date.now()}`);
+      if (!res.ok) throw new Error('Network response was not ok');
+      const text = await res.text();
+      const results = await new Promise((resolve) => Papa.parse(text, {header:true, skipEmptyLines:true, complete: resolve}));
 
-const SHEET_ID = '122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-let isFirstLoad = true;
+      state.allData = results.data.filter(r => r && r.Year && r.Year.trim() !== '');
+      state.allYears = [...new Set(state.allData.map(r => r.Year))].sort((a,b) => b-a);
+      state.cachedMetrics.clear();
 
-let activeFetchController = null;
+      if (isInitial) {
+        state.analysisScopeYears = state.allYears.slice(0,3);
+        if (state.allYears.length > 0) state.compareFiltersA.Year = state.allYears[0];
+        if (state.allYears.length > 1) state.compareFiltersB.Year = state.allYears[1];
+      }
 
-const loadDashboardData = (isManualRefresh = false) => {
-  const refreshBtn = document.getElementById('syncRefreshBtn');
-  const timestampEl = document.getElementById('syncTimestamp');
-  refreshBtn.classList.add('spinning');
-  timestampEl.textContent = 'Syncing…';
-  setSyncState('is-syncing');
+      state.lastSyncedAt = new Date();
+      refreshSyncLabel();
+      renderLayout();
 
-  if (activeFetchController) activeFetchController.abort();
-  const controller = new AbortController();
-  activeFetchController = controller;
+      if (isManual) showToast('Data synced', 'success', 'fa-check');
+      else if (!isInitial) showToast('Auto-synced', 'success', 'fa-check');
+    } catch(e) {
+      if (isInitial) {
+        DOM.resultsContainer.innerHTML = '<div class="state-message error"><i class="fas fa-exclamation-triangle"></i><span>Error loading data. Please refresh.</span></div>';
+      } else {
+        showToast('Sync failed — check your connection', 'error', 'fa-triangle-exclamation');
+      }
+    } finally {
+      setSyncingUI(false);
+    }
+  };
 
-  fetch(`${SHEET_URL}&t=${Date.now()}`, { cache: 'no-store', signal: controller.signal })
-    .then(r => { if (!r.ok) throw new Error('Network response was not ok'); return r.text(); })
-    .then(csv => {
-      Papa.parse(csv, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          results.data.forEach((row, index) => { row._rowNum = index + 2; });
-          const processed = processDataAndHandleDuplicates(results.data);
-          data = processed.cleanData;
-          mergedDuplicates = processed.duplicateTracker;
-          allYears = [...new Set(data.map(d => d.Year))].filter(Boolean).map(Number).sort((a, b) => a - b);
-          if (allYears.length) defaultYear = Math.max(...allYears);
-          clearStatSkeletons();
-          populateYearFilter();
-          restoreSavedFilters();
-          if (isFirstLoad) { setupDropdowns(); setupUniversalSearch(); isFirstLoad = false; }
-          updateAllFilterOptions();
-          buildSearchIndices();
-          updateDashboard();
-          updateSearchVisuals();
-          lastSyncDate = new Date();
-          timestampEl.textContent = formatSyncTime(lastSyncDate);
-          setSyncState('is-idle');
-          startSyncRelativeClock();
-          if (isManualRefresh) showToast('Dashboard data refreshed', 'success');
-        },
-        error: () => {
-          timestampEl.textContent = 'Sync failed';
-          setSyncState('is-error');
-          showToast('Could not parse the data source', 'error');
+  const init = async () => {
+    applyAutoSyncUI();
+    refreshSyncLabel();
+    syncLabelTimer = setInterval(refreshSyncLabel, 20000);
+
+    DOM.syncBtn.addEventListener('click', () => syncData(true));
+    DOM.autoSyncToggle.addEventListener('click', () => {
+      state.autoSyncEnabled = !state.autoSyncEnabled;
+      localStorage.setItem('da-auto-sync', String(state.autoSyncEnabled));
+      applyAutoSyncUI();
+      showToast(state.autoSyncEnabled ? 'Auto-sync enabled' : 'Auto-sync disabled', 'info', state.autoSyncEnabled ? 'fa-toggle-on' : 'fa-toggle-off');
+    });
+
+    await syncData(false, true);
+    setupEvents();
+  };
+
+  const setupEvents = () => {
+    DOM.singleViewBtn.addEventListener('click', () => {
+      state.viewMode = 'single';
+      DOM.singleViewBtn.classList.add('active');
+      DOM.compareViewBtn.classList.remove('active');
+      renderLayout();
+    });
+
+    DOM.compareViewBtn.addEventListener('click', () => {
+      state.viewMode = 'compare';
+      DOM.compareViewBtn.classList.add('active');
+      DOM.singleViewBtn.classList.remove('active');
+      renderLayout();
+    });
+
+    document.getElementById('selectYearsBtn').addEventListener('click', openYearPopup);
+    DOM.yearPopup.closeBtn.addEventListener('click', () => DOM.yearPopup.overlay.classList.remove('visible'));
+
+    DOM.yearPopup.doneBtn.addEventListener('click', () => {
+      state.analysisScopeYears = Array.from(DOM.yearPopup.list.querySelectorAll('input:checked')).map(cb => cb.value);
+      DOM.yearPopup.overlay.classList.remove('visible');
+      renderLayout();
+    });
+
+    DOM.yearPopup.search.addEventListener('input', debounce((e) => renderYearList(e.target.value), 300));
+
+    DOM.yearPopup.sortBtn.addEventListener('click', () => {
+      state.yearSortOrder = state.yearSortOrder === 'desc' ? 'asc' : 'desc';
+      renderYearList(DOM.yearPopup.search.value);
+    });
+
+    DOM.yearPopup.selectAll.addEventListener('click', () => {
+      DOM.yearPopup.list.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+    });
+
+    DOM.yearPopup.deselectAll.addEventListener('click', () => {
+      DOM.yearPopup.list.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    document.getElementById('closeExportPopupBtn').addEventListener('click', () => {
+      document.getElementById('exportModalPopup').classList.remove('visible');
+    });
+
+    document.getElementById('copyCsvBtn').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const text = document.getElementById('exportTextarea').value;
+      const originalHtml = btn.innerHTML;
+      const success = () => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.style.background = 'var(--accent-success)';
+        setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = ''; }, 2000);
+      };
+      try {
+        await navigator.clipboard.writeText(text);
+        success();
+      } catch(err) {
+        const ta = document.getElementById('exportTextarea');
+        ta.select();
+        document.execCommand('copy');
+        success();
+      }
+    });
+
+    DOM.filtersArea.addEventListener('change', (e) => {
+      if (e.target.tagName === 'SELECT') {
+        const side = e.target.dataset.side;
+        const filter = e.target.dataset.filter;
+        const filterObj = state.viewMode === 'single' ? state.singleFilters : (side === 'A' ? state.compareFiltersA : state.compareFiltersB);
+        filterObj[filter] = e.target.value;
+        if (filter === 'Region') { filterObj.Pharmacy = 'all'; filterObj.Month = 'all'; }
+        if (filter === 'Pharmacy') { filterObj.Month = 'all'; }
+        state.cachedMetrics.clear();
+        updateFilterOptions(side);
+        updateResults();
+      }
+    });
+
+    DOM.filtersArea.addEventListener('click', (e) => {
+      if (e.target.closest('.reset-filter-btn')) {
+        const btn = e.target.closest('.reset-filter-btn');
+        const side = btn.dataset.side;
+        const filter = btn.dataset.filter;
+        const filterObj = state.viewMode === 'single' ? state.singleFilters : (side === 'A' ? state.compareFiltersA : state.compareFiltersB);
+        filterObj[filter] = 'all';
+        const selectEl = document.getElementById(`${filter}-${side}`);
+        if (selectEl) selectEl.value = 'all';
+        state.cachedMetrics.clear();
+        updateFilterOptions(side);
+        updateResults();
+      }
+    });
+
+    DOM.resultsContainer.addEventListener('click', (e) => {
+      const tr = e.target.closest('tr');
+      if (tr && tr.parentNode.tagName === 'TBODY') {
+        const table = tr.closest('table');
+        const isFocused = tr.classList.contains('row-focused');
+        table.querySelectorAll('tr').forEach(r => r.classList.remove('row-focused','row-dimmed'));
+        if (!isFocused) {
+          tr.classList.add('row-focused');
+          table.querySelectorAll('tbody tr').forEach(r => { if (r !== tr) r.classList.add('row-dimmed'); });
         }
+      }
+    });
+  };
+
+  const openYearPopup = () => {
+    renderYearList();
+    DOM.yearPopup.overlay.classList.add('visible');
+  };
+
+  const renderYearList = (searchTerm = '') => {
+    let years = [...state.allYears];
+    years.sort((a,b) => state.yearSortOrder === 'desc' ? b-a : a-b);
+    if (searchTerm) years = years.filter(y => y.includes(searchTerm) || `${y-1}-${y}`.includes(searchTerm));
+    DOM.yearPopup.list.innerHTML = years.map(y => `
+      <label class="popup-list-item">
+        <input type="checkbox" value="${escapeHTML(y)}" ${state.analysisScopeYears.includes(String(y)) ? 'checked' : ''}>
+        <span>${escapeHTML(y-1)} – ${escapeHTML(y)}</span>
+      </label>
+    `).join('');
+  };
+
+  const getFilteredData = (filters) => {
+    return state.allData.filter(row =>
+      (filters.Year === 'all' || !filters.Year || row.Year == filters.Year) &&
+      (filters.Region === 'all' || row.Region == filters.Region) &&
+      (filters.Pharmacy === 'all' || row.Pharmacy == filters.Pharmacy) &&
+      (filters.Month === 'all' || row.Month == filters.Month) &&
+      (filters.Class === 'all' || row.Class == filters.Class)
+    );
+  };
+
+  const calculateMetrics = (data, filters) => {
+    const cacheKey = JSON.stringify(filters);
+    if (state.cachedMetrics.has(cacheKey)) return state.cachedMetrics.get(cacheKey);
+
+    const metrics = {'Total Value':0,'Total Prescriptions':0,'Insurance Covered':0};
+    METRICS_CONFIG.forEach(m => metrics[m] = 0);
+
+    data.forEach(row => {
+      metrics['Total Prescriptions'] += parseFloat(row['Total Prescription'] || 0);
+      metrics['Insurance Covered'] += parseFloat(row['Insurance Covered Prescription'] || 0);
+      METRICS_CONFIG.forEach(cat => {
+        const val = parseFloat(row[cat] || 0);
+        metrics[cat] += val;
+        metrics['Total Value'] += val;
       });
-    })
-    .catch((err) => {
-      if (err.name === 'AbortError') return;
-      timestampEl.textContent = 'Sync failed';
-      setSyncState('is-error');
-      showToast('Could not reach the data source — check your connection', 'error');
-    })
-    .finally(() => { if (activeFetchController === controller) refreshBtn.classList.remove('spinning'); });
-};
+    });
 
-document.getElementById('syncRefreshBtn').addEventListener('click', () => loadDashboardData(true));
+    const allPharmacies = [...new Set(state.allData.filter(r => r.Year == filters.Year).map(r => r.Pharmacy))];
+    const relevantPharmacies = filters.Pharmacy !== 'all' ? [filters.Pharmacy] : allPharmacies;
+    const expectedCount = relevantPharmacies.length * (filters.Month !== 'all' ? 1 : 12);
+    const actualEntries = new Set(data.map(r => r.Pharmacy + r.Month)).size;
 
-loadDashboardData(false);
+    metrics['Active Pharmacies'] = new Set(data.map(r => r.Pharmacy)).size;
+    metrics['Inactive Count'] = Math.max(0, expectedCount - actualEntries);
+
+    state.cachedMetrics.set(cacheKey, metrics);
+    return metrics;
+  };
+
+  const renderLayout = () => {
+    DOM.mainControlsPanel.style.display = state.viewMode === 'single' ? 'flex' : 'none';
+    DOM.filtersArea.className = `filters-area ${state.viewMode}-view`;
+    DOM.filtersArea.innerHTML = '';
+
+    if (state.viewMode === 'single') {
+      renderSelectedYearTags();
+      DOM.filtersArea.appendChild(createFilterSet('A','Filters','fa-sliders-h','var(--accent-primary)'));
+    } else {
+      DOM.filtersArea.appendChild(createFilterSet('A','Left Scope','fa-sliders-h','var(--accent-primary)'));
+      const div = document.createElement('div');
+      div.className = 'comparison-divider';
+      div.innerHTML = '<span>VS</span>';
+      DOM.filtersArea.appendChild(div);
+      DOM.filtersArea.appendChild(createFilterSet('B','Right Scope','fa-sliders-h','var(--accent-secondary)'));
+    }
+
+    updateFilterOptions('A');
+    if (state.viewMode === 'compare') updateFilterOptions('B');
+    updateResults();
+  };
+
+  const createFilterSet = (side, title, iconClass, iconColor) => {
+    const el = document.createElement('div');
+    el.className = `filter-set glass-panel side-${side.toLowerCase()}`;
+    const filters = ['Region','Pharmacy','Month','Class'];
+    if (state.viewMode === 'compare') filters.unshift('Year');
+    el.innerHTML = `
+      <div class="filter-set-title"><i class="fas ${iconClass}" style="color:${iconColor};"></i> ${escapeHTML(title)}</div>
+      <div class="filter-grid">
+        ${filters.map(f => `
+          <div class="filter-group">
+            <label>${escapeHTML(f)}</label>
+            <select data-side="${side}" data-filter="${escapeHTML(f)}" id="${escapeHTML(f)}-${side}"></select>
+            <button class="reset-filter-btn" data-side="${side}" data-filter="${escapeHTML(f)}"><i class="fas fa-undo-alt"></i></button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return el;
+  };
+
+  const updateFilterOptions = (side) => {
+    const filters = state.viewMode === 'single' ? state.singleFilters : (side === 'A' ? state.compareFiltersA : state.compareFiltersB);
+    const keys = ['Region','Pharmacy','Month','Class'];
+    if (state.viewMode === 'compare') keys.unshift('Year');
+
+    keys.forEach(key => {
+      const select = document.getElementById(`${key}-${side}`);
+      if (!select) return;
+      const dataContext = getFilteredData({...filters, [key]:'all'});
+      let options = [...new Set(dataContext.map(r => r[key]))].filter(Boolean);
+      if (key === 'Year') options.sort((a,b) => b-a);
+      else if (key === 'Month') options.sort((a,b) => (MONTH_ORDER[a.toLowerCase()]||99) - (MONTH_ORDER[b.toLowerCase()]||99));
+      else options.sort();
+      const currentVal = filters[key];
+      select.innerHTML = `<option value="all">All ${escapeHTML(key)}s</option>` + options.map(o => `<option value="${escapeHTML(o)}">${key==='Year' ? escapeHTML(o-1)+' – '+escapeHTML(o) : escapeHTML(o)}</option>`).join('');
+      select.value = options.includes(currentVal) ? currentVal : 'all';
+      if (select.value !== currentVal) filters[key] = select.value;
+    });
+  };
+
+  const updateResults = () => {
+    DOM.resultsContainer.innerHTML = '';
+
+    if (state.viewMode === 'single') {
+      if (state.analysisScopeYears.length === 0) {
+        DOM.resultsContainer.innerHTML = '<div class="state-message"><i class="fas fa-calendar-times"></i><span>Please select at least one year.</span></div>';
+        return;
+      }
+
+      const metricsMap = {};
+      state.analysisScopeYears.forEach(y => {
+        metricsMap[y] = calculateMetrics(getFilteredData({...state.singleFilters, Year:y}), {...state.singleFilters, Year:y});
+      });
+
+      const allMetrics = ['Total Value','Total Prescriptions','Active Pharmacies',...METRICS_CONFIG];
+      const years = state.analysisScopeYears.sort((a,b) => b-a);
+
+      let html = `
+        <div class="single-view-scroll-wrapper">
+          <table class="results-table single-view-table">
+            <thead>
+              <tr>
+                <th style="min-width:220px;">Metric</th>
+                ${years.map(y => `<th style="text-align:right;">${escapeHTML(y-1)} – ${escapeHTML(y)}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>`;
+
+      allMetrics.forEach(metric => {
+        const values = years.map(y => metricsMap[y][metric]);
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        const isVaried = max !== min && max > 0;
+        html += `<tr>
+          <td class="metric-name">${escapeHTML(metric)}</td>
+          ${years.map(y => {
+            const val = metricsMap[y][metric];
+            let classExtra = '';
+            if (isVaried) {
+              if (val === max) classExtra = 'cell-max';
+              else if (val === min) classExtra = 'cell-min';
+            }
+            return `<td class="numeric ${classExtra}">${formatNumber(val)}</td>`;
+          }).join('')}
+        </tr>`;
+      });
+
+      html += `</tbody></table></div>`;
+      DOM.resultsContainer.innerHTML = html;
+
+    } else {
+      const metricsA = calculateMetrics(getFilteredData(state.compareFiltersA), state.compareFiltersA);
+      const metricsB = calculateMetrics(getFilteredData(state.compareFiltersB), state.compareFiltersB);
+      const allMetrics = ['Total Value','Total Prescriptions','Active Pharmacies',...METRICS_CONFIG];
+
+      const renderSide = (metrics, comparisonMetrics, sideName, sideClass) => {
+        let html = `
+          <div class="compare-table ${sideClass}">
+            <div class="compare-table-header">${escapeHTML(sideName)}</div>
+            <div class="compare-table-content">
+              <table class="results-table compare-view-table">
+                <thead><tr><th>Metric</th><th style="text-align:right">Value</th></tr></thead>
+                <tbody>`;
+        allMetrics.forEach(m => {
+          const val = metrics[m];
+          const compVal = comparisonMetrics ? comparisonMetrics[m] : null;
+          let pill = '';
+          if (comparisonMetrics) {
+            const diff = val - compVal;
+            const pct = compVal ? (diff / compVal) * 100 : 0;
+            if (Math.abs(pct) > 0.1) {
+              const isPos = diff > 0;
+              pill = `<span class="comparison-pill ${isPos?'positive':'negative'}">${isPos?'+':''}${pct.toFixed(1)}%</span>`;
+            }
+          }
+          html += `<tr>
+            <td class="metric-name">${escapeHTML(m)}</td>
+            <td class="numeric"><div class="numeric-cell-content">${pill} <span>${formatNumber(val)}</span></div></td>
+          </tr>`;
+        });
+        html += `</tbody></table></div></div>`;
+        return html;
+      };
+
+      const container = document.createElement('div');
+      container.className = 'compare-tables-container';
+      const getTitle = (f) => f.Year !== 'all' ? `${f.Year-1} – ${f.Year}` : 'All Years';
+      container.innerHTML = renderSide(metricsA, metricsB, getTitle(state.compareFiltersA), 'side-a')
+                          + renderSide(metricsB, metricsA, getTitle(state.compareFiltersB), 'side-b');
+      DOM.resultsContainer.appendChild(container);
+
+      const panes = container.querySelectorAll('.compare-table-content');
+      let isSyncing = false;
+      panes[0].addEventListener('scroll', function() {
+        if (!isSyncing) { isSyncing = true; panes[1].scrollTop = this.scrollTop; setTimeout(() => isSyncing = false, 20); }
+      });
+      panes[1].addEventListener('scroll', function() {
+        if (!isSyncing) { isSyncing = true; panes[0].scrollTop = this.scrollTop; setTimeout(() => isSyncing = false, 20); }
+      });
+    }
+  };
+
+  const renderSelectedYearTags = () => {
+    const container = document.getElementById('selectedYearsContainer');
+    container.innerHTML = state.analysisScopeYears.map(y => {
+      const safeY = escapeHTML(y);
+      const safeJSY = escapeHTML(String(y).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+      return `
+        <span class="year-tag">
+          <i class="fas fa-check-circle"></i> ${escapeHTML(y-1)} – ${safeY}
+          <button class="remove-tag-btn" onclick="removeYear('${safeJSY}')"><i class="fas fa-times"></i></button>
+        </span>
+      `;
+    }).join('');
+  };
+
+  window.removeYear = (y) => {
+    state.analysisScopeYears = state.analysisScopeYears.filter(year => year !== String(y));
+    renderLayout();
+  };
+
+  const exportData = () => {
+    const data = [];
+    let filterHeaders = '';
+    const allMetrics = ['Total Value','Total Prescriptions','Active Pharmacies',...METRICS_CONFIG];
+
+    if (state.viewMode === 'single') {
+      const f = state.singleFilters;
+      filterHeaders = `"Dashboard View:","Single View"\r\n"Applied Filters:","Region: ${f.Region} | Pharmacy: ${f.Pharmacy} | Month: ${f.Month} | Class: ${f.Class}"\r\n\r\n`;
+      allMetrics.forEach(m => {
+        const row = {Metric: m};
+        state.analysisScopeYears.forEach(y => {
+          const filters = {...f, Year:y};
+          const mets = calculateMetrics(getFilteredData(filters), filters);
+          row[`${y-1}-${y}`] = `="${formatNumber(mets[m])}"`;
+        });
+        data.push(row);
+      });
+    } else {
+      const fA = state.compareFiltersA;
+      const fB = state.compareFiltersB;
+      filterHeaders = `"Dashboard View:","Compare View"\r\n"Side A:","Year: ${fA.Year} | Region: ${fA.Region} | Pharmacy: ${fA.Pharmacy} | Month: ${fA.Month} | Class: ${fA.Class}"\r\n"Side B:","Year: ${fB.Year} | Region: ${fB.Region} | Pharmacy: ${fB.Pharmacy} | Month: ${fB.Month} | Class: ${fB.Class}"\r\n\r\n`;
+      const metricsA = calculateMetrics(getFilteredData(fA), fA);
+      const metricsB = calculateMetrics(getFilteredData(fB), fB);
+      allMetrics.forEach(m => {
+        data.push({
+          Metric: m,
+          [`Side A (${fA.Year==='all'?'All':fA.Year-1+'-'+fA.Year})`]: `="${formatNumber(metricsA[m])}"`,
+          [`Side B (${fB.Year==='all'?'All':fB.Year-1+'-'+fB.Year})`]: `="${formatNumber(metricsB[m])}"`
+        });
+      });
+    }
+
+    if (data.length) {
+      const csv = Papa.unparse(data);
+      const finalCsv = filterHeaders + csv;
+
+      const blob = new Blob(['\uFEFF' + finalCsv], {type:'text/csv;charset=utf-8;'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `dashboard_export_${Date.now()}.csv`;
+      link.click();
+
+      document.getElementById('exportTextarea').value = finalCsv;
+      document.getElementById('exportModalPopup').classList.add('visible');
+    }
+  };
+
+  init();
+});
 </script>
+
 </body>
+<script>
+(function(){
+  if(window.parent === window) return;
+  function ready(){
+    window.parent.postMessage({ t:'lx:ready', title:document.title }, '*');
+    var last = document.title;
+    var titleEl = document.querySelector('title');
+    if(!titleEl) return;
+    new MutationObserver(function(){
+      if(document.title !== last){
+        last = document.title;
+        window.parent.postMessage({ t:'lx:title', title:last }, '*');
+      }
+    }).observe(titleEl, { childList:true });
+  }
+  if(document.readyState === 'complete') ready();
+  else window.addEventListener('load', ready);
+})();
+</script>
 </html>
