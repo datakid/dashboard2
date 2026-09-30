@@ -11,6 +11,26 @@ const monthLabel = (k, bare) => {
   return `${s} ${String(calYear(Year, Month)).slice(2)}`;
 };
 
+const MONTHS_EN = ['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June'];
+const monthIdx = (m) => { const r = monthRank(m); return r >= 1 && r <= 12 ? r - 1 : -1; };
+const isArabic = (s) => /[\u0590-\u08FF]/.test(String(s ?? ''));
+const isYearKey = (k) => /^\d{4}$/.test(String(k));
+const periodAxis = (key, bare) => {
+  const { Year, Month } = splitPeriod(key);
+  if (!Year) return isYearKey(key) ? `FY ${fyShort(key)}` : String(key);
+  const i = monthIdx(Month);
+  if (i < 0) return monthLabel(key, bare);
+  const s = MONTHS_EN[i].slice(0, 3);
+  return bare ? s : `${s} ’${String(calYear(Year, Month)).slice(2)}`;
+};
+const periodTitle = (key) => {
+  const { Year, Month } = splitPeriod(key);
+  if (!Year) return { main: isYearKey(key) ? `FY ${fyLabel(key)}` : String(key) };
+  const i = monthIdx(Month);
+  if (i < 0) return { main: `${Month} ${calYear(Year, Month)}`, sub: `FY ${fyShort(Year)}` };
+  return { main: `${MONTHS_EN[i]} ${calYear(Year, Month)}`, sub: isArabic(Month) ? `${Month} · FY ${fyShort(Year)}` : `FY ${fyShort(Year)}` };
+};
+
 const Data = {
   _yr: { sig: null, rows: [] },
 
@@ -103,13 +123,20 @@ const Data = {
     return stats;
   },
 
-  passesDims(row) {
+  passesDims(row, skipMed) {
     const f = S.filters;
     for (const d of ['Region', 'Pharmacy', 'Month', 'Class']) {
       if (f[d].length && !f[d].includes(String(row[d]).trim())) return false;
     }
-    if (f.MedClass.length && !f.MedClass.some(c => num(row[c]) > 0)) return false;
+    if (!skipMed && f.MedClass.length && !f.MedClass.some(c => num(row[c]) > 0)) return false;
     return true;
+  },
+
+  catTotals(skipMed) {
+    const out = {};
+    MED_CATS.forEach(c => { out[c] = 0; });
+    this.yearRows().forEach(r => { if (this.passesDims(r, skipMed)) MED_CATS.forEach(c => { out[c] += num(r[c]); }); });
+    return out;
   },
 
   applyFilters() { S.filtered = this.yearRows().filter(row => this.passesDims(row)); },

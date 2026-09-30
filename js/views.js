@@ -10,6 +10,8 @@ const sortMark = '<span class="sort">▲</span>';
 
 const Overview = {
   sparkChart: null,
+  built: false,
+  sparkKeys: [],
 
   render(agg) {
     const cats = Data.cats();
@@ -34,86 +36,176 @@ const Overview = {
       mom = b ? (a - b) / b * 100 : null;
     }
     const nYears = Data.scopeYears().length;
+    const sel = S.filters.MedClass;
+    const focus = sel.length > 0;
 
+    if (!this.built || !$('#heroValue')) this.build();
+
+    $('#heroEyebrow').textContent = `${focus ? 'Focused value' : 'Total value'} · ${Data.periodLabel()}`;
+    const hv = $('#heroValue');
+    hv.dataset.tip = fmt(total);
+    animateNumber(hv, total, 700);
+    $('#heroMeta').innerHTML = `${multi ? `<span class="pill accent">${nYears} years</span>` : ''}<span class="pill ${multi ? 'plain' : 'accent'}">${months.length} months</span>`
+      + (focus ? `<button type="button" class="pill copper pill-x" data-clear-cats data-tip="Clear class focus · Esc">${sel.length} of ${MED_CATS.length} classes${icon('x')}</button>` : `<span class="pill copper">${cats.length} classes</span>`)
+      + `<span class="pill plum">${fmt(S.filtered.length)} records</span>`;
+    const facts = $('#heroFacts');
+    facts.children[0].querySelector('dd').textContent = compact(avg);
+    facts.children[1].querySelector('dd').textContent = peakIdx >= 0 ? periodTitle(series[peakIdx].key).main : '—';
+    facts.children[2].querySelector('dt').textContent = momLabel;
+    facts.children[2].querySelector('dd').innerHTML = mom === null ? '—' : `<span class="delta ${mom >= 0 ? 'pos' : 'neg'}">${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%</span>`;
+
+    const core = [
+      { value: presc, pct: null, note: `${compact(months.length ? presc / months.length : 0)} per month` },
+      { value: insured, pct: presc > 0 ? insured / presc * 100 : null, pctLabel: 'Share of prescriptions', note: 'No prescriptions' },
+      { value: active, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: `Of ${yearPh} pharmacies in this period` }
+    ];
+    $$('#statsCoreRow .stat-card').forEach((card, i) => {
+      const c = core[i];
+      animateNumber($('.stat-value', card), c.value);
+      const hasPct = c.pct !== null;
+      $('.bar', card).hidden = !hasPct;
+      const p = $('.stat-pct', card);
+      p.hidden = !hasPct;
+      $('.stat-note', card).hidden = hasPct;
+      $('.stat-note', card).textContent = c.note || '';
+      if (hasPct) { p.textContent = `${c.pct.toFixed(1)}%`; p.dataset.tip = c.pctLabel || ''; $('.bar-fill', card).style.width = Math.min(100, c.pct) + '%'; }
+    });
+
+    const base = focus ? Data.catTotals(true) : agg.byCat;
+    const grand = MED_CATS.reduce((s, c) => s + (base[c] || 0), 0);
+    const rank = new Map(MED_CATS.map(c => ({ c, v: base[c] || 0 })).sort((a, b) => b.v - a.v).map((r, i) => [r.c, i + 1]));
+    const grid = $('#statsCategoryGrid');
+    grid.classList.toggle('focusing', focus);
+    $$('.cat-card', grid).forEach(card => {
+      const c = card.dataset.cat;
+      const v = base[c] || 0;
+      const pct = grand > 0 ? v / grand * 100 : 0;
+      const on = sel.includes(c);
+      card.classList.toggle('active', on);
+      card.classList.toggle('dim', focus && !on);
+      card.classList.toggle('zero', !v);
+      card.setAttribute('aria-pressed', String(on));
+      card.setAttribute('aria-label', `${c}: ${fmt(v)} · ${on ? 'in focus' : 'focus on this class'}`);
+      $('.cat-rank', card).textContent = String(rank.get(c)).padStart(2, '0');
+      animateNumber($('.cat-value', card), v, 600);
+      $('.stat-pct', card).textContent = `${pct.toFixed(1)}%`;
+      $('.bar-fill', card).style.width = pct + '%';
+    });
+    $('#catNote').textContent = focus
+      ? `${sel.length} in focus · click another to switch, ${this.touch() ? 'long-press' : '⌘/Ctrl-click'} to add, Esc to clear`
+      : `Click a class to focus the whole dashboard on it · ${this.touch() ? 'long-press' : '⌘/Ctrl-click'} to pick several`;
+    $('#clearCatsBtn').hidden = !focus;
+    $('#clearCatsCount').textContent = sel.length;
+
+    this.spark(monthVals, series.map(b => b.key));
+  },
+
+  touch() { return matchMedia('(hover: none)').matches; },
+
+  build() {
     $('#statsTotalRow').innerHTML = `
       <article class="card hero-card">
         <div class="hero-main">
-          <div class="hero-eyebrow"><span class="hero-dot"></span>Total value · ${esc(Data.periodLabel())}</div>
-          <div class="hero-value" id="heroValue" data-tip="${fmt(total)}">0</div>
-          <div class="hero-meta">
-            ${multi ? `<span class="pill accent">${nYears} years</span>` : ''}<span class="pill ${multi ? 'plain' : 'accent'}">${months.length} months</span>
-            <span class="pill copper">${cats.length} classes</span>
-            <span class="pill plum">${fmt(S.filtered.length)} records</span>
-          </div>
+          <div class="hero-eyebrow"><span class="hero-dot"></span><span id="heroEyebrow"></span></div>
+          <div class="hero-value" id="heroValue">0</div>
+          <div class="hero-meta" id="heroMeta"></div>
         </div>
         <div class="hero-side">
-          <dl class="hero-facts">
-            <div><dt>Monthly average</dt><dd>${compact(avg)}</dd></div>
-            <div><dt>Peak month</dt><dd dir="auto">${peakIdx >= 0 ? esc(months[peakIdx]) : '—'}</dd></div>
-            <div><dt>${momLabel}</dt><dd>${mom === null ? '—' : `<span class="delta ${mom >= 0 ? 'pos' : 'neg'}">${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%</span>`}</dd></div>
+          <dl class="hero-facts" id="heroFacts">
+            <div><dt>Monthly average</dt><dd>—</dd></div>
+            <div><dt>Peak month</dt><dd>—</dd></div>
+            <div><dt>Last vs previous month</dt><dd>—</dd></div>
           </dl>
           <div class="hero-spark"><canvas id="heroSpark" aria-label="Monthly total trend"></canvas></div>
         </div>
       </article>`;
-    animateNumber($('#heroValue'), total, 900);
-
-    const core = [
-      { label: 'Prescriptions', value: presc, ic: 'pill', tone: 0, pct: null, note: `${compact(months.length ? presc / months.length : 0)} per month` },
-      { label: 'Insurance covered', value: insured, ic: 'shield', tone: 1, pct: presc > 0 ? insured / presc * 100 : null, pctLabel: 'Share of prescriptions' },
-      { label: 'Active pharmacies', value: active, ic: 'building', tone: 2, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: `Of ${yearPh} pharmacies in this period` }
-    ];
-    $('#statsCoreRow').innerHTML = core.map((c, i) => {
-      const [t, ts] = TONES[c.tone];
-      const foot = c.pct === null
-        ? `<div class="stat-foot"><span class="stat-note">${esc(c.note || '')}</span></div>`
-        : `<div class="stat-foot"><div class="bar"><div class="bar-fill" data-w="${Math.min(100, c.pct)}"></div></div><span class="stat-pct" data-tip="${esc(c.pctLabel || '')}">${c.pct.toFixed(1)}%</span></div>`;
+    const core = [['Prescriptions', 'pill', 0], ['Insurance covered', 'shield', 1], ['Active pharmacies', 'building', 2]];
+    $('#statsCoreRow').innerHTML = core.map(([label, ic, tone], i) => {
+      const [t, ts] = TONES[tone];
       return `<article class="card stat-card" style="--i:${i};--tone:${t};--tone-soft:${ts}">
-        <div class="stat-top"><span class="stat-icon">${icon(c.ic)}</span><span class="stat-label">${esc(c.label)}</span></div>
-        <div class="stat-value" data-v="${c.value}">0</div>${foot}</article>`;
+        <div class="stat-top"><span class="stat-icon">${icon(ic)}</span><span class="stat-label">${esc(label)}</span></div>
+        <div class="stat-value">0</div>
+        <div class="stat-foot"><div class="bar"><div class="bar-fill"></div></div><span class="stat-pct"></span><span class="stat-note"></span></div></article>`;
     }).join('');
-
-    const ranked = cats.map(c => ({ c, v: agg.byCat[c] || 0 })).sort((a, b) => b.v - a.v);
-    const rank = new Map(ranked.map((r, i) => [r.c, i + 1]));
-    $('#statsCategoryGrid').innerHTML = cats.map((c, i) => {
-      const v = agg.byCat[c] || 0;
-      const pct = total > 0 ? v / total * 100 : 0;
+    $('#statsCategoryGrid').innerHTML = MED_CATS.map((c, i) => {
       const [t, ts] = TONES[i % TONES.length];
-      const on = S.filters.MedClass.includes(c);
-      return `<button type="button" class="card cat-card${on ? ' active' : ''}" data-cat="${esc(c)}" style="--i:${i};--tone:${t};--tone-soft:${ts}" aria-pressed="${on}" aria-label="${on ? 'Remove' : 'Filter by'} ${esc(c)}">
-        <span class="cat-top"><span class="cat-rank">${String(rank.get(c)).padStart(2, '0')}</span><span class="cat-name" dir="auto">${esc(c)}</span></span>
-        <span class="cat-value">${fmt(v)}</span>
-        <span class="stat-foot"><span class="bar"><span class="bar-fill" style="display:block" data-w="${pct}"></span></span><span class="stat-pct">${pct.toFixed(1)}%</span></span>
+      return `<button type="button" class="card cat-card" data-cat="${esc(c)}" style="--i:${i};--tone:${t};--tone-soft:${ts}" aria-pressed="false">
+        <span class="cat-top"><span class="cat-rank"></span><span class="cat-name" dir="auto">${esc(c)}</span><span class="cat-check" aria-hidden="true">${icon('check')}</span></span>
+        <span class="cat-value">0</span>
+        <span class="stat-foot"><span class="bar"><span class="bar-fill" style="display:block"></span></span><span class="stat-pct"></span></span>
       </button>`;
     }).join('');
-
-    requestAnimationFrame(() => {
-      $$('#statsCoreRow .stat-value').forEach(el => animateNumber(el, Number(el.dataset.v)));
-      $$('#view-overview .bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
-    });
-
-    this.spark(monthVals, months);
+    if (this.sparkChart) { this.sparkChart.destroy(); this.sparkChart = null; }
+    this.built = true;
   },
 
-  spark(values, labels) {
+  spark(values, keys) {
     if (!window.Chart) return;
     const cv = $('#heroSpark');
     if (!cv) return;
-    if (this.sparkChart) this.sparkChart.destroy();
+    this.sparkKeys = keys;
     const sage = cssVar('--sage');
+    const surface = cssVar('--surface');
+    const labels = keys.map(k => periodAxis(k, !Data.multiYear()));
+    const ch = this.sparkChart;
+    if (ch && ch.canvas === cv) {
+      const d = ch.data.datasets[0];
+      ch.data.labels = labels;
+      d.data = values;
+      d.borderColor = sage; d.pointBorderColor = sage; d.pointBackgroundColor = surface;
+      ch.update();
+      return;
+    }
+    if (ch) ch.destroy();
     this.sparkChart = new Chart(cv, {
       type: 'line',
-      data: { labels, datasets: [{ data: values, borderColor: sage, borderWidth: 2.25, tension: .4, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: cssVar('--surface'), pointBorderColor: sage, pointBorderWidth: 2, fill: true,
+      data: { labels, datasets: [{ label: 'Total value', data: values, borderColor: sage, borderWidth: 2.25, tension: .4, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: surface, pointBorderColor: sage, pointBorderWidth: 2, fill: true,
         backgroundColor: (ctx) => { const { chart } = ctx; if (!chart.chartArea) return 'transparent'; const g = chart.ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom); g.addColorStop(0, cssVar('--sage-soft-2')); g.addColorStop(1, 'rgba(0,0,0,0)'); return g; } }] },
-      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 600 }, layout: { padding: { top: 6, bottom: 2 } }, interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false }, tooltip: Charts.tooltip({ label: (c) => ' ' + fmt(c.parsed.y) }) },
+      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 520, easing: 'easeOutQuart' }, layout: { padding: { top: 6, bottom: 2, left: 4, right: 4 } }, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: Charts.tooltip({ title: (pts) => periodTitle(this.sparkKeys[pts[0].dataIndex]), row: (p) => ({ label: S.filters.MedClass.length ? 'Focused value' : 'Total value', value: fmt(p.raw), color: cssVar('--sage') }) }) },
         scales: { x: { display: false }, y: { display: false, beginAtZero: true } } }
     });
   },
 
+  pickCat(c, ev) {
+    const add = ev && (ev.metaKey || ev.ctrlKey || ev.shiftKey);
+    const sel = S.filters.MedClass;
+    if (add) { Filters.toggle('MedClass', c); return; }
+    if (sel.length === 1 && sel[0] === c) S.filters.MedClass = [];
+    else { S.filters.MedClass = [c]; Filters.addRecent('MedClass', c); }
+    App.changed();
+  },
+
+  clearCats() {
+    if (!S.filters.MedClass.length) return false;
+    S.filters.MedClass = [];
+    App.changed();
+    return true;
+  },
+
   init() {
-    $('#statsCategoryGrid').addEventListener('click', (e) => {
+    const grid = $('#statsCategoryGrid');
+    let pressT = null, longFired = false;
+    grid.addEventListener('pointerdown', (e) => {
       const card = e.target.closest('.cat-card');
-      if (card) Filters.toggle('MedClass', card.dataset.cat);
+      if (!card || e.pointerType === 'mouse') return;
+      longFired = false;
+      clearTimeout(pressT);
+      pressT = setTimeout(() => { longFired = true; card.classList.add('pressed'); if (navigator.vibrate) navigator.vibrate(8); Filters.toggle('MedClass', card.dataset.cat); setTimeout(() => card.classList.remove('pressed'), 180); }, 420);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => grid.addEventListener(t, () => clearTimeout(pressT)));
+    grid.addEventListener('contextmenu', (e) => { if (e.target.closest('.cat-card') && this.touch()) e.preventDefault(); });
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.cat-card');
+      if (longFired) { longFired = false; return; }
+      if (card) this.pickCat(card.dataset.cat, e);
+      else if (e.target === grid) this.clearCats();
+    });
+    $('#clearCatsBtn').addEventListener('click', () => this.clearCats());
+    $('#statsTotalRow').addEventListener('click', (e) => { if (e.target.closest('[data-clear-cats]')) this.clearCats(); });
+    $('#view-overview').addEventListener('click', (e) => {
+      if (!S.filters.MedClass.length || e.target.closest('.card, button, a, input')) return;
+      if (e.target.closest('.stats-grid, .section-head')) this.clearCats();
     });
   }
 };

@@ -5,7 +5,7 @@ Alembic brings two older apps, **Lx Dashboard** and **Dashboard Arena**, into on
 ## Tabs (entry URIs)
 | Hash | Purpose |
 |---|---|
-| `#overview` | Hero total with a sparkline and facts (monthly average, peak month, last vs previous), 3 core stats, and ranked medication class cards (tap a card to filter by it) |
+| `#overview` | Hero total with a sparkline and facts (monthly average, peak month, last vs previous), 3 core stats, and ranked medication class cards that work like Power BI cross-filtering (see below) |
 | `#charts` | 6 charts with view toggles, clickable HTML legends, a PNG button on each chart, and "Export board as PNG" (legends included) |
 | `#explore` | Monthly metrics table: sortable, heat shading, ↑/↓ trends, a highlighted Total column, and click-to-focus rows |
 | `#missing` | Inactive pharmacy/month gaps, sortable and searchable, with a count badge on the tab |
@@ -22,6 +22,24 @@ Overview, Charts, Explore and Missing all read one period model: `S.filters.Year
 - **Year over year chart mode:** lays each fiscal year over July → June.
 - **Missing tab:** gaps are checked per year, and a Year column appears when several years are shown.
 - **Keeping the period:** the chosen period is saved between visits and is kept when you clear filters. Exports and PNG files are named after it (`all-time`, `FY2025-2026`).
+
+## Class focus (Power BI-style)
+- Clicking a class card focuses the whole dashboard on that class. Every other card stays visible but faded, and still shows its own value, so you can see the context.
+- Clicking a different card switches the focus to it. Clicking the focused card again clears the focus.
+- ⌘/Ctrl/Shift-click (long-press on touch) adds or removes a card, so you can focus on several classes.
+- Clearing takes one action: the **Clear focus** button, the `N of 18 classes ×` pill in the hero, clicking empty space in the grid, or pressing `Esc`.
+- The Medication distribution chart follows the same rules. It keeps every bar, fades the ones out of focus, and has its own Clear focus button. You can click a bar or its label.
+
+## Chart tooltips & labels
+- All chart tooltips are one shared DOM tooltip (`ChartTip`) instead of the canvas tooltip. Its size comes from the real text, so Arabic month and class names no longer spill out of the box.
+- Tooltip titles give the full period (`October 2024`, plus the Arabic month and the FY). Rows show the value, share % and extra detail (change vs previous, stacked total, region, rank).
+- The labels on horizontal bar charts are drawn by the `sideLabels` plugin. They are right-aligned with RTL direction, measured with the loaded font, and truncated with a binary search. Labels outside the focus are drawn in a lighter colour.
+- Time axes use short English month labels (`Oct ’24`), so ticks stay compact and never mix bidi text.
+
+## Smoothness
+- Charts update in place (`chart.update()`) when only the data changes. They are only rebuilt when the chart type or axis layout changes.
+- The Overview DOM is built once and then patched. Numbers count up or down from their previous value rather than from 0, and bars animate their width.
+- Filter changes are grouped into one animation frame. The Missing check, Timeline and storage updates run right after the paint, so a click never waits on them.
 
 ## Layout
 - The brand and tools (sync, theme, import, shortcuts) sit in their own row that never gets covered.

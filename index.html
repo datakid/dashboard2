@@ -144,8 +144,9 @@
       <div class="section-head">
         <div>
           <h2 class="section-title">Medication classes</h2>
-          <p class="section-note">Tap a class to filter by it</p>
+          <p class="section-note" id="catNote">Click a class to focus the whole dashboard on it</p>
         </div>
+        <button class="btn soft sm clear-focus" id="clearCatsBtn" type="button" hidden data-tip="Show every class · Esc"><span data-i="x"></span><span>Clear focus</span><span class="count-badge" id="clearCatsCount">0</span></button>
       </div>
       <div class="stats-grid" id="statsCategoryGrid"></div>
     </section>

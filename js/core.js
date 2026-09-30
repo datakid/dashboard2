@@ -124,15 +124,21 @@ const selBtn = (attrs, label, placeholder, set) => `<button type="button" class=
 
 const emptyHTML = (title, desc, ic = 'layers', err = false) => `<div class="empty${err ? ' error' : ''}"><div class="empty-icon">${icon(ic)}</div><div class="empty-title">${esc(title)}</div><div class="empty-desc">${esc(desc)}</div></div>`;
 
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const animateNumber = (el, end, ms = 750) => {
-  if (!isFinite(end) || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = fmt(end); return; }
+  if (!el) return;
+  if (el._raf) cancelAnimationFrame(el._raf);
+  const from = isFinite(el._v) ? el._v : 0;
+  el._v = end;
+  if (!isFinite(end) || reduceMotion.matches || from === end || document.hidden) { el.textContent = fmt(end); return; }
+  const dur = from ? Math.min(ms, 480) : ms;
   const t0 = performance.now();
   const step = (now) => {
-    const p = Math.min((now - t0) / ms, 1);
-    el.textContent = fmt(end * (1 - Math.pow(1 - p, 3)));
-    if (p < 1) requestAnimationFrame(step);
+    const p = Math.min((now - t0) / dur, 1);
+    el.textContent = fmt(from + (end - from) * (1 - Math.pow(1 - p, 3)));
+    el._raf = p < 1 ? requestAnimationFrame(step) : 0;
   };
-  requestAnimationFrame(step);
+  el._raf = requestAnimationFrame(step);
 };
 
 const downloadBlob = (blob, name) => {

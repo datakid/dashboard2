@@ -305,15 +305,16 @@ const App = {
     if (S.tab === 'overview') Overview.render(agg);
     else if (S.tab === 'charts') Charts.render(agg);
     else if (S.tab === 'explore') Explore.render(agg);
-    else if (S.tab === 'missing') Missing.render();
+    else if (S.tab === 'missing') { Data.findMissing(); Missing.render(); }
     else if (S.tab === 'years') Years.render();
     else if (S.tab === 'compare') Compare.render();
   },
 
-  refreshStatus() {
+  refreshStatus(quick) {
     const rc = $('#resultsCount');
     rc.classList.remove('skeleton');
     rc.textContent = `${fmt(S.filtered.length)} results`;
+    if (quick) { $('#filterSummary').textContent = Data.summary(); return; }
     const mc = $('#missingResultsCount');
     mc.hidden = !S.missing.length;
     mc.textContent = `${fmt(S.missing.length)} missing`;
@@ -330,17 +331,29 @@ const App = {
     document.title = Data.activeCount() || !Data.isAllTime() ? `Alembic · ${Data.periodLabel()}${Data.activeCount() ? ' · ' + Data.summary() : ''}` : 'Alembic — Pharmacy Intelligence';
   },
 
-  changed: debounce(function () {
-    S.statsCache = { sig: null, stats: null };
-    Data.applyFilters();
-    Data.findMissing();
-    Filters.persist();
-    Filters.renderButtons();
-    Search.renderChips();
-    Timeline.render();
-    App.refreshStatus();
-    App.renderTab();
-  }, 60),
+  _raf: 0,
+  _idle: 0,
+
+  changed() {
+    if (App._raf) return;
+    App._raf = requestAnimationFrame(() => {
+      App._raf = 0;
+      S.statsCache = { sig: null, stats: null };
+      Data.applyFilters();
+      App.renderTab();
+      Filters.renderButtons();
+      Search.renderChips();
+      App.refreshStatus(true);
+      clearTimeout(App._idle);
+      App._idle = setTimeout(() => {
+        Data.findMissing();
+        Filters.persist();
+        Timeline.render();
+        App.refreshStatus();
+        if (S.tab === 'missing') Missing.render();
+      }, 0);
+    });
+  },
 
   populateYears() {
     const valid = new Set(S.years.map(String));
@@ -382,6 +395,7 @@ const App = {
     const html = emptyHTML('Could not load data', msg || 'The prescription sheet could not be reached. Check your connection and press refresh.', 'alert', true);
     $('#statsTotalRow').innerHTML = `<div class="card">${html}</div>`;
     $('#statsCoreRow').innerHTML = '';
+    Overview.built = false;
     $('#resultsCount').classList.remove('skeleton');
     $('#resultsCount').textContent = 'No data';
   },
@@ -411,7 +425,9 @@ const App = {
       if (e.key === 'Escape') {
         if (Select.isOpen) { Select.close(); return; }
         if (Modal.isOpen) { Modal.close(); return; }
+        const busy = $('.dd-menu.open') || Search.isOpen();
         Search.setOpen(false); Filters.closeAll();
+        if (!busy && !e.target.closest('input, textarea') && (S.tab === 'overview' || S.tab === 'charts') && Overview.clearCats()) toast('Class focus cleared', 'info', 1600);
         return;
       }
       const typing = e.target.closest('input, textarea, select, [contenteditable]');

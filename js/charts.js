@@ -1,15 +1,95 @@
 const FONT_UI = "Geist, 'IBM Plex Sans Arabic', system-ui, sans-serif";
 const FONT_AR = "'IBM Plex Sans Arabic', Geist, system-ui, sans-serif";
 const FONT_DISPLAY = "'Bricolage Grotesque', Geist, 'IBM Plex Sans Arabic', sans-serif";
+const LABEL_FONT = `500 13px ${FONT_AR}`;
+
+const ChartTip = {
+  el: null,
+  owner: null,
+  key: '',
+  shown: false,
+
+  ensure() {
+    if (this.el) return this.el;
+    const el = document.createElement('div');
+    el.className = 'ctip';
+    el.setAttribute('role', 'tooltip');
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    this.el = el;
+    addEventListener('scroll', () => this.hide(), { passive: true, capture: true });
+    document.addEventListener('pointerdown', (e) => { if (!(e.target instanceof HTMLCanvasElement)) this.hide(); }, true);
+    return el;
+  },
+
+  hide() {
+    if (!this.el) return;
+    this.el.classList.remove('on');
+    this.shown = false;
+    this.owner = null;
+    this.key = '';
+  },
+
+  colorOf(p) {
+    const d = p.dataset;
+    const pick = (v) => Array.isArray(v) ? v[p.dataIndex] : v;
+    const line = (d.type || p.chart.config.type) === 'line';
+    const cands = line ? [pick(d.borderColor), pick(d.backgroundColor)] : [pick(d.backgroundColor), pick(d.borderColor)];
+    return cands.find(v => typeof v === 'string' && v && v !== 'transparent') || cssVar('--sage');
+  },
+
+  render(ctx, spec) {
+    const { chart, tooltip } = ctx;
+    const el = this.ensure();
+    if (!tooltip || tooltip.opacity === 0 || !tooltip.dataPoints || !tooltip.dataPoints.length) { if (this.owner === chart) this.hide(); return; }
+    const pts = tooltip.dataPoints;
+    const rows = pts.map(p => {
+      const r = spec.row ? spec.row(p) : { label: p.dataset.label, value: fmt(p.raw) };
+      return r ? { color: this.colorOf(p), ...r } : null;
+    }).filter(Boolean);
+    if (!rows.length) { if (this.owner === chart) this.hide(); return; }
+    const key = chart.id + '|' + pts.map(p => p.datasetIndex + ':' + p.dataIndex).join(',');
+    if (key !== this.key || this.owner !== chart) {
+      let t = spec.title ? spec.title(pts) : pts[0].label;
+      if (!t || typeof t !== 'object') t = { main: t };
+      const foot = spec.foot ? spec.foot(pts) : '';
+      el.innerHTML = `<div class="ctip-head"><span class="ctip-title" dir="auto">${esc(t.main ?? '')}</span>${t.sub ? `<span class="ctip-sub" dir="auto">${esc(t.sub)}</span>` : ''}</div>
+        <div class="ctip-rows">${rows.map(r => `<div class="ctip-row"><i style="background:${esc(r.color)}"></i><span class="ctip-lbl" dir="auto">${esc(r.label ?? '')}</span><span class="ctip-val">${esc(r.value)}</span>${r.meta ? `<span class="ctip-meta">${esc(r.meta)}</span>` : ''}</div>`).join('')}</div>
+        ${foot ? `<div class="ctip-foot" dir="auto">${esc(foot)}</div>` : ''}`;
+      this.key = key;
+    }
+    const rect = chart.canvas.getBoundingClientRect();
+    const ax = rect.left + tooltip.caretX;
+    const ay = rect.top + tooltip.caretY;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    const gap = 16;
+    let x = ax + gap;
+    if (x + w > innerWidth - 8) x = ax - w - gap;
+    x = Math.max(8, Math.min(innerWidth - w - 8, x));
+    const y = Math.max(8, Math.min(innerHeight - h - 8, ay - h / 2));
+    const tf = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    if (!this.shown || this.owner !== chart) {
+      el.classList.add('snap');
+      el.style.transform = tf;
+      void el.offsetWidth;
+      el.classList.remove('snap');
+    } else el.style.transform = tf;
+    el.classList.add('on');
+    this.shown = true;
+    this.owner = chart;
+  }
+};
 
 const Charts = {
   inst: {},
   legends: {},
+  meta: {},
   opt: { med: 'horizontal', medOrder: 'ranked', trend: 'total', region: 'ring', top: 10, cov: 'bars', classes: 'ring' },
   built: false,
+  mctx: null,
 
   defs: [
-    { id: 'med', title: 'Medication distribution', sub: 'Value by medication class', span: 'wide', tools: [['med', [['horizontal', 'Bars'], ['vertical', 'Columns']]], ['medOrder', [['ranked', 'Ranked'], ['default', 'Default']]]] },
+    { id: 'med', title: 'Medication distribution', sub: 'Value by medication class · click a bar to focus', span: 'wide', tools: [['med', [['horizontal', 'Bars'], ['vertical', 'Columns']]], ['medOrder', [['ranked', 'Ranked'], ['default', 'Default']]]] },
     { id: 'trend', title: 'Trend', sub: 'How value moves across the selected period', span: 'two-third', tools: [['trend', [['total', 'Total'], ['overlay', 'Year over year'], ['stacked', 'By class'], ['presc', 'Rx']]]] },
     { id: 'region', title: 'Regional share', sub: 'Value split by region', span: 'third', tools: [['region', [['ring', 'Ring'], ['bars', 'Bars']]]] },
     { id: 'cov', title: 'Insurance coverage', sub: 'Prescriptions vs insured, with coverage rate', span: 'two-third', tools: [['cov', [['bars', 'Volumes'], ['rate', 'Rate only']]]] },
@@ -22,30 +102,17 @@ const Charts = {
   },
 
   alpha(hex, a) {
-    const h = hex.replace('#', '');
+    const h = String(hex).replace('#', '');
     if (h.length !== 6) return hex;
     const n = parseInt(h, 16);
     return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, ${a})`;
   },
 
-  tooltip(callbacks = {}) {
-    return {
-      backgroundColor: cssVar('--tip-bg'),
-      titleColor: cssVar('--tip-ink'),
-      bodyColor: cssVar('--tip-ink-2'),
-      borderColor: 'transparent',
-      borderWidth: 0,
-      padding: { top: 10, right: 14, bottom: 10, left: 12 },
-      cornerRadius: 12,
-      titleFont: { family: FONT_UI, size: 12.5, weight: '600' },
-      bodyFont: { family: FONT_UI, size: 12.5, weight: '500' },
-      titleMarginBottom: 6,
-      boxWidth: 8, boxHeight: 8, boxPadding: 6, usePointStyle: true,
-      caretSize: 0,
-      displayColors: true,
-      callbacks
-    };
+  tooltip(spec = {}) {
+    return { enabled: false, external: (ctx) => ChartTip.render(ctx, spec) };
   },
+
+  pct(v, total) { return total ? (v / total * 100).toFixed(1) + '%' : '0%'; },
 
   axis(extra = {}) {
     return Object.assign({ grid: { color: cssVar('--grid'), drawTicks: false }, border: { display: false }, ticks: { color: cssVar('--ink-3'), padding: 10, font: { family: FONT_UI, size: 12, weight: '500' } } }, extra);
@@ -59,51 +126,84 @@ const Charts = {
     return a;
   },
 
-  labelAxis(labels, extra = {}) {
-    const font = { family: FONT_AR, size: 13, weight: '500' };
-    const fontStr = `500 13px ${FONT_AR}`;
-    const a = this.catAxis(extra);
-    a.ticks = { ...a.ticks, autoSkip: false, padding: 14, font, color: cssVar('--ink-2') };
-    a.afterFit = (scale) => {
-      const c = scale.ctx;
+  textW(s, font) {
+    const c = this.mctx || (this.mctx = document.createElement('canvas').getContext('2d'));
+    c.font = font;
+    return c.measureText(String(s ?? '')).width;
+  },
+
+  fit(c, s, max) {
+    if (c.measureText(s).width <= max) return s;
+    let lo = 0, hi = s.length;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (c.measureText(s.slice(0, mid).trimEnd() + '…').width <= max) lo = mid; else hi = mid - 1;
+    }
+    return lo ? s.slice(0, lo).trimEnd() + '…' : '…';
+  },
+
+  labelAxis(labels) {
+    return {
+      grid: { display: false },
+      border: { display: false },
+      ticks: { display: false },
+      afterFit: (scale) => {
+        const cap = Math.max(96, Math.min(280, scale.chart.width * 0.36));
+        const w = Math.max(0, ...labels.map(l => this.textW(l, `600 13px ${FONT_AR}`)));
+        scale.width = Math.min(cap, Math.ceil(w) + 22);
+      }
+    };
+  },
+
+  sideLabels: {
+    id: 'sideLabels',
+    afterDraw(chart) {
+      const m = Charts.meta[chart.canvas.id];
+      if (!m || !m.labels || chart.options.indexAxis !== 'y') return;
+      const sc = chart.scales.y;
+      if (!sc) return;
+      const c = chart.ctx;
+      const right = chart.chartArea.left - 12;
+      const maxW = Math.max(16, right - sc.left - 2);
+      const act = new Set(chart.getActiveElements().map(e => e.index));
+      const ink = cssVar('--ink'), ink2 = cssVar('--ink-2'), ink4 = cssVar('--ink-4');
       c.save();
-      c.font = fontStr;
-      const w = Math.max(0, ...labels.map(l => c.measureText(String(l)).width));
+      c.textBaseline = 'middle';
+      c.textAlign = 'right';
+      m.labels.forEach((raw, i) => {
+        const l = String(raw ?? '');
+        const on = act.has(i);
+        const dim = m.dim ? m.dim(i) : false;
+        c.font = `${on ? 600 : 500} 13px ${FONT_AR}`;
+        c.fillStyle = on ? ink : dim ? ink4 : ink2;
+        if ('direction' in c) c.direction = isArabic(l) ? 'rtl' : 'ltr';
+        c.fillText(Charts.fit(c, l, maxW), right, sc.getPixelForValue(i));
+      });
       c.restore();
-      const cap = Math.max(110, Math.min(260, scale.chart.width * 0.34));
-      scale.width = Math.min(cap, Math.ceil(w) + 28);
-    };
-    a.ticks.callback = function (v, i) {
-      const l = String(labels[i] ?? '');
-      const c = this.ctx;
-      const cap = Math.max(110, Math.min(260, this.chart.width * 0.34)) - 28;
-      c.save(); c.font = fontStr;
-      let out = l;
-      if (c.measureText(out).width > cap) { while (out.length > 1 && c.measureText(out + '…').width > cap) out = out.slice(0, -1); out += '…'; }
-      c.restore();
-      return out;
-    };
-    return a;
+    }
   },
 
   barValues: {
     id: 'barValues',
-    afterDatasetsDraw(chart, _args, opts) {
-      if (!opts || !opts.on || chart.options.indexAxis !== 'y') return;
+    afterDatasetsDraw(chart) {
+      const m = Charts.meta[chart.canvas.id];
+      if (!m || !m.values || chart.options.indexAxis !== 'y') return;
       const meta = chart.getDatasetMeta(0);
       if (!meta || meta.hidden) return;
       const c = chart.ctx;
       const area = chart.chartArea;
+      const ink3 = cssVar('--ink-3'), ink4 = cssVar('--ink-4');
       c.save();
       c.font = `600 11.5px ${FONT_UI}`;
       c.textBaseline = 'middle';
+      if ('direction' in c) c.direction = 'ltr';
       meta.data.forEach((bar, i) => {
         const v = chart.data.datasets[0].data[i];
         if (!v || !chart.getDataVisibility(i)) return;
         const txt = compact(v);
         const w = c.measureText(txt).width;
         const inside = bar.x + w + 12 > area.right;
-        c.fillStyle = inside ? '#fff' : cssVar('--ink-3');
+        c.fillStyle = inside ? '#fff' : (m.dim && m.dim(i) ? ink4 : ink3);
         c.textAlign = inside ? 'right' : 'left';
         c.fillText(txt, inside ? bar.x - 8 : bar.x + 8, bar.y);
       });
@@ -165,6 +265,7 @@ const Charts = {
           <div class="chart-heading"><h3 class="chart-title">${esc(d.title)}</h3><p class="chart-sub" data-sub="${d.id}">${esc(d.sub)}</p></div>
           <div class="chart-tools">
             ${d.tools.map(([key, opts]) => `<div class="seg" data-opt="${key}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(this.opt[key]) === String(v) ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>`).join('')}
+            ${d.id === 'med' ? `<button class="btn soft sm focus-clear" type="button" data-clear-med hidden>${icon('x')}<span>Clear focus</span></button>` : ''}
             <button class="icon-btn sm" type="button" data-png="${d.id}" aria-label="Download ${esc(d.title)} as PNG" data-tip="Download PNG">${icon('image')}</button>
           </div>
         </header>
@@ -183,6 +284,7 @@ const Charts = {
         if (id === 'trend') this.render(Data.aggregate(S.filtered)); else this.draw(id, Data.aggregate(S.filtered));
         return;
       }
+      if (e.target.closest('[data-clear-med]')) { Overview.clearCats(); return; }
       const li = e.target.closest('.legend-item');
       if (li) { this.toggleLegend(li.closest('.chart-card').dataset.chart, Number(li.dataset.i)); return; }
       const p = e.target.closest('[data-png]');
@@ -205,16 +307,29 @@ const Charts = {
     this.defs.forEach(d => this.draw(d.id, agg));
   },
 
-  make(id, config) {
-    if (this.inst[id]) this.inst[id].destroy();
-    config.options = Object.assign({ responsive: true, maintainAspectRatio: false, animation: { duration: 520, easing: 'easeOutQuart' }, layout: { padding: { top: 8, right: 12, bottom: 4, left: 4 } } }, config.options);
+  make(id, config, meta) {
+    this.meta[`chart-${id}`] = meta || null;
+    const base = { responsive: true, maintainAspectRatio: false, animation: { duration: 460, easing: 'easeOutQuart' }, layout: { padding: { top: 8, right: 12, bottom: 4, left: 4 } } };
+    config.options = Object.assign(base, config.options);
     config.options.plugins = Object.assign({ legend: { display: false } }, config.options.plugins || {});
-    config.plugins = [...(config.plugins || []), this.centerTotal, this.barValues];
-    if (config.options.indexAxis === 'y') {
-      config.options.plugins.barValues = { on: true };
-      config.options.layout = { padding: { top: 8, right: 44, bottom: 4, left: 4 } };
+    if (config.options.indexAxis === 'y') config.options.layout = { padding: { top: 8, right: 48, bottom: 4, left: 4 } };
+    const sig = [config.type, config.options.indexAxis || 'x', config.data.datasets.map(d => d.type || config.type).join(','), Object.keys(config.options.scales || {}).join(',')].join('|');
+    const ch = this.inst[id];
+    if (ch && ch.$sig === sig && ch.canvas && ch.canvas.isConnected) {
+      if (ChartTip.owner === ch) ChartTip.hide();
+      ch.data.labels = config.data.labels;
+      ch.data.datasets = config.data.datasets;
+      ch.data.datasets.forEach((_, i) => ch.setDatasetVisibility(i, true));
+      (config.data.labels || []).forEach((_, i) => { if (!ch.getDataVisibility(i)) ch.toggleDataVisibility(i); });
+      ch.options = config.options;
+      ch.update();
+      return;
     }
-    this.inst[id] = new Chart($(`#chart-${id}`), config);
+    if (ch) { if (ChartTip.owner === ch) ChartTip.hide(); ch.destroy(); }
+    config.plugins = [...(config.plugins || []), this.centerTotal, this.barValues, this.sideLabels];
+    const n = new Chart($(`#chart-${id}`), config);
+    n.$sig = sig;
+    this.inst[id] = n;
   },
 
   setLegend(id, items, perPoint) {
@@ -239,52 +354,94 @@ const Charts = {
 
   bodyW(id) { const el = $(`#chartGrid [data-chart="${id}"] .chart-body`); return el ? el.clientWidth : 800; },
 
+  xTicks(slot) {
+    return this.catAxis({ ticks: { ...this.catAxis().ticks, font: { family: FONT_UI, size: 12, weight: '500' }, autoSkip: true, autoSkipPadding: 18, maxRotation: slot < 40 ? 40 : 0, minRotation: 0 } });
+  },
+
+  valueAxis(extra = {}) {
+    return this.axis(Object.assign({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }, extra));
+  },
+
   draw(id, agg) {
     const P = this.palette();
     const cats = Data.cats();
     const series = Data.series(agg);
-    const months = series.map(b => b.label);
+    const keys = series.map(b => b.key);
+    const bare = !Data.multiYear();
+    const months = keys.map(k => periodAxis(k, bare));
     const dense = series.length > 18;
-    const sage = cssVar('--sage'), soft = cssVar('--sage-soft-2'), copper = cssVar('--copper'), copperSoft = cssVar('--copper-soft');
+    const sage = cssVar('--sage'), sageDeep = cssVar('--sage-deep'), soft = cssVar('--sage-soft-2'), copper = cssVar('--copper'), copperSoft = cssVar('--copper-soft');
+    const surface = cssVar('--surface');
     const body = $(`#chartGrid [data-chart="${id}"] .chart-body`);
     if (body) body.style.height = '';
+    const periodT = (pts) => periodTitle(keys[pts[0].dataIndex]);
 
     if (id === 'med') {
-      let rows = cats.map(c => ({ c, v: agg.byCat[c] || 0 }));
+      const sel = new Set(S.filters.MedClass);
+      const any = sel.size > 0;
+      const base = any ? Data.catTotals(true) : agg.byCat;
+      let rows = MED_CATS.map(c => ({ c, v: base[c] || 0 })).filter(r => r.v > 0 || sel.has(r.c));
       if (this.opt.medOrder === 'ranked') rows.sort((a, b) => b.v - a.v);
+      const on = (i) => !any || (rows[i] && sel.has(rows[i].c));
       const horiz = this.opt.med === 'horizontal';
       const total = rows.reduce((s, r) => s + r.v, 0);
       const slot = this.bodyW(id) / Math.max(1, rows.length);
+      const slate = cssVar('--slate');
+      const faded = this.alpha(slate, .2), fadedHover = this.alpha(slate, .36);
+      const ink2 = cssVar('--ink-2'), ink4 = cssVar('--ink-4');
       if (horiz) body.style.height = Math.max(320, rows.length * 32 + 44) + 'px';
       const labels = rows.map(r => horiz ? r.c : (slot >= 58 ? this.wrap(r.c, slot >= 80 ? 12 : 8) : r.c));
+      const sub = $('[data-sub="med"]');
+      if (sub) sub.textContent = any ? `${sel.size} of ${rows.length} classes in focus · click another bar to switch, ⌘/Ctrl-click to add` : 'Value by medication class · click a bar to focus';
+      const clr = $('[data-clear-med]'); if (clr) clr.hidden = !any;
       this.setLegend(id, null);
+      const hit = (e, els, chart) => {
+        if (els.length) return els[0].index;
+        const a = chart.chartArea;
+        if (horiz && e.x < a.left && e.y >= a.top && e.y <= a.bottom) return Math.round(chart.scales.y.getValueForPixel(e.y));
+        return -1;
+      };
       this.make(id, {
         type: 'bar',
-        data: { labels, datasets: [{ label: 'Value', data: rows.map(r => r.v), backgroundColor: (c) => this.vGrad(c, sage, soft), hoverBackgroundColor: cssVar('--sage-deep'), borderRadius: 7, borderSkipped: false, barPercentage: horiz ? .72 : .66, categoryPercentage: .86, maxBarThickness: 34 }] },
+        data: { labels, datasets: [{ label: 'Value', data: rows.map(r => r.v), backgroundColor: (c) => on(c.dataIndex) ? this.vGrad(c, sage, soft) : faded, hoverBackgroundColor: (c) => on(c.dataIndex) ? sageDeep : fadedHover, borderRadius: 7, borderSkipped: false, barPercentage: horiz ? .72 : .66, categoryPercentage: .86, maxBarThickness: 34 }] },
         options: {
           indexAxis: horiz ? 'y' : 'x',
-          plugins: { tooltip: this.tooltip({ title: (i) => rows[i[0].dataIndex].c, label: (c) => { const v = horiz ? c.parsed.x : c.parsed.y; return ` ${fmt(v)} · ${total ? (v / total * 100).toFixed(1) : 0}%`; } }) },
+          interaction: { mode: 'index', axis: horiz ? 'y' : 'x', intersect: false },
+          onClick: (e, els, chart) => { const i = hit(e, els, chart); if (i >= 0 && rows[i]) Overview.pickCat(rows[i].c, e.native); },
+          onHover: (e, els, chart) => { chart.canvas.style.cursor = hit(e, els, chart) >= 0 ? 'pointer' : ''; },
+          plugins: {
+            tooltip: this.tooltip({
+              title: (pts) => rows[pts[0].dataIndex].c,
+              row: (p) => ({ label: 'Value', value: fmt(p.raw), meta: this.pct(p.raw, total), color: on(p.dataIndex) ? sage : faded }),
+              foot: (pts) => { const i = pts[0].dataIndex; return any && on(i) ? (sel.size === 1 ? 'Click to clear focus' : 'Click to focus on this only') : 'Click to focus · ⌘/Ctrl-click to add'; }
+            })
+          },
           scales: horiz
-            ? { x: this.axis({ beginAtZero: true, position: 'top', grace: '6%', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }), y: this.labelAxis(labels) }
-            : { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: false, maxRotation: slot >= 58 ? 0 : 60, minRotation: slot >= 58 ? 0 : 45, padding: 8, font: { family: FONT_AR, size: slot >= 58 ? 12 : 11, weight: '500' } } }), y: this.axis({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }) }
+            ? { x: this.valueAxis({ position: 'top', grace: '6%' }), y: this.labelAxis(labels) }
+            : { x: this.catAxis({ ticks: { ...this.catAxis().ticks, color: (c) => on(c.index) ? ink2 : ink4, autoSkip: false, maxRotation: slot >= 58 ? 0 : 60, minRotation: slot >= 58 ? 0 : 45, padding: 8, font: { family: FONT_AR, size: slot >= 58 ? 12 : 11, weight: '500' } } }), y: this.valueAxis() }
         }
-      });
+      }, horiz ? { labels, values: true, dim: (i) => !on(i) } : null);
     }
 
     if (id === 'trend') {
       const mode = this.opt.trend;
       let datasets;
       let labels = months;
+      let spec;
       if (mode === 'overlay') {
         const ys = Data.scopeYears().slice().sort((a, b) => a - b);
         const monthNames = [...new Set(Data.series(agg, 'month').map(b => splitPeriod(b.key).Month))].sort((a, b) => monthRank(a) - monthRank(b));
-        labels = monthNames.map(m => MONTH_SHORT[String(m).toLowerCase()] || m);
+        labels = monthNames.map(m => { const i = monthIdx(m); return i < 0 ? m : MONTHS_EN[i].slice(0, 3); });
         datasets = ys.map((y, i) => {
           const c = P[(ys.length - 1 - i) % P.length];
           const latest = i === ys.length - 1;
-          return { label: `FY ${fyShort(y)}`, data: monthNames.map(m => { const b = agg.byMonth[periodKey(y, m)]; return b ? Data.sumCats(b.byCat, cats) : null; }), borderColor: c, backgroundColor: c, borderWidth: latest ? 2.75 : 1.75, tension: .38, pointRadius: latest ? 3 : 0, pointHoverRadius: 5, pointBackgroundColor: cssVar('--surface'), pointBorderColor: c, pointBorderWidth: 2, spanGaps: true, fill: false, order: latest ? 0 : 1 };
+          return { label: `FY ${fyShort(y)}`, data: monthNames.map(m => { const b = agg.byMonth[periodKey(y, m)]; return b ? Data.sumCats(b.byCat, cats) : null; }), borderColor: c, backgroundColor: c, borderWidth: latest ? 2.75 : 1.75, tension: .38, pointRadius: latest ? 3 : 0, pointHoverRadius: 5, pointBackgroundColor: surface, pointBorderColor: c, pointBorderWidth: 2, spanGaps: true, fill: false, order: latest ? 0 : 1 };
         });
         this.setLegend(id, datasets.map(d => ({ label: d.label, color: d.borderColor })), false);
+        spec = {
+          title: (pts) => { const m = monthNames[pts[0].dataIndex]; const i = monthIdx(m); return { main: i < 0 ? m : MONTHS_EN[i], sub: 'Year over year' }; },
+          row: (p) => p.raw === null || p.raw === undefined ? null : { label: p.dataset.label, value: fmt(p.raw) }
+        };
       } else if (mode === 'stacked') {
         const top = cats.map(c => ({ c, v: agg.byCat[c] || 0 })).sort((a, b) => b.v - a.v);
         const lead = top.slice(0, 5).map(t => t.c);
@@ -292,12 +449,23 @@ const Charts = {
         datasets = lead.map((c, i) => ({ label: c, data: series.map(b => b.byCat[c] || 0), borderColor: P[i], backgroundColor: this.alpha(P[i], .28), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' }));
         if (rest.length) datasets.push({ label: 'Other', data: series.map(b => Data.sumCats(b.byCat, rest)), borderColor: P[7], backgroundColor: this.alpha(P[7], .22), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' });
         this.setLegend(id, datasets.map(d => ({ label: d.label, color: d.borderColor })), false);
+        spec = {
+          title: periodT,
+          row: (p) => ({ label: p.dataset.label, value: fmt(p.raw), color: p.dataset.borderColor }),
+          foot: (pts) => `Total ${fmt(pts.reduce((s, p) => s + (p.raw || 0), 0))}`
+        };
       } else {
         const presc = mode === 'presc';
         const color = presc ? copper : sage;
-        datasets = [{ label: presc ? 'Prescriptions' : 'Total value', data: series.map(b => presc ? b.presc : Data.sumCats(b.byCat, cats)), borderColor: color, borderWidth: 2.5, tension: .4, pointRadius: dense ? 0 : 3.5, pointHoverRadius: 6, pointBackgroundColor: cssVar('--surface'), pointBorderColor: color, pointBorderWidth: 2, fill: true,
+        const vals = series.map(b => presc ? b.presc : Data.sumCats(b.byCat, cats));
+        datasets = [{ label: presc ? 'Prescriptions' : 'Total value', data: vals, borderColor: color, borderWidth: 2.5, tension: .4, pointRadius: dense ? 0 : 3.5, pointHoverRadius: 6, pointBackgroundColor: surface, pointBorderColor: color, pointBorderWidth: 2, fill: true,
           backgroundColor: (c) => { const ch = c.chart; if (!ch.chartArea) return 'transparent'; const g = ch.ctx.createLinearGradient(0, ch.chartArea.top, 0, ch.chartArea.bottom); g.addColorStop(0, presc ? copperSoft : soft); g.addColorStop(1, 'rgba(0,0,0,0)'); return g; } }];
         this.setLegend(id, null);
+        spec = {
+          title: periodT,
+          row: (p) => ({ label: p.dataset.label, value: fmt(p.raw), color }),
+          foot: (pts) => { const i = pts[0].dataIndex; if (!i || !vals[i - 1]) return ''; const d = (vals[i] - vals[i - 1]) / vals[i - 1] * 100; return `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)}% vs previous`; }
+        };
       }
       const slot = this.bodyW(id) / Math.max(1, labels.length);
       this.make(id, {
@@ -305,8 +473,8 @@ const Charts = {
         data: { labels, datasets },
         options: {
           interaction: { mode: 'index', intersect: false },
-          plugins: { tooltip: this.tooltip({ label: (c) => c.parsed.y === null ? null : ` ${c.dataset.label}: ${fmt(c.parsed.y)}` }) },
-          scales: { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 16, maxRotation: slot < 44 ? 45 : 0, minRotation: 0 } }), y: this.axis({ beginAtZero: true, stacked: mode === 'stacked', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }) }
+          plugins: { tooltip: this.tooltip(spec) },
+          scales: { x: this.xTicks(slot), y: this.valueAxis({ stacked: mode === 'stacked' }) }
         }
       });
     }
@@ -315,22 +483,23 @@ const Charts = {
       const rows = Object.entries(agg.byRegion).map(([r, o]) => [r, Data.sumCats(o.byCat, cats)]).filter(r => r[1] > 0).sort((a, b) => b[1] - a[1]);
       const total = rows.reduce((s, r) => s + r[1], 0);
       const colors = rows.map((_, i) => P[i % P.length]);
-      const pct = (v) => total ? (v / total * 100).toFixed(1) + '%' : '0%';
+      const spec = { title: (pts) => rows[pts[0].dataIndex][0], row: (p) => ({ label: 'Value', value: fmt(p.raw), meta: this.pct(p.raw, total), color: colors[p.dataIndex] }) };
       if (this.opt.region === 'ring') {
-        this.setLegend(id, rows.map((r, i) => ({ label: r[0], color: colors[i], meta: pct(r[1]) })), true);
+        this.setLegend(id, rows.map((r, i) => ({ label: r[0], color: colors[i], meta: this.pct(r[1], total) })), true);
         this.make(id, {
           type: 'doughnut',
-          data: { labels: rows.map(r => r[0]), datasets: [{ data: rows.map(r => r[1]), backgroundColor: colors, borderColor: cssVar('--surface'), borderWidth: 3, borderRadius: 6, hoverOffset: 6, spacing: 1 }] },
-          options: { cutout: '74%', layout: { padding: 10 }, plugins: { tooltip: this.tooltip({ label: (c) => ` ${c.label}: ${fmt(c.raw)} · ${pct(c.raw)}` }) } }
+          data: { labels: rows.map(r => r[0]), datasets: [{ data: rows.map(r => r[1]), backgroundColor: colors, borderColor: surface, borderWidth: 3, borderRadius: 6, hoverOffset: 6, spacing: 1 }] },
+          options: { cutout: '74%', layout: { padding: 10 }, plugins: { tooltip: this.tooltip(spec) } }
         });
       } else {
         this.setLegend(id, null);
+        const labels = rows.map(r => r[0]);
         this.make(id, {
           type: 'bar',
-          data: { labels: rows.map(r => r[0]), datasets: [{ label: 'Value', data: rows.map(r => r[1]), backgroundColor: colors, borderRadius: 7, borderSkipped: false, barPercentage: .66, maxBarThickness: 38 }] },
-          options: { indexAxis: 'y', plugins: { tooltip: this.tooltip({ label: (c) => ` ${fmt(c.parsed.x)} · ${pct(c.parsed.x)}` }) },
-            scales: { x: this.axis({ beginAtZero: true, grace: '8%', ticks: { ...this.axis().ticks, maxTicksLimit: 4, callback: (v) => compact(v) } }), y: this.labelAxis(rows.map(r => r[0])) } }
-        });
+          data: { labels, datasets: [{ label: 'Value', data: rows.map(r => r[1]), backgroundColor: colors, borderRadius: 7, borderSkipped: false, barPercentage: .66, maxBarThickness: 38 }] },
+          options: { indexAxis: 'y', interaction: { mode: 'index', axis: 'y', intersect: false }, plugins: { tooltip: this.tooltip(spec) },
+            scales: { x: this.valueAxis({ grace: '8%', ticks: { ...this.axis().ticks, maxTicksLimit: 4, callback: (v) => compact(v) } }), y: this.labelAxis(labels) } }
+        }, { labels, values: true });
       }
     }
 
@@ -339,21 +508,22 @@ const Charts = {
       const ins = series.map(b => b.insured);
       const rate = months.map((m, i) => presc[i] ? +(ins[i] / presc[i] * 100).toFixed(1) : 0);
       const plum = cssVar('--plum');
-      const rateDs = { type: 'line', label: 'Coverage %', data: rate, yAxisID: 'y1', borderColor: plum, backgroundColor: plum, borderWidth: 2.25, tension: .4, pointRadius: dense ? 0 : 3, pointBackgroundColor: cssVar('--surface'), pointBorderColor: plum, pointBorderWidth: 2, order: 0 };
+      const rateDs = { type: 'line', label: 'Coverage', data: rate, yAxisID: 'y1', borderColor: plum, backgroundColor: plum, borderWidth: 2.25, tension: .4, pointRadius: dense ? 0 : 3, pointBackgroundColor: surface, pointBorderColor: plum, pointBorderWidth: 2, order: 0 };
       const onlyRate = this.opt.cov === 'rate';
       const ds = onlyRate ? [Object.assign(rateDs, { fill: true, backgroundColor: cssVar('--plum-soft') })] : [
         { label: 'Prescriptions', data: presc, backgroundColor: this.alpha(copper, .38), hoverBackgroundColor: copper, borderRadius: 6, borderSkipped: false, barPercentage: .82, categoryPercentage: .66, maxBarThickness: 26, order: 1 },
         { label: 'Insured', data: ins, backgroundColor: sage, borderRadius: 6, borderSkipped: false, barPercentage: .82, categoryPercentage: .66, maxBarThickness: 26, order: 1 },
         rateDs
       ];
-      this.setLegend(id, ds.map(d => ({ label: d.label, color: d.type === 'line' ? plum : (d.label === 'Insured' ? sage : copper) })), false);
+      const colorOf = (d) => d.type === 'line' ? plum : (d.label === 'Insured' ? sage : copper);
+      this.setLegend(id, ds.map(d => ({ label: d.label === 'Coverage' ? 'Coverage %' : d.label, color: colorOf(d) })), false);
       const slot = this.bodyW(id) / Math.max(1, months.length);
-      const scales = { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 16, maxRotation: slot < 44 ? 45 : 0, minRotation: 0 } }), y1: this.axis({ position: onlyRate ? 'left' : 'right', beginAtZero: true, suggestedMax: 100, grid: { display: onlyRate, color: cssVar('--grid'), drawTicks: false }, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => v + '%' } }) };
-      if (!onlyRate) scales.y = this.axis({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } });
+      const scales = { x: this.xTicks(slot), y1: this.axis({ position: onlyRate ? 'left' : 'right', beginAtZero: true, suggestedMax: 100, grid: { display: onlyRate, color: cssVar('--grid'), drawTicks: false }, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => v + '%' } }) };
+      if (!onlyRate) scales.y = this.valueAxis();
       this.make(id, {
         type: 'bar',
         data: { labels: months, datasets: ds },
-        options: { interaction: { mode: 'index', intersect: false }, plugins: { tooltip: this.tooltip({ label: (c) => ` ${c.dataset.label}: ${c.dataset.yAxisID === 'y1' ? c.parsed.y + '%' : fmt(c.parsed.y)}` }) }, scales }
+        options: { interaction: { mode: 'index', intersect: false }, plugins: { tooltip: this.tooltip({ title: periodT, row: (p) => ({ label: p.dataset.label, value: p.dataset.yAxisID === 'y1' ? p.raw + '%' : fmt(p.raw), color: colorOf(p.dataset) }) }) }, scales }
       });
     }
 
@@ -362,12 +532,11 @@ const Charts = {
       const total = rows.reduce((s, r) => s + r[1], 0);
       const colors = rows.map((_, i) => P[(i + 2) % P.length]);
       const polar = this.opt.classes === 'polar';
-      const pct = (v) => total ? (v / total * 100).toFixed(1) + '%' : '0%';
-      this.setLegend(id, rows.map((r, i) => ({ label: r[0], color: colors[i], meta: pct(r[1]) })), true);
+      this.setLegend(id, rows.map((r, i) => ({ label: r[0], color: colors[i], meta: this.pct(r[1], total) })), true);
       this.make(id, {
         type: polar ? 'polarArea' : 'doughnut',
-        data: { labels: rows.map(r => r[0]), datasets: [{ data: rows.map(r => r[1]), backgroundColor: polar ? colors.map(c => this.alpha(c, .78)) : colors, borderColor: cssVar('--surface'), borderWidth: polar ? 2 : 3, borderRadius: polar ? 0 : 6, spacing: polar ? 0 : 1, hoverOffset: 6 }] },
-        options: Object.assign({ layout: { padding: 10 }, plugins: { tooltip: this.tooltip({ label: (c) => ` ${c.label}: ${fmt(c.raw)} · ${pct(c.raw)}` }) } },
+        data: { labels: rows.map(r => r[0]), datasets: [{ data: rows.map(r => r[1]), backgroundColor: polar ? colors.map(c => this.alpha(c, .78)) : colors, borderColor: surface, borderWidth: polar ? 2 : 3, borderRadius: polar ? 0 : 6, spacing: polar ? 0 : 1, hoverOffset: 6 }] },
+        options: Object.assign({ layout: { padding: 10 }, plugins: { tooltip: this.tooltip({ title: (pts) => rows[pts[0].dataIndex][0], row: (p) => ({ label: 'Value', value: fmt(p.raw), meta: this.pct(p.raw, total), color: colors[p.dataIndex] }) }) } },
           polar ? { scales: { r: { grid: { color: cssVar('--grid') }, angleLines: { color: cssVar('--grid') }, ticks: { display: false, backdropColor: 'transparent' } } } } : { cutout: '74%' })
       });
     }
@@ -375,18 +544,21 @@ const Charts = {
     if (id === 'top') {
       const rows = Object.entries(agg.byPharmacy).map(([p, o]) => ({ p, r: o.region, v: Data.sumCats(o.byCat, cats) })).filter(r => r.v > 0).sort((a, b) => b.v - a.v).slice(0, this.opt.top);
       const regions = [...new Set(rows.map(r => r.r))];
+      const total = Data.sumCats(agg.byCat, cats);
       body.style.height = Math.max(320, rows.length * 32 + 50) + 'px';
       this.setLegend(id, regions.map((r, i) => ({ label: r, color: P[i % P.length] })), null);
       $$(`#legend-top .legend-item`).forEach(b => { b.classList.add('static'); b.disabled = true; });
+      const labels = rows.map(r => r.p);
       this.make(id, {
         type: 'bar',
-        data: { labels: rows.map(r => r.p), datasets: [{ label: 'Value', data: rows.map(r => r.v), backgroundColor: rows.map(r => P[regions.indexOf(r.r) % P.length]), borderRadius: 7, borderSkipped: false, barPercentage: .7, categoryPercentage: .86, maxBarThickness: 26 }] },
+        data: { labels, datasets: [{ label: 'Value', data: rows.map(r => r.v), backgroundColor: rows.map(r => P[regions.indexOf(r.r) % P.length]), borderRadius: 7, borderSkipped: false, barPercentage: .7, categoryPercentage: .86, maxBarThickness: 26 }] },
         options: {
           indexAxis: 'y',
-          plugins: { tooltip: this.tooltip({ title: (i) => i[0].label, label: (c) => ` ${fmt(c.parsed.x)}`, afterLabel: (c) => ` Region: ${rows[c.dataIndex].r}` }) },
-          scales: { x: this.axis({ beginAtZero: true, position: 'top', grace: '6%', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }), y: this.labelAxis(rows.map(r => r.p)) }
+          interaction: { mode: 'index', axis: 'y', intersect: false },
+          plugins: { tooltip: this.tooltip({ title: (pts) => { const r = rows[pts[0].dataIndex]; return { main: r.p, sub: r.r }; }, row: (p) => ({ label: `Rank #${p.dataIndex + 1}`, value: fmt(p.raw), meta: this.pct(p.raw, total) }) }) },
+          scales: { x: this.valueAxis({ position: 'top', grace: '6%' }), y: this.labelAxis(labels) }
         }
-      });
+      }, { labels, values: true });
     }
   },
 
@@ -460,7 +632,8 @@ const Charts = {
       c.fillStyle = cssVar('--ink'); c.font = `600 ${18 * scale}px ${FONT_DISPLAY}`;
       c.fillText(it.def.title, x + cardPad, y + 38 * scale);
       c.fillStyle = cssVar('--ink-3'); c.font = `500 ${12 * scale}px ${FONT_UI}`;
-      c.fillText(it.def.sub, x + cardPad, y + 57 * scale);
+      const sub = $(`[data-sub="${it.id}"]`);
+      c.fillText(sub ? sub.textContent : it.def.sub, x + cardPad, y + 57 * scale);
       c.drawImage(it.ch.canvas, x + cardPad, y + cardHead, w - cardPad * 2, ih);
       let ly = y + cardHead + ih + 12 * scale + lineH / 2;
       c.textBaseline = 'middle';
@@ -491,12 +664,14 @@ const Charts = {
     const ch = this.inst[id];
     if (!ch) return;
     ch.stop();
+    ChartTip.hide();
     this.save([id], 1, `alembic-${id}-${Data.periodSlug()}-${stamp()}.png`);
   },
 
   exportAll() {
     if (!Object.keys(this.inst).length) { toast('Open the Charts tab first so charts can render', 'info'); return; }
     Object.values(this.inst).forEach(ch => ch.stop());
+    ChartTip.hide();
     this.save(this.defs.map(d => d.id), 2, `alembic-charts-${Data.periodSlug()}-${stamp()}.png`);
   }
 };
