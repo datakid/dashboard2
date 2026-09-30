@@ -1,4 +1,19 @@
+const MONTH_SHORT = { july: 'Jul', august: 'Aug', september: 'Sep', october: 'Oct', november: 'Nov', december: 'Dec', january: 'Jan', february: 'Feb', march: 'Mar', april: 'Apr', may: 'May', june: 'Jun' };
+const fyShort = (y) => `${String(Number(y) - 1).slice(2)}–${String(y).slice(2)}`;
+const periodKey = (y, m) => `${y}|${m}`;
+const splitPeriod = (k) => { const i = String(k).indexOf('|'); return i < 0 ? { Year: '', Month: k } : { Year: k.slice(0, i), Month: k.slice(i + 1) }; };
+const periodCmp = (a, b) => { const x = splitPeriod(a), y = splitPeriod(b); return (Number(x.Year) - Number(y.Year)) || (monthRank(x.Month) - monthRank(y.Month)); };
+const calYear = (fy, m) => monthRank(m) <= 6 ? Number(fy) - 1 : Number(fy);
+const monthLabel = (k, bare) => {
+  const { Year, Month } = splitPeriod(k);
+  if (bare || !Year) return Month;
+  const s = MONTH_SHORT[String(Month).trim().toLowerCase()] || Month;
+  return `${s} ${String(calYear(Year, Month)).slice(2)}`;
+};
+
 const Data = {
+  _yr: { sig: null, rows: [] },
+
   process(raw) {
     const groups = {};
     const sumCols = ['Total Prescription', 'Insurance Covered Prescription', ...MED_CATS];
@@ -29,18 +44,41 @@ const Data = {
     return { clean: clean.filter(r => r.Year), duplicates };
   },
 
-  yearRows(year = S.filters.Year) { return S.data.filter(r => String(r.Year) === String(year)); },
+  scopeYears() { const y = S.filters.Years; return (y.length ? y : S.years).map(String); },
+  isAllTime() { return !S.filters.Years.length; },
+  multiYear() { return this.scopeYears().length > 1; },
+  grain() { return this.multiYear() ? S.grain : 'month'; },
 
-  options(field, year = S.filters.Year) {
+  yearRows() {
+    const sig = `${S.filters.Years.join(',')}#${S.dataVersion}`;
+    if (this._yr.sig === sig) return this._yr.rows;
+    const set = new Set(this.scopeYears());
+    const rows = S.data.filter(r => set.has(String(r.Year)));
+    this._yr = { sig, rows };
+    return rows;
+  },
+
+  periodLabel() {
+    const ys = this.scopeYears().map(Number).sort((a, b) => a - b);
+    if (!ys.length) return '—';
+    if (ys.length === 1) return `FY ${fyLabel(ys[0])}`;
+    const run = ys.every((y, i) => !i || y === ys[i - 1] + 1);
+    const span = run ? `FY ${fyShort(ys[0])} → ${fyShort(ys[ys.length - 1])}` : ys.map(y => `FY ${fyShort(y)}`).join(', ');
+    return this.isAllTime() ? `All time · ${span}` : span;
+  },
+
+  periodSlug() { return this.isAllTime() ? 'all-time' : 'FY' + this.scopeYears().slice().sort().join('-'); },
+
+  options(field) {
     if (field === 'MedClass') return MED_CATS.slice();
     const set = new Set();
-    this.yearRows(year).forEach(r => { if (r[field]) set.add(String(r[field]).trim()); });
+    this.yearRows().forEach(r => { if (r[field]) set.add(String(r[field]).trim()); });
     return [...set].sort((a, b) => field === 'Month' ? monthRank(a) - monthRank(b) : a.localeCompare(b));
   },
 
   optionStats() {
     const f = S.filters;
-    const sig = JSON.stringify(f);
+    const sig = JSON.stringify(f) + S.dataVersion;
     if (S.statsCache.sig === sig) return S.statsCache.stats;
     const stats = { Region: new Map(), Pharmacy: new Map(), Month: new Map(), Class: new Map(), MedClass: new Map() };
     const dims = ['Region', 'Pharmacy', 'Month', 'Class'];
@@ -65,94 +103,120 @@ const Data = {
     return stats;
   },
 
-  applyFilters() {
+  passesDims(row) {
     const f = S.filters;
-    S.filtered = S.data.filter(row => {
-      if (String(row.Year) !== String(f.Year)) return false;
-      for (const d of ['Region', 'Pharmacy', 'Month', 'Class']) {
-        if (f[d].length && !f[d].includes(String(row[d]).trim())) return false;
-      }
-      if (f.MedClass.length && !f.MedClass.some(c => num(row[c]) > 0)) return false;
-      return true;
+    for (const d of ['Region', 'Pharmacy', 'Month', 'Class']) {
+      if (f[d].length && !f[d].includes(String(row[d]).trim())) return false;
+    }
+    if (f.MedClass.length && !f.MedClass.some(c => num(row[c]) > 0)) return false;
+    return true;
+  },
+
+  applyFilters() { S.filtered = this.yearRows().filter(row => this.passesDims(row)); },
+
+  yearTotals() {
+    const cats = this.cats();
+    const out = {};
+    S.years.forEach(y => { out[String(y)] = { v: 0, n: 0 }; });
+    S.data.forEach(r => {
+      const t = out[String(r.Year)];
+      if (!t || !this.passesDims(r)) return;
+      t.n += 1;
+      cats.forEach(c => { t.v += num(r[c]); });
     });
+    return out;
   },
 
   cats() { return S.filters.MedClass.length ? S.filters.MedClass : MED_CATS; },
 
   aggregate(rows) {
     const totals = { presc: 0, insured: 0, pharmacies: new Set() };
-    const byCat = {}; const byMonth = {}; const byRegion = {}; const byPharmacy = {}; const byClass = {};
+    const byCat = {}; const byMonth = {}; const byYear = {}; const byRegion = {}; const byPharmacy = {}; const byClass = {};
+    const bucket = () => ({ byCat: {}, presc: 0, insured: 0, pharmacies: new Set() });
     MED_CATS.forEach(c => { byCat[c] = 0; });
     rows.forEach(row => {
-      const m = row.Month || 'Unknown';
+      const y = String(row.Year);
+      const m = periodKey(y, row.Month || 'Unknown');
       const rg = row.Region || 'Unknown';
       const ph = row.Pharmacy || 'Unknown';
       const cl = row.Class || 'Unknown';
-      byMonth[m] = byMonth[m] || { byCat: {}, presc: 0, insured: 0, pharmacies: new Set() };
+      const bm = byMonth[m] = byMonth[m] || bucket();
+      const by = byYear[y] = byYear[y] || bucket();
       byRegion[rg] = byRegion[rg] || { byCat: {}, presc: 0, insured: 0 };
       byPharmacy[ph] = byPharmacy[ph] || { byCat: {}, region: rg };
       byClass[cl] = byClass[cl] || { byCat: {} };
       const p = num(row['Total Prescription']);
       const ins = num(row['Insurance Covered Prescription']);
       totals.presc += p; totals.insured += ins;
-      if (row.Pharmacy) { totals.pharmacies.add(row.Pharmacy); byMonth[m].pharmacies.add(row.Pharmacy); }
-      byMonth[m].presc += p; byMonth[m].insured += ins;
+      if (row.Pharmacy) { totals.pharmacies.add(row.Pharmacy); bm.pharmacies.add(row.Pharmacy); by.pharmacies.add(row.Pharmacy); }
+      bm.presc += p; bm.insured += ins;
+      by.presc += p; by.insured += ins;
       byRegion[rg].presc += p; byRegion[rg].insured += ins;
       MED_CATS.forEach(c => {
         const v = num(row[c]);
         if (!v) return;
         byCat[c] += v;
-        byMonth[m].byCat[c] = (byMonth[m].byCat[c] || 0) + v;
+        bm.byCat[c] = (bm.byCat[c] || 0) + v;
+        by.byCat[c] = (by.byCat[c] || 0) + v;
         byRegion[rg].byCat[c] = (byRegion[rg].byCat[c] || 0) + v;
         byPharmacy[ph].byCat[c] = (byPharmacy[ph].byCat[c] || 0) + v;
         byClass[cl].byCat[c] = (byClass[cl].byCat[c] || 0) + v;
       });
     });
-    return { byCat, byMonth, byRegion, byPharmacy, byClass, totals };
+    return { byCat, byMonth, byYear, byRegion, byPharmacy, byClass, totals };
+  },
+
+  series(agg, grain = this.grain()) {
+    if (grain === 'year') return Object.keys(agg.byYear).sort((a, b) => a - b).map(y => ({ key: y, label: `FY ${fyShort(y)}`, ...agg.byYear[y] }));
+    const bare = !this.multiYear();
+    return Object.keys(agg.byMonth).sort(periodCmp).map(k => ({ key: k, label: monthLabel(k, bare), ...agg.byMonth[k] }));
   },
 
   sumCats(obj, cats = this.cats()) { return cats.reduce((s, c) => s + (obj[c] || 0), 0); },
 
-  sortedMonths(agg) { return Object.keys(agg.byMonth).sort((a, b) => monthRank(a) - monthRank(b)); },
-
   exploreRows(agg) {
-    const months = this.sortedMonths(agg);
+    const series = this.series(agg);
     const cats = this.cats();
     const metrics = ['Total', 'Total Prescriptions', 'Insurance Covered', 'Active Pharmacies', ...cats];
     const rows = metrics.map(metric => {
       const r = { Metric: metric, _has: false, _sum: 0 };
-      months.forEach(m => {
-        const a = agg.byMonth[m];
+      series.forEach(b => {
         let v = 0;
-        if (metric === 'Total') v = this.sumCats(a.byCat, cats);
-        else if (metric === 'Total Prescriptions') v = a.presc;
-        else if (metric === 'Insurance Covered') v = a.insured;
-        else if (metric === 'Active Pharmacies') v = a.pharmacies.size;
-        else v = a.byCat[metric] || 0;
-        r[m] = v; r._sum += v;
+        if (metric === 'Total') v = this.sumCats(b.byCat, cats);
+        else if (metric === 'Total Prescriptions') v = b.presc;
+        else if (metric === 'Insurance Covered') v = b.insured;
+        else if (metric === 'Active Pharmacies') v = b.pharmacies.size;
+        else v = b.byCat[metric] || 0;
+        r[b.key] = v;
+        r._sum += v;
         if (v > 0) r._has = true;
       });
+      if (metric === 'Active Pharmacies') r._sum = agg.totals.pharmacies.size;
       return r;
     }).filter(r => r._has);
-    return { months, rows };
+    return { months: series.map(b => b.key), labels: series.map(b => b.label), rows };
   },
 
   findMissing() {
     const f = S.filters;
     const yr = this.yearRows();
     const base = yr.filter(d => (!f.Region.length || f.Region.includes(d.Region)) && (!f.Class.length || f.Class.includes(d.Class)));
-    const allMonths = [...new Set(yr.map(r => r.Month))].filter(Boolean).sort((a, b) => monthRank(a) - monthRank(b));
-    const months = f.Month.length ? f.Month : allMonths;
-    let pharmacies = [...new Set(base.map(r => r.Pharmacy))].filter(Boolean);
-    if (f.Pharmacy.length) pharmacies = pharmacies.filter(p => f.Pharmacy.includes(p));
+    const periods = new Map();
+    yr.forEach(r => { if (r.Month) periods.set(periodKey(r.Year, r.Month), { Year: String(r.Year), Month: r.Month }); });
+    let list = [...periods.values()];
+    if (f.Month.length) list = list.filter(p => f.Month.includes(p.Month));
+    const phByYear = {};
+    base.forEach(r => { if (r.Pharmacy) (phByYear[r.Year] = phByYear[r.Year] || new Set()).add(r.Pharmacy); });
+    const active = new Set(base.map(r => `${r.Year}|${r.Month}|${r.Pharmacy}`));
     const regionOf = {};
     yr.forEach(r => { if (r.Pharmacy) regionOf[r.Pharmacy] = r.Region; });
     const out = [];
-    months.forEach(month => {
-      const active = new Set(base.filter(r => r.Month === month).map(r => r.Pharmacy));
-      pharmacies.forEach(p => { if (!active.has(p)) out.push({ Region: regionOf[p] || 'Unknown', Pharmacy: p, Month: month, Status: 'Inactive' }); });
+    list.forEach(p => {
+      let phs = [...(phByYear[p.Year] || [])];
+      if (f.Pharmacy.length) phs = phs.filter(x => f.Pharmacy.includes(x));
+      phs.forEach(ph => { if (!active.has(`${p.Year}|${p.Month}|${ph}`)) out.push({ Year: p.Year, Region: regionOf[ph] || 'Unknown', Pharmacy: ph, Month: p.Month, Status: 'Inactive' }); });
     });
-    out.sort((a, b) => a.Region.localeCompare(b.Region) || a.Pharmacy.localeCompare(b.Pharmacy) || monthRank(a.Month) - monthRank(b.Month));
+    out.sort((a, b) => (b.Year - a.Year) || a.Region.localeCompare(b.Region) || a.Pharmacy.localeCompare(b.Pharmacy) || monthRank(a.Month) - monthRank(b.Month));
     S.missing = out;
   },
 

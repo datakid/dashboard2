@@ -10,7 +10,7 @@ const Charts = {
 
   defs: [
     { id: 'med', title: 'Medication distribution', sub: 'Value by medication class', span: 'wide', tools: [['med', [['horizontal', 'Bars'], ['vertical', 'Columns']]], ['medOrder', [['ranked', 'Ranked'], ['default', 'Default']]]] },
-    { id: 'trend', title: 'Monthly trend', sub: 'How value moves through the fiscal year', span: 'two-third', tools: [['trend', [['total', 'Total'], ['stacked', 'By class'], ['presc', 'Prescriptions']]]] },
+    { id: 'trend', title: 'Trend', sub: 'How value moves across the selected period', span: 'two-third', tools: [['trend', [['total', 'Total'], ['overlay', 'Year over year'], ['stacked', 'By class'], ['presc', 'Rx']]]] },
     { id: 'region', title: 'Regional share', sub: 'Value split by region', span: 'third', tools: [['region', [['ring', 'Ring'], ['bars', 'Bars']]]] },
     { id: 'cov', title: 'Insurance coverage', sub: 'Prescriptions vs insured, with coverage rate', span: 'two-third', tools: [['cov', [['bars', 'Volumes'], ['rate', 'Rate only']]]] },
     { id: 'classes', title: 'Classification mix', sub: 'Value by pharmacy classification', span: 'third', tools: [['classes', [['ring', 'Ring'], ['polar', 'Polar']]]] },
@@ -57,6 +57,58 @@ const Charts = {
     a.ticks.color = cssVar('--ink-2');
     a.ticks.font = { family: FONT_AR, size: 12.5, weight: '500' };
     return a;
+  },
+
+  labelAxis(labels, extra = {}) {
+    const font = { family: FONT_AR, size: 13, weight: '500' };
+    const fontStr = `500 13px ${FONT_AR}`;
+    const a = this.catAxis(extra);
+    a.ticks = { ...a.ticks, autoSkip: false, padding: 14, font, color: cssVar('--ink-2') };
+    a.afterFit = (scale) => {
+      const c = scale.ctx;
+      c.save();
+      c.font = fontStr;
+      const w = Math.max(0, ...labels.map(l => c.measureText(String(l)).width));
+      c.restore();
+      const cap = Math.max(110, Math.min(260, scale.chart.width * 0.34));
+      scale.width = Math.min(cap, Math.ceil(w) + 28);
+    };
+    a.ticks.callback = function (v, i) {
+      const l = String(labels[i] ?? '');
+      const c = this.ctx;
+      const cap = Math.max(110, Math.min(260, this.chart.width * 0.34)) - 28;
+      c.save(); c.font = fontStr;
+      let out = l;
+      if (c.measureText(out).width > cap) { while (out.length > 1 && c.measureText(out + '…').width > cap) out = out.slice(0, -1); out += '…'; }
+      c.restore();
+      return out;
+    };
+    return a;
+  },
+
+  barValues: {
+    id: 'barValues',
+    afterDatasetsDraw(chart, _args, opts) {
+      if (!opts || !opts.on || chart.options.indexAxis !== 'y') return;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || meta.hidden) return;
+      const c = chart.ctx;
+      const area = chart.chartArea;
+      c.save();
+      c.font = `600 11.5px ${FONT_UI}`;
+      c.textBaseline = 'middle';
+      meta.data.forEach((bar, i) => {
+        const v = chart.data.datasets[0].data[i];
+        if (!v || !chart.getDataVisibility(i)) return;
+        const txt = compact(v);
+        const w = c.measureText(txt).width;
+        const inside = bar.x + w + 12 > area.right;
+        c.fillStyle = inside ? '#fff' : cssVar('--ink-3');
+        c.textAlign = inside ? 'right' : 'left';
+        c.fillText(txt, inside ? bar.x - 8 : bar.x + 8, bar.y);
+      });
+      c.restore();
+    }
   },
 
   wrap(label, max = 12) {
@@ -128,7 +180,7 @@ const Charts = {
         $$('button', b.parentElement).forEach(x => x.classList.toggle('on', x === b));
         store.set('alembic-chart-opts', this.opt);
         const id = b.closest('.chart-card').dataset.chart;
-        this.draw(id, Data.aggregate(S.filtered));
+        if (id === 'trend') this.render(Data.aggregate(S.filtered)); else this.draw(id, Data.aggregate(S.filtered));
         return;
       }
       const li = e.target.closest('.legend-item');
@@ -137,6 +189,7 @@ const Charts = {
       if (p) this.exportOne(p.dataset.png);
     });
     $('#exportAllPngBtn').addEventListener('click', () => this.exportAll());
+    if (document.fonts) document.fonts.ready.then(() => { if (S.tab === 'charts' && S.data.length) this.render(Data.aggregate(S.filtered)); });
     this.built = true;
   },
 
@@ -145,7 +198,10 @@ const Charts = {
   render(agg) {
     if (!window.Chart) return;
     this.build();
-    $('#chartsNote').textContent = `FY ${fyLabel(S.filters.Year)} · ${Data.summary()}`;
+    $('#chartsNote').textContent = `${Data.periodLabel()} · ${Data.summary()}`;
+    const g = Data.grain() === 'year' ? 'yearly' : 'monthly';
+    const ts = $('[data-sub="trend"]'); if (ts) ts.textContent = this.opt.trend === 'overlay' ? 'Each fiscal year laid over July → June' : `${g[0].toUpperCase() + g.slice(1)} value across ${Data.periodLabel()}`;
+    const cs = $('[data-sub="cov"]'); if (cs) cs.textContent = `Prescriptions vs insured, ${g}, with coverage rate`;
     this.defs.forEach(d => this.draw(d.id, agg));
   },
 
@@ -153,7 +209,11 @@ const Charts = {
     if (this.inst[id]) this.inst[id].destroy();
     config.options = Object.assign({ responsive: true, maintainAspectRatio: false, animation: { duration: 520, easing: 'easeOutQuart' }, layout: { padding: { top: 8, right: 12, bottom: 4, left: 4 } } }, config.options);
     config.options.plugins = Object.assign({ legend: { display: false } }, config.options.plugins || {});
-    config.plugins = [...(config.plugins || []), this.centerTotal];
+    config.plugins = [...(config.plugins || []), this.centerTotal, this.barValues];
+    if (config.options.indexAxis === 'y') {
+      config.options.plugins.barValues = { on: true };
+      config.options.layout = { padding: { top: 8, right: 44, bottom: 4, left: 4 } };
+    }
     this.inst[id] = new Chart($(`#chart-${id}`), config);
   },
 
@@ -182,7 +242,9 @@ const Charts = {
   draw(id, agg) {
     const P = this.palette();
     const cats = Data.cats();
-    const months = Data.sortedMonths(agg);
+    const series = Data.series(agg);
+    const months = series.map(b => b.label);
+    const dense = series.length > 18;
     const sage = cssVar('--sage'), soft = cssVar('--sage-soft-2'), copper = cssVar('--copper'), copperSoft = cssVar('--copper-soft');
     const body = $(`#chartGrid [data-chart="${id}"] .chart-body`);
     if (body) body.style.height = '';
@@ -193,7 +255,7 @@ const Charts = {
       const horiz = this.opt.med === 'horizontal';
       const total = rows.reduce((s, r) => s + r.v, 0);
       const slot = this.bodyW(id) / Math.max(1, rows.length);
-      if (horiz) body.style.height = Math.max(320, rows.length * 30 + 40) + 'px';
+      if (horiz) body.style.height = Math.max(320, rows.length * 32 + 44) + 'px';
       const labels = rows.map(r => horiz ? r.c : (slot >= 58 ? this.wrap(r.c, slot >= 80 ? 12 : 8) : r.c));
       this.setLegend(id, null);
       this.make(id, {
@@ -203,7 +265,7 @@ const Charts = {
           indexAxis: horiz ? 'y' : 'x',
           plugins: { tooltip: this.tooltip({ title: (i) => rows[i[0].dataIndex].c, label: (c) => { const v = horiz ? c.parsed.x : c.parsed.y; return ` ${fmt(v)} · ${total ? (v / total * 100).toFixed(1) : 0}%`; } }) },
           scales: horiz
-            ? { x: this.axis({ beginAtZero: true, position: 'top', ticks: { ...this.axis().ticks, maxTicksLimit: 7, callback: (v) => compact(v) } }), y: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: false, padding: 12 } }) }
+            ? { x: this.axis({ beginAtZero: true, position: 'top', grace: '6%', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }), y: this.labelAxis(labels) }
             : { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: false, maxRotation: slot >= 58 ? 0 : 60, minRotation: slot >= 58 ? 0 : 45, padding: 8, font: { family: FONT_AR, size: slot >= 58 ? 12 : 11, weight: '500' } } }), y: this.axis({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }) }
         }
       });
@@ -212,28 +274,39 @@ const Charts = {
     if (id === 'trend') {
       const mode = this.opt.trend;
       let datasets;
-      if (mode === 'stacked') {
+      let labels = months;
+      if (mode === 'overlay') {
+        const ys = Data.scopeYears().slice().sort((a, b) => a - b);
+        const monthNames = [...new Set(Data.series(agg, 'month').map(b => splitPeriod(b.key).Month))].sort((a, b) => monthRank(a) - monthRank(b));
+        labels = monthNames.map(m => MONTH_SHORT[String(m).toLowerCase()] || m);
+        datasets = ys.map((y, i) => {
+          const c = P[(ys.length - 1 - i) % P.length];
+          const latest = i === ys.length - 1;
+          return { label: `FY ${fyShort(y)}`, data: monthNames.map(m => { const b = agg.byMonth[periodKey(y, m)]; return b ? Data.sumCats(b.byCat, cats) : null; }), borderColor: c, backgroundColor: c, borderWidth: latest ? 2.75 : 1.75, tension: .38, pointRadius: latest ? 3 : 0, pointHoverRadius: 5, pointBackgroundColor: cssVar('--surface'), pointBorderColor: c, pointBorderWidth: 2, spanGaps: true, fill: false, order: latest ? 0 : 1 };
+        });
+        this.setLegend(id, datasets.map(d => ({ label: d.label, color: d.borderColor })), false);
+      } else if (mode === 'stacked') {
         const top = cats.map(c => ({ c, v: agg.byCat[c] || 0 })).sort((a, b) => b.v - a.v);
         const lead = top.slice(0, 5).map(t => t.c);
         const rest = top.slice(5).map(t => t.c);
-        datasets = lead.map((c, i) => ({ label: c, data: months.map(m => agg.byMonth[m].byCat[c] || 0), borderColor: P[i], backgroundColor: this.alpha(P[i], .28), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' }));
-        if (rest.length) datasets.push({ label: 'Other', data: months.map(m => Data.sumCats(agg.byMonth[m].byCat, rest)), borderColor: P[7], backgroundColor: this.alpha(P[7], .22), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' });
+        datasets = lead.map((c, i) => ({ label: c, data: series.map(b => b.byCat[c] || 0), borderColor: P[i], backgroundColor: this.alpha(P[i], .28), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' }));
+        if (rest.length) datasets.push({ label: 'Other', data: series.map(b => Data.sumCats(b.byCat, rest)), borderColor: P[7], backgroundColor: this.alpha(P[7], .22), fill: true, tension: .36, pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.75, stack: 's' });
         this.setLegend(id, datasets.map(d => ({ label: d.label, color: d.borderColor })), false);
       } else {
         const presc = mode === 'presc';
         const color = presc ? copper : sage;
-        datasets = [{ label: presc ? 'Prescriptions' : 'Total value', data: months.map(m => presc ? agg.byMonth[m].presc : Data.sumCats(agg.byMonth[m].byCat, cats)), borderColor: color, borderWidth: 2.5, tension: .4, pointRadius: 3.5, pointHoverRadius: 6, pointBackgroundColor: cssVar('--surface'), pointBorderColor: color, pointBorderWidth: 2, fill: true,
+        datasets = [{ label: presc ? 'Prescriptions' : 'Total value', data: series.map(b => presc ? b.presc : Data.sumCats(b.byCat, cats)), borderColor: color, borderWidth: 2.5, tension: .4, pointRadius: dense ? 0 : 3.5, pointHoverRadius: 6, pointBackgroundColor: cssVar('--surface'), pointBorderColor: color, pointBorderWidth: 2, fill: true,
           backgroundColor: (c) => { const ch = c.chart; if (!ch.chartArea) return 'transparent'; const g = ch.ctx.createLinearGradient(0, ch.chartArea.top, 0, ch.chartArea.bottom); g.addColorStop(0, presc ? copperSoft : soft); g.addColorStop(1, 'rgba(0,0,0,0)'); return g; } }];
         this.setLegend(id, null);
       }
-      const slot = this.bodyW(id) / Math.max(1, months.length);
+      const slot = this.bodyW(id) / Math.max(1, labels.length);
       this.make(id, {
         type: 'line',
-        data: { labels: months, datasets },
+        data: { labels, datasets },
         options: {
           interaction: { mode: 'index', intersect: false },
-          plugins: { tooltip: this.tooltip({ label: (c) => ` ${c.dataset.label}: ${fmt(c.parsed.y)}` }) },
-          scales: { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 14, maxRotation: slot < 56 ? 45 : 0, minRotation: 0 } }), y: this.axis({ beginAtZero: true, stacked: mode === 'stacked', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }) }
+          plugins: { tooltip: this.tooltip({ label: (c) => c.parsed.y === null ? null : ` ${c.dataset.label}: ${fmt(c.parsed.y)}` }) },
+          scales: { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 16, maxRotation: slot < 44 ? 45 : 0, minRotation: 0 } }), y: this.axis({ beginAtZero: true, stacked: mode === 'stacked', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }) }
         }
       });
     }
@@ -256,17 +329,17 @@ const Charts = {
           type: 'bar',
           data: { labels: rows.map(r => r[0]), datasets: [{ label: 'Value', data: rows.map(r => r[1]), backgroundColor: colors, borderRadius: 7, borderSkipped: false, barPercentage: .66, maxBarThickness: 38 }] },
           options: { indexAxis: 'y', plugins: { tooltip: this.tooltip({ label: (c) => ` ${fmt(c.parsed.x)} · ${pct(c.parsed.x)}` }) },
-            scales: { x: this.axis({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 4, callback: (v) => compact(v) } }), y: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: false } }) } }
+            scales: { x: this.axis({ beginAtZero: true, grace: '8%', ticks: { ...this.axis().ticks, maxTicksLimit: 4, callback: (v) => compact(v) } }), y: this.labelAxis(rows.map(r => r[0])) } }
         });
       }
     }
 
     if (id === 'cov') {
-      const presc = months.map(m => agg.byMonth[m].presc);
-      const ins = months.map(m => agg.byMonth[m].insured);
+      const presc = series.map(b => b.presc);
+      const ins = series.map(b => b.insured);
       const rate = months.map((m, i) => presc[i] ? +(ins[i] / presc[i] * 100).toFixed(1) : 0);
       const plum = cssVar('--plum');
-      const rateDs = { type: 'line', label: 'Coverage %', data: rate, yAxisID: 'y1', borderColor: plum, backgroundColor: plum, borderWidth: 2.25, tension: .4, pointRadius: 3, pointBackgroundColor: cssVar('--surface'), pointBorderColor: plum, pointBorderWidth: 2, order: 0 };
+      const rateDs = { type: 'line', label: 'Coverage %', data: rate, yAxisID: 'y1', borderColor: plum, backgroundColor: plum, borderWidth: 2.25, tension: .4, pointRadius: dense ? 0 : 3, pointBackgroundColor: cssVar('--surface'), pointBorderColor: plum, pointBorderWidth: 2, order: 0 };
       const onlyRate = this.opt.cov === 'rate';
       const ds = onlyRate ? [Object.assign(rateDs, { fill: true, backgroundColor: cssVar('--plum-soft') })] : [
         { label: 'Prescriptions', data: presc, backgroundColor: this.alpha(copper, .38), hoverBackgroundColor: copper, borderRadius: 6, borderSkipped: false, barPercentage: .82, categoryPercentage: .66, maxBarThickness: 26, order: 1 },
@@ -275,7 +348,7 @@ const Charts = {
       ];
       this.setLegend(id, ds.map(d => ({ label: d.label, color: d.type === 'line' ? plum : (d.label === 'Insured' ? sage : copper) })), false);
       const slot = this.bodyW(id) / Math.max(1, months.length);
-      const scales = { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 14, maxRotation: slot < 56 ? 45 : 0, minRotation: 0 } }), y1: this.axis({ position: onlyRate ? 'left' : 'right', beginAtZero: true, suggestedMax: 100, grid: { display: onlyRate, color: cssVar('--grid'), drawTicks: false }, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => v + '%' } }) };
+      const scales = { x: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: true, autoSkipPadding: 16, maxRotation: slot < 44 ? 45 : 0, minRotation: 0 } }), y1: this.axis({ position: onlyRate ? 'left' : 'right', beginAtZero: true, suggestedMax: 100, grid: { display: onlyRate, color: cssVar('--grid'), drawTicks: false }, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => v + '%' } }) };
       if (!onlyRate) scales.y = this.axis({ beginAtZero: true, ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } });
       this.make(id, {
         type: 'bar',
@@ -311,7 +384,7 @@ const Charts = {
         options: {
           indexAxis: 'y',
           plugins: { tooltip: this.tooltip({ title: (i) => i[0].label, label: (c) => ` ${fmt(c.parsed.x)}`, afterLabel: (c) => ` Region: ${rows[c.dataIndex].r}` }) },
-          scales: { x: this.axis({ beginAtZero: true, position: 'top', ticks: { ...this.axis().ticks, maxTicksLimit: 7, callback: (v) => compact(v) } }), y: this.catAxis({ ticks: { ...this.catAxis().ticks, autoSkip: false, padding: 12 } }) }
+          scales: { x: this.axis({ beginAtZero: true, position: 'top', grace: '6%', ticks: { ...this.axis().ticks, maxTicksLimit: 6, callback: (v) => compact(v) } }), y: this.labelAxis(rows.map(r => r.p)) }
         }
       });
     }
@@ -376,7 +449,7 @@ const Charts = {
     c.fillStyle = cssVar('--ink'); c.font = `600 ${26 * scale}px ${FONT_DISPLAY}`;
     c.fillText(ids.length === 1 ? items[0].def.title : 'Alembic chart board', pad + 60 * scale, pad + 13 * scale);
     c.fillStyle = cssVar('--ink-3'); c.font = `500 ${13 * scale}px ${FONT_UI}`;
-    c.fillText(`FY ${fyLabel(S.filters.Year)}  ·  ${Data.summary()}`.slice(0, 140), pad + 60 * scale, pad + 36 * scale);
+    c.fillText(`${Data.periodLabel()}  ·  ${Data.summary()}`.slice(0, 140), pad + 60 * scale, pad + 36 * scale);
     layout.forEach(({ it, x, y, w, h, ih, lrows }) => {
       c.save();
       c.shadowColor = 'rgba(30,36,34,0.07)'; c.shadowBlur = 24 * scale; c.shadowOffsetY = 6 * scale;
@@ -418,12 +491,12 @@ const Charts = {
     const ch = this.inst[id];
     if (!ch) return;
     ch.stop();
-    this.save([id], 1, `alembic-${id}-FY${S.filters.Year}-${stamp()}.png`);
+    this.save([id], 1, `alembic-${id}-${Data.periodSlug()}-${stamp()}.png`);
   },
 
   exportAll() {
     if (!Object.keys(this.inst).length) { toast('Open the Charts tab first so charts can render', 'info'); return; }
     Object.values(this.inst).forEach(ch => ch.stop());
-    this.save(this.defs.map(d => d.id), 2, `alembic-charts-FY${S.filters.Year}-${stamp()}.png`);
+    this.save(this.defs.map(d => d.id), 2, `alembic-charts-${Data.periodSlug()}-${stamp()}.png`);
   }
 };

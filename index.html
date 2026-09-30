@@ -48,16 +48,6 @@
       </span>
     </a>
 
-    <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
-      <span class="tab-thumb" aria-hidden="true"></span>
-      <button class="tab" role="tab" id="tab-overview" data-tab="overview" aria-controls="view-overview" aria-selected="true"><span data-i="overview"></span><span class="tab-label">Overview</span></button>
-      <button class="tab" role="tab" id="tab-charts" data-tab="charts" aria-controls="view-charts" aria-selected="false"><span data-i="charts"></span><span class="tab-label">Charts</span></button>
-      <button class="tab" role="tab" id="tab-explore" data-tab="explore" aria-controls="view-explore" aria-selected="false"><span data-i="table"></span><span class="tab-label">Explore</span></button>
-      <button class="tab" role="tab" id="tab-missing" data-tab="missing" aria-controls="view-missing" aria-selected="false"><span data-i="alert"></span><span class="tab-label">Missing</span><span class="tab-badge" id="missingTabBadge" hidden></span></button>
-      <button class="tab" role="tab" id="tab-years" data-tab="years" aria-controls="view-years" aria-selected="false"><span data-i="calendar"></span><span class="tab-label">Years</span></button>
-      <button class="tab" role="tab" id="tab-compare" data-tab="compare" aria-controls="view-compare" aria-selected="false"><span data-i="compare"></span><span class="tab-label">Compare</span></button>
-    </nav>
-
     <div class="tools">
       <div class="sync" id="syncStatus" data-state="syncing">
         <span class="sync-dot" aria-hidden="true"><span class="sync-ping"></span></span>
@@ -75,6 +65,19 @@
       <button class="icon-btn" id="shortcutsBtn" type="button" aria-label="Keyboard shortcuts" data-tip="Shortcuts · ?"><span data-i="keyboard"></span></button>
     </div>
   </header>
+
+  <div class="navbar" id="navbar">
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
+      <span class="tab-thumb" aria-hidden="true"></span>
+      <button class="tab" role="tab" id="tab-overview" data-tab="overview" aria-controls="view-overview" aria-selected="true"><span data-i="overview"></span><span class="tab-label">Overview</span></button>
+      <button class="tab" role="tab" id="tab-charts" data-tab="charts" aria-controls="view-charts" aria-selected="false"><span data-i="charts"></span><span class="tab-label">Charts</span></button>
+      <button class="tab" role="tab" id="tab-explore" data-tab="explore" aria-controls="view-explore" aria-selected="false"><span data-i="table"></span><span class="tab-label">Explore</span></button>
+      <button class="tab" role="tab" id="tab-missing" data-tab="missing" aria-controls="view-missing" aria-selected="false"><span data-i="alert"></span><span class="tab-label">Missing</span><span class="tab-badge" id="missingTabBadge" hidden></span></button>
+      <button class="tab" role="tab" id="tab-years" data-tab="years" aria-controls="view-years" aria-selected="false"><span data-i="calendar"></span><span class="tab-label">Years</span></button>
+      <button class="tab" role="tab" id="tab-compare" data-tab="compare" aria-controls="view-compare" aria-selected="false"><span data-i="compare"></span><span class="tab-label">Compare</span></button>
+    </nav>
+    <button class="period-pill" id="periodPill" type="button" data-tip="Jump to the timeline"><span data-i="calendar"></span><span id="periodPillText">—</span></button>
+  </div>
 
   <section class="deck" id="filterDeck" aria-label="Filters">
     <div class="deck-top">
@@ -98,13 +101,23 @@
           </div>
         </div>
       </div>
-      <button class="fy" id="yearFilter" type="button" data-select aria-haspopup="listbox" aria-expanded="false" aria-label="Fiscal year">
-        <span class="fy-label">Fiscal year</span>
-        <span class="fy-value"><span id="yearFilterText">—</span><span data-i="chevron"></span></span>
-      </button>
       <button class="btn soft deck-toggle" id="toggleFiltersBtn" type="button" aria-expanded="true" aria-controls="deckFilters">
         <span data-i="sliders"></span><span class="btn-text">Filters</span><span class="count-badge" id="filterCountBadge" hidden>0</span>
       </button>
+    </div>
+
+    <div class="timeline" id="timeline" aria-label="Time period">
+      <div class="tl-head">
+        <div class="tl-title"><span class="tl-eyebrow">Period</span><span class="tl-label" id="periodLabel">—</span></div>
+        <div class="tl-tools">
+          <div class="seg" id="grainSeg" role="group" aria-label="Time grain" hidden>
+            <button type="button" data-v="month">Months</button>
+            <button type="button" data-v="year">Years</button>
+          </div>
+          <button class="toggle-chip" id="multiYearToggle" type="button" aria-pressed="false" data-tip="Pick several years · or ⇧/⌘-click"><span class="toggle-dot"></span>Multi-year</button>
+        </div>
+      </div>
+      <div class="tl-track" id="timelineTrack" role="listbox" aria-multiselectable="true" aria-label="Fiscal years"></div>
     </div>
 
     <div class="deck-filters" id="deckFilters"></div>

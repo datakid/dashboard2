@@ -18,21 +18,30 @@ const Overview = {
     const insured = agg.totals.insured;
     const active = agg.totals.pharmacies.size;
     const yearPh = new Set(Data.yearRows().map(r => r.Pharmacy).filter(Boolean)).size;
-    const months = Data.sortedMonths(agg);
-    const monthVals = months.map(m => Data.sumCats(agg.byMonth[m].byCat, cats));
+    const series = Data.series(agg, 'month');
+    const months = series.map(b => b.label);
+    const monthVals = series.map(b => Data.sumCats(b.byCat, cats));
     const peakIdx = monthVals.length ? monthVals.indexOf(Math.max(...monthVals)) : -1;
     const avg = monthVals.length ? total / monthVals.length : 0;
-    const last = monthVals.length > 1 ? monthVals[monthVals.length - 1] : null;
-    const prev = monthVals.length > 1 ? monthVals[monthVals.length - 2] : null;
-    const mom = last !== null && prev ? (last - prev) / prev * 100 : null;
+    const multi = Data.multiYear();
+    let mom = null, momLabel = 'Last vs previous month';
+    if (multi) {
+      const yrs = Data.series(agg, 'year');
+      momLabel = 'Latest year vs prior';
+      if (yrs.length > 1) { const a = Data.sumCats(yrs[yrs.length - 1].byCat, cats), b = Data.sumCats(yrs[yrs.length - 2].byCat, cats); mom = b ? (a - b) / b * 100 : null; }
+    } else if (monthVals.length > 1) {
+      const a = monthVals[monthVals.length - 1], b = monthVals[monthVals.length - 2];
+      mom = b ? (a - b) / b * 100 : null;
+    }
+    const nYears = Data.scopeYears().length;
 
     $('#statsTotalRow').innerHTML = `
       <article class="card hero-card">
         <div class="hero-main">
-          <div class="hero-eyebrow"><span class="hero-dot"></span>Total value · FY ${esc(fyLabel(S.filters.Year))}</div>
+          <div class="hero-eyebrow"><span class="hero-dot"></span>Total value · ${esc(Data.periodLabel())}</div>
           <div class="hero-value" id="heroValue" data-tip="${fmt(total)}">0</div>
           <div class="hero-meta">
-            <span class="pill accent">${months.length} months</span>
+            ${multi ? `<span class="pill accent">${nYears} years</span>` : ''}<span class="pill ${multi ? 'plain' : 'accent'}">${months.length} months</span>
             <span class="pill copper">${cats.length} classes</span>
             <span class="pill plum">${fmt(S.filtered.length)} records</span>
           </div>
@@ -41,7 +50,7 @@ const Overview = {
           <dl class="hero-facts">
             <div><dt>Monthly average</dt><dd>${compact(avg)}</dd></div>
             <div><dt>Peak month</dt><dd dir="auto">${peakIdx >= 0 ? esc(months[peakIdx]) : '—'}</dd></div>
-            <div><dt>Last vs previous</dt><dd>${mom === null ? '—' : `<span class="delta ${mom >= 0 ? 'pos' : 'neg'}">${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%</span>`}</dd></div>
+            <div><dt>${momLabel}</dt><dd>${mom === null ? '—' : `<span class="delta ${mom >= 0 ? 'pos' : 'neg'}">${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%</span>`}</dd></div>
           </dl>
           <div class="hero-spark"><canvas id="heroSpark" aria-label="Monthly total trend"></canvas></div>
         </div>
@@ -51,7 +60,7 @@ const Overview = {
     const core = [
       { label: 'Prescriptions', value: presc, ic: 'pill', tone: 0, pct: null, note: `${compact(months.length ? presc / months.length : 0)} per month` },
       { label: 'Insurance covered', value: insured, ic: 'shield', tone: 1, pct: presc > 0 ? insured / presc * 100 : null, pctLabel: 'Share of prescriptions' },
-      { label: 'Active pharmacies', value: active, ic: 'building', tone: 2, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: `Of ${yearPh} pharmacies this year` }
+      { label: 'Active pharmacies', value: active, ic: 'building', tone: 2, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: `Of ${yearPh} pharmacies in this period` }
     ];
     $('#statsCoreRow').innerHTML = core.map((c, i) => {
       const [t, ts] = TONES[c.tone];
@@ -113,9 +122,11 @@ const Explore = {
   render(agg) {
     const thead = $('#exploreTable thead tr');
     const tbody = $('#exploreTable tbody');
-    const { months, rows } = Data.exploreRows(agg);
-    $('#exploreNote').textContent = `${rows.length} metrics across ${months.length} months · click a header to sort, a row to focus`;
-    thead.innerHTML = `<th class="sortable" data-col="Metric">Metric ${sortMark}</th>` + months.map(m => `<th class="sortable num" data-col="${esc(m)}" dir="auto">${esc(m)} ${sortMark}</th>`).join('') + `<th class="sortable num total-col" data-col="_sum">Total ${sortMark}</th>`;
+    const { months, labels, rows } = Data.exploreRows(agg);
+    const unit = Data.grain() === 'year' ? 'years' : 'months';
+    $('#exploreNote').textContent = `${rows.length} metrics across ${months.length} ${unit} · ${Data.periodLabel()} · click a header to sort, a row to focus`;
+    const yb = (k, i) => i > 0 && Data.grain() === 'month' && Data.multiYear() && splitPeriod(k).Year !== splitPeriod(months[i - 1]).Year ? ' year-break' : '';
+    thead.innerHTML = `<th class="sortable" data-col="Metric">Metric ${sortMark}</th>` + months.map((m, i) => `<th class="sortable num${yb(m, i)}" data-col="${esc(m)}" dir="auto">${esc(labels[i])} ${sortMark}</th>`).join('') + `<th class="sortable num total-col" data-col="_sum">Total ${sortMark}</th>`;
     const s = S.exploreSort;
     if (s.col) {
       rows.sort((a, b) => {
@@ -130,13 +141,13 @@ const Explore = {
       let prev = null;
       const vals = months.map(m => r[m] || 0);
       const max = Math.max(...vals);
-      const cells = months.map(m => {
+      const cells = months.map((m, i) => {
         const v = r[m] || 0;
         let tr = '<span class="trend"></span>';
         if (prev !== null) tr = v === prev ? '<span class="trend flat">–</span>' : v > prev ? '<span class="trend up">↑</span>' : '<span class="trend down">↓</span>';
         prev = v;
         const a = max > 0 ? (v / max) * 0.2 : 0;
-        return `<td class="num"><span class="heat" style="background:color-mix(in srgb, var(--sage) ${(a * 100).toFixed(0)}%, transparent)">${fmt(v)}</span>${tr}</td>`;
+        return `<td class="num${yb(m, i)}"><span class="heat" style="background:color-mix(in srgb, var(--sage) ${(a * 100).toFixed(0)}%, transparent)">${fmt(v)}</span>${tr}</td>`;
       }).join('');
       return `<tr data-row><td class="metric" dir="auto">${esc(r.Metric)}</td>${cells}<td class="num total-col"><strong>${fmt(r._sum)}</strong></td></tr>`;
     }).join('');
@@ -159,23 +170,24 @@ const Missing = {
   render() {
     const thead = $('#missingTable thead tr');
     const tbody = $('#missingTable tbody');
-    const cols = ['Region', 'Pharmacy', 'Month', 'Status'];
+    const multi = Data.multiYear();
+    const cols = multi ? ['Year', 'Region', 'Pharmacy', 'Month', 'Status'] : ['Region', 'Pharmacy', 'Month', 'Status'];
     thead.innerHTML = cols.map(c => `<th class="sortable" data-col="${c}">${c} ${sortMark}</th>`).join('');
     const q = normalizeArabic(S.missingQuery);
     let rows = S.missing.filter(r => !q || normalizeArabic(r.Pharmacy).includes(q) || normalizeArabic(r.Region).includes(q) || normalizeArabic(r.Month).includes(q));
     const s = S.missingSort;
     if (s.col) {
-      rows.sort((a, b) => s.col === 'Month' ? s.dir * (monthRank(a.Month) - monthRank(b.Month)) : s.dir * String(a[s.col]).localeCompare(String(b[s.col])));
+      rows.sort((a, b) => s.col === 'Month' ? s.dir * ((a.Year - b.Year) || (monthRank(a.Month) - monthRank(b.Month))) : s.col === 'Year' ? s.dir * (a.Year - b.Year) : s.dir * String(a[s.col]).localeCompare(String(b[s.col])));
       const th = $$('th', thead).find(t => t.dataset.col === s.col);
       if (th) th.classList.add(s.dir === 1 ? 'asc' : 'desc');
     }
     const ph = new Set(S.missing.map(r => r.Pharmacy)).size;
     $('#missingNote').textContent = S.missing.length ? `${fmt(S.missing.length)} gaps across ${ph} pharmacies${q ? ` · ${rows.length} shown` : ''}` : 'Every eligible pharmacy has submitted';
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="4">${S.missing.length ? emptyHTML('No matches', 'Nothing matches that search.', 'search') : emptyHTML('All pharmacies reporting', 'No inactive records for the current filters.', 'checkCircle')}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cols.length}">${S.missing.length ? emptyHTML('No matches', 'Nothing matches that search.', 'search') : emptyHTML('All pharmacies reporting', 'No inactive records for the current filters.', 'checkCircle')}</td></tr>`;
       return;
     }
-    tbody.innerHTML = rows.map(r => `<tr data-row><td dir="auto">${esc(r.Region)}</td><td dir="auto"><strong>${esc(r.Pharmacy)}</strong></td><td dir="auto">${esc(r.Month)}</td><td><span class="tag inactive">Inactive</span></td></tr>`).join('');
+    tbody.innerHTML = rows.map(r => `<tr data-row>${multi ? `<td><span class="tag year">FY ${esc(fyShort(r.Year))}</span></td>` : ''}<td dir="auto">${esc(r.Region)}</td><td dir="auto"><strong>${esc(r.Pharmacy)}</strong></td><td dir="auto">${esc(r.Month)}</td><td><span class="tag inactive">Inactive</span></td></tr>`).join('');
   },
 
   init() {

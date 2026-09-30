@@ -167,7 +167,7 @@ const Filters = {
     store.sset(this.recentsKey, r.slice(0, 8));
   },
 
-  persist() { const { Year, ...rest } = S.filters; store.sset('alembic-filters', rest); },
+  persist() { const { Years, ...rest } = S.filters; store.sset('alembic-filters', rest); store.set('alembic-period', Years); },
 
   restore() {
     const saved = store.sget('alembic-filters', store.sget('lx-dashboard-filters', null));
@@ -192,14 +192,14 @@ const Filters = {
     const out = {};
     let any = false;
     FIELDS.forEach(f => { const v = p.get(f); if (v) { out[f] = v.split('|'); any = true; } });
-    const y = p.get('Year');
-    if (y && S.years.map(String).includes(y)) S.filters.Year = y;
+    const y = p.get('Years') || p.get('Year');
+    if (y !== null) { const valid = new Set(S.years.map(String)); S.filters.Years = y === 'all' ? [] : y.split('|').filter(v => valid.has(v)); }
     return any ? out : null;
   },
 
   shareLink() {
     const p = new URLSearchParams();
-    p.set('Year', S.filters.Year);
+    p.set('Years', S.filters.Years.length ? S.filters.Years.join('|') : 'all');
     FIELDS.forEach(f => { if (S.filters[f].length) p.set(f, S.filters[f].join('|')); });
     return `${location.origin}${location.pathname}#${S.tab}?${p.toString()}`;
   },
@@ -219,6 +219,8 @@ const Search = {
     { id: 'missing', label: 'Go to Missing', ic: 'alert', kw: 'missing inactive records', run: () => App.setTab('missing') },
     { id: 'years', label: 'Go to Years', ic: 'calendar', kw: 'years yearly multi year arena', run: () => App.setTab('years') },
     { id: 'compare', label: 'Go to Compare', ic: 'compare', kw: 'compare versus side', run: () => App.setTab('compare') },
+    { id: 'alltime', label: 'Show all time', ic: 'layers', kw: 'all time timeline years period whole', run: () => Timeline.set([]) },
+    { id: 'latest', label: 'Latest fiscal year', ic: 'calendar', kw: 'latest current year fiscal period', run: () => Timeline.set([String(Math.max(...S.years))]) },
     { id: 'reset', label: 'Reset filters', ic: 'trash', kw: 'reset clear filters', run: () => App.confirmClear() },
     { id: 'export', label: 'Export Excel', ic: 'download', kw: 'export excel download xlsx', run: () => Exporter.excel() },
     { id: 'png', label: 'Export charts as PNG', ic: 'image', kw: 'png image charts export', run: () => { App.setTab('charts'); setTimeout(() => Charts.exportAll(), 400); } },
