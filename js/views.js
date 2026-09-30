@@ -40,6 +40,9 @@ const Overview = {
     const focus = sel.length > 0;
 
     if (!this.built || !$('#heroValue')) this.build();
+    const none = !S.filtered.length && S.data.length > 0;
+    $('#noMatchBar').hidden = !none;
+    if (none) $('#noMatchScope').textContent = `${Data.summary()} · ${Data.periodLabel()}`;
 
     $('#heroEyebrow').textContent = `${focus ? 'Focused value' : 'Total value'} · ${Data.periodLabel()}`;
     const hv = $('#heroValue');
@@ -202,6 +205,7 @@ const Overview = {
       else if (e.target === grid) this.clearCats();
     });
     $('#clearCatsBtn').addEventListener('click', () => this.clearCats());
+    $('#noMatchClear').addEventListener('click', () => Filters.clearAll());
     $('#statsTotalRow').addEventListener('click', (e) => { if (e.target.closest('[data-clear-cats]')) this.clearCats(); });
     $('#view-overview').addEventListener('click', (e) => {
       if (!S.filters.MedClass.length || e.target.closest('.card, button, a, input')) return;

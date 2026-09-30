@@ -135,6 +135,11 @@
 
   <main class="views">
     <section class="view" id="view-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="card no-match" id="noMatchBar" role="status" hidden>
+        <span class="no-match-icon"><span data-i="search"></span></span>
+        <span class="no-match-text"><strong>No records match</strong><span id="noMatchScope"></span></span>
+        <button class="btn soft sm" id="noMatchClear" type="button"><span data-i="x"></span><span>Clear filters</span></button>
+      </div>
       <div class="stats-hero" id="statsTotalRow">
         <div class="card hero-card skeleton"></div>
       </div>

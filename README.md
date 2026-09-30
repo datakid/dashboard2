@@ -93,6 +93,11 @@ Data comes from a public Google Sheet read as CSV. Preferences are saved in loca
 - Production URL: not recorded; these changes have not been Hosted-Deployed.
 - Structure addition: `js/reports.js` (IndexedDB snapshot and print report), `css/print.css`.
 
+## Pre-ship polish
+- Overview shows a "No records match" bar with the current scope and a one-click Clear filters when filters match nothing.
+- Dark theme: horizontal bar labels get more contrast.
+- Checked every tab in light and dark: no console errors, no clipped text, no `NaN`/`undefined`.
+
 ## Remaining optional development
 - Per-chart fullscreen view.
 - Full offline application shell/dependency caching, if required.
