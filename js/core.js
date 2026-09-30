@@ -48,7 +48,11 @@ const ICONS = {
   bolt: '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
   expand: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
   copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'
+  link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  trendUp: '<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+  trendDown: '<path d="m22 17-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/>',
+  equal: '<path d="M5 9h14M5 15h14"/>'
 };
 
 const icon = (name) => `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
@@ -114,6 +118,8 @@ const toast = (message, type = 'info', ms = 3200) => {
   setTimeout(bye, ms);
 };
 
+const selBtn = (attrs, label, placeholder, set) => `<button type="button" class="sel-btn${set ? ' set' : ''}" data-select ${attrs} aria-haspopup="listbox" aria-expanded="false"><span class="sel-val" dir="auto">${esc(set ? label : placeholder)}</span>${icon('chevron')}</button>`;
+
 const emptyHTML = (title, desc, ic = 'layers', err = false) => `<div class="empty${err ? ' error' : ''}"><div class="empty-icon">${icon(ic)}</div><div class="empty-title">${esc(title)}</div><div class="empty-desc">${esc(desc)}</div></div>`;
 
 const animateNumber = (el, end, ms = 750) => {
@@ -147,20 +153,195 @@ const copyText = async (text) => {
 };
 
 const Modal = {
-  open(title, bodyHTML, footHTML = '', wide = false) {
+  resolver: null,
+  open(title, bodyHTML, footHTML = '', wide = false, kind = '') {
+    Select.close();
     $('#modalTitle').textContent = title;
     $('#modalBody').innerHTML = bodyHTML;
     $('#modalFoot').innerHTML = footHTML;
-    $('.modal-card').style.width = wide ? 'min(760px, 100%)' : '';
+    const card = $('.modal-card');
+    card.style.width = wide ? 'min(760px, 100%)' : '';
+    card.dataset.kind = kind;
+    clearTimeout(this.hideT);
     $('#modal').hidden = false;
+    $('#modal').classList.remove('out');
     this.lastFocus = document.activeElement;
-    setTimeout(() => { const f = $('#modal input, #modal textarea, #modal button:not(#modalClose)'); (f || $('#modalClose')).focus(); }, 30);
+    setTimeout(() => { const f = $('#modal [data-autofocus], #modal input, #modal textarea, #modal .modal-foot button'); (f || $('#modalClose')).focus(); }, 30);
   },
   close() {
-    $('#modal').hidden = true;
+    if ($('#modal').hidden) return;
+    if (this.resolver) { const r = this.resolver; this.resolver = null; r(false); }
+    $('#modal').classList.add('out');
+    this.hideT = setTimeout(() => { $('#modal').hidden = true; $('#modal').classList.remove('out'); }, 160);
     if (this.lastFocus && this.lastFocus.focus) this.lastFocus.focus();
   },
+  confirm({ title, message, confirm = 'Confirm', cancel = 'Cancel', tone = 'danger', ic = 'alert' }) {
+    return new Promise(resolve => {
+      this.open(title,
+        `<div class="confirm"><span class="confirm-icon ${tone}">${icon(ic)}</span><p class="confirm-msg">${esc(message)}</p></div>`,
+        `<button class="btn ghost" type="button" id="cfNo">${esc(cancel)}</button><button class="btn ${tone === 'danger' ? 'danger' : 'primary'}" type="button" id="cfYes" data-autofocus>${esc(confirm)}</button>`, false, 'confirm');
+      this.resolver = resolve;
+      $('#cfNo').addEventListener('click', () => this.close());
+      $('#cfYes').addEventListener('click', () => { const r = this.resolver; this.resolver = null; this.close(); if (r) r(true); });
+    });
+  },
   get isOpen() { return !$('#modal').hidden; }
+};
+
+const Select = {
+  el: null,
+  anchor: null,
+  cfg: null,
+  focus: -1,
+  mobile: () => matchMedia('(max-width: 760px)').matches,
+
+  ensure() {
+    if (this.el) return;
+    const el = document.createElement('div');
+    el.className = 'pop';
+    el.setAttribute('role', 'listbox');
+    el.innerHTML = `<div class="pop-grip" aria-hidden="true"></div><div class="pop-title"></div><div class="pop-search">${icon('search')}<input type="search" placeholder="Filter…" aria-label="Filter options" spellcheck="false" /></div><div class="pop-list"></div>`;
+    document.body.appendChild(el);
+    this.el = el;
+    const inp = $('input', el);
+    inp.addEventListener('input', () => { this.focus = 0; this.list(); });
+    el.addEventListener('mousedown', (e) => { if (e.target.closest('.pop-opt')) e.preventDefault(); });
+    el.addEventListener('click', (e) => { const o = e.target.closest('.pop-opt'); if (o) this.pick(o.dataset.value); });
+    el.addEventListener('keydown', (e) => this.key(e));
+    document.addEventListener('pointerdown', (e) => { if (this.isOpen && !e.target.closest('.pop') && e.target.closest('[data-select]') !== this.anchor) this.close(); }, true);
+    addEventListener('resize', () => this.close());
+    addEventListener('scroll', (e) => { if (this.isOpen && !this.mobile() && !(e.target instanceof Element && e.target.closest('.pop'))) this.place(); }, { passive: true, capture: true });
+    $('#scrim').addEventListener('click', () => this.close());
+  },
+
+  get isOpen() { return !!(this.el && this.el.classList.contains('open')); },
+
+  open(anchor, cfg) {
+    this.ensure();
+    if (this.isOpen && this.anchor === anchor) { this.close(); return; }
+    this.close(true);
+    this.anchor = anchor;
+    this.cfg = cfg;
+    anchor.setAttribute('aria-expanded', 'true');
+    anchor.classList.add('open');
+    const many = cfg.options.length > 7;
+    $('.pop-search', this.el).hidden = !many;
+    $('.pop-title', this.el).textContent = cfg.title || '';
+    $('input', this.el).value = '';
+    this.focus = Math.max(0, cfg.options.findIndex(o => String(o.value) === String(cfg.value)));
+    this.list();
+    this.el.classList.toggle('sheet', this.mobile());
+    $('#scrim').classList.toggle('on', this.mobile());
+    this.place();
+    requestAnimationFrame(() => this.el.classList.add('open'));
+    setTimeout(() => { if (many && !this.mobile()) $('input', this.el).focus(); else this.el.focus(); this.paint(); }, 20);
+    this.el.tabIndex = -1;
+  },
+
+  place() {
+    if (!this.anchor) return;
+    const el = this.el;
+    if (this.mobile()) { el.style.left = el.style.top = el.style.width = el.style.maxHeight = ''; return; }
+    const r = this.anchor.getBoundingClientRect();
+    const w = Math.max(r.width, this.cfg.minWidth || 220);
+    let left = Math.min(r.left, innerWidth - w - 12);
+    left = Math.max(12, left);
+    const h = Math.min(el.scrollHeight || 360, 380);
+    const below = innerHeight - r.bottom - 12;
+    const up = below < h && r.top > below;
+    el.style.width = w + 'px';
+    el.style.left = left + 'px';
+    el.style.top = (up ? r.top - h - 8 : r.bottom + 8) + 'px';
+    el.style.maxHeight = (up ? Math.min(380, r.top - 20) : Math.min(380, below)) + 'px';
+    el.dataset.up = up ? '1' : '';
+  },
+
+  visible() {
+    const q = normalizeArabic($('input', this.el).value.trim());
+    return q ? this.cfg.options.filter(o => normalizeArabic(o.label).includes(q)) : this.cfg.options;
+  },
+
+  list() {
+    const opts = this.visible();
+    const cur = String(this.cfg.value);
+    $('.pop-list', this.el).innerHTML = opts.length ? opts.map((o, i) => `<div class="pop-opt${String(o.value) === cur ? ' sel' : ''}${o.muted ? ' muted' : ''}" role="option" aria-selected="${String(o.value) === cur}" data-value="${esc(o.value)}" data-idx="${i}"><span class="pop-lbl" dir="auto">${esc(o.label)}</span>${o.hint ? `<span class="pop-hint">${esc(o.hint)}</span>` : ''}<span class="pop-check">${icon('check')}</span></div>`).join('') : '<div class="pop-empty">No matches</div>';
+    this.focus = Math.min(this.focus, opts.length - 1);
+    this.paint();
+  },
+
+  paint() {
+    const items = $$('.pop-opt', this.el);
+    items.forEach((it, i) => it.classList.toggle('focus', i === this.focus));
+    const f = items[this.focus];
+    if (f) f.scrollIntoView({ block: 'nearest' });
+  },
+
+  key(e) {
+    const n = $$('.pop-opt', this.el).length;
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.focus = Math.min(n - 1, this.focus + 1); this.paint(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.focus = Math.max(0, this.focus - 1); this.paint(); }
+    else if (e.key === 'Enter') { e.preventDefault(); const o = $$('.pop-opt', this.el)[this.focus]; if (o) this.pick(o.dataset.value); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const a = this.anchor; this.close(); if (a) a.focus(); }
+    else if (e.key === 'Tab') this.close();
+  },
+
+  pick(v) {
+    const cfg = this.cfg;
+    const a = this.anchor;
+    this.close();
+    if (a) a.focus({ preventScroll: true });
+    if (cfg && String(v) !== String(cfg.value)) cfg.onPick(v);
+  },
+
+  close(instant) {
+    if (!this.el) return;
+    this.el.classList.remove('open');
+    $('#scrim').classList.remove('on');
+    if (this.anchor) { this.anchor.setAttribute('aria-expanded', 'false'); this.anchor.classList.remove('open'); }
+    this.anchor = null;
+  }
+};
+
+const Tip = {
+  el: null,
+  t: null,
+  init() {
+    if (matchMedia('(hover: none)').matches) return;
+    const el = document.createElement('div');
+    el.className = 'tip';
+    el.setAttribute('role', 'tooltip');
+    document.body.appendChild(el);
+    this.el = el;
+    document.addEventListener('pointerover', (e) => {
+      const a = e.target.closest('[data-tip]');
+      if (!a || a === this.cur) return;
+      this.cur = a;
+      clearTimeout(this.t);
+      this.t = setTimeout(() => this.show(a), this.el.classList.contains('on') ? 40 : 380);
+    });
+    document.addEventListener('pointerout', (e) => {
+      const a = e.target.closest('[data-tip]');
+      if (!a || (e.relatedTarget && a.contains(e.relatedTarget))) return;
+      this.hide();
+    });
+    document.addEventListener('pointerdown', () => this.hide(), true);
+    addEventListener('scroll', () => this.hide(), { passive: true, capture: true });
+  },
+  show(a) {
+    if (!a.isConnected || !a.dataset.tip) return;
+    const el = this.el;
+    el.textContent = a.dataset.tip;
+    const r = a.getBoundingClientRect();
+    el.style.left = '0px'; el.style.top = '0px';
+    const w = el.offsetWidth, h = el.offsetHeight;
+    let x = r.left + r.width / 2 - w / 2;
+    x = Math.max(8, Math.min(innerWidth - w - 8, x));
+    let y = r.bottom + 8;
+    if (y + h > innerHeight - 8) y = r.top - h - 8;
+    el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    el.classList.add('on');
+  },
+  hide() { clearTimeout(this.t); this.cur = null; if (this.el) this.el.classList.remove('on'); }
 };
 
 const Theme = {

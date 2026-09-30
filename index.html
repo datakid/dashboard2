@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Alembic — Pharmacy Intelligence</title>
 <meta name="description" content="Alembic distils pharmacy prescription data into overviews, charts, multi-year tables and side-by-side comparisons." />
-<meta name="theme-color" content="#F3F0E8" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="#121615" media="(prefers-color-scheme: dark)" />
-<link rel="icon" type="image/svg+xml" href="favicon.svg" />
-<link rel="apple-touch-icon" href="favicon.svg" />
+<meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#111413" media="(prefers-color-scheme: dark)" />
+<link rel="icon" type="image/jpeg" href="images/app-icon.jpg" />
+<link rel="apple-touch-icon" href="images/app-icon.jpg" />
 <script>
   (function () {
     var pref = localStorage.getItem('alembic-theme');
@@ -23,7 +23,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/app.css" />
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
@@ -41,7 +41,7 @@
 <div class="shell">
   <header class="topbar" id="topbar">
     <a class="brand" href="#overview" aria-label="Alembic home">
-      <img class="brand-mark" src="favicon.svg" alt="" width="38" height="38" />
+      <img class="brand-mark" src="images/app-icon.jpg" alt="" width="40" height="40" />
       <span class="brand-text">
         <span class="brand-word">Alembic</span>
         <span class="brand-sub">Pharmacy intelligence</span>
@@ -62,17 +62,17 @@
       <div class="sync" id="syncStatus" data-state="syncing">
         <span class="sync-dot" aria-hidden="true"><span class="sync-ping"></span></span>
         <span class="sync-label" id="syncLabel">Syncing…</span>
-        <button class="sync-auto" id="autoSyncToggle" type="button" aria-pressed="false" title="Auto-sync every 5 minutes">Auto</button>
-        <button class="icon-btn sm" id="syncBtn" type="button" aria-label="Refresh data" title="Refresh data (R)"><span data-i="refresh"></span></button>
+        <button class="sync-auto" id="autoSyncToggle" type="button" aria-pressed="false" data-tip="Auto-sync every 5 minutes">Auto</button>
+        <button class="icon-btn sm" id="syncBtn" type="button" aria-label="Refresh data" data-tip="Refresh data · R"><span data-i="refresh"></span></button>
       </div>
       <div class="theme-seg" id="themeSeg" role="radiogroup" aria-label="Theme">
         <span class="theme-thumb" aria-hidden="true"></span>
-        <button type="button" role="radio" data-theme-value="light" aria-label="Light theme" title="Light"><span data-i="sun"></span></button>
-        <button type="button" role="radio" data-theme-value="auto" aria-label="System theme" title="System"><span data-i="monitor"></span></button>
-        <button type="button" role="radio" data-theme-value="dark" aria-label="Dark theme" title="Dark"><span data-i="moon"></span></button>
+        <button type="button" role="radio" data-theme-value="light" aria-label="Light theme" data-tip="Light"><span data-i="sun"></span></button>
+        <button type="button" role="radio" data-theme-value="auto" aria-label="System theme" data-tip="Match system"><span data-i="monitor"></span></button>
+        <button type="button" role="radio" data-theme-value="dark" aria-label="Dark theme" data-tip="Dark"><span data-i="moon"></span></button>
       </div>
-      <a class="icon-btn" href="https://josn.vercel.app/" target="_blank" rel="noopener" aria-label="Import data" title="Import data"><span data-i="upload"></span></a>
-      <button class="icon-btn" id="shortcutsBtn" type="button" aria-label="Keyboard shortcuts" title="Shortcuts (?)"><span data-i="keyboard"></span></button>
+      <a class="icon-btn" href="https://josn.vercel.app/" target="_blank" rel="noopener" aria-label="Import data" data-tip="Import data"><span data-i="upload"></span></a>
+      <button class="icon-btn" id="shortcutsBtn" type="button" aria-label="Keyboard shortcuts" data-tip="Shortcuts · ?"><span data-i="keyboard"></span></button>
     </div>
   </header>
 
@@ -81,11 +81,11 @@
       <div class="search" id="searchWrap">
         <button class="search-icon" id="triggerSearchFocus" type="button" aria-label="Open search"><span data-i="search"></span></button>
         <div class="chips" id="searchChips"></div>
-        <input type="text" id="universalSearchInput" placeholder="Search regions, pharmacies, months, classes…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="universalSearchResults" aria-autocomplete="list" aria-activedescendant="" />
+        <input type="text" id="universalSearchInput" placeholder="Search regions, pharmacies, months, classes…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="universalSearchResults" aria-autocomplete="list" aria-activedescendant="" />
         <div class="search-actions">
-          <button class="icon-btn xs" id="clearSearchInput" type="button" aria-label="Clear text" hidden><span data-i="x"></span></button>
-          <button class="icon-btn xs accent" id="commitSearchBtn" type="button" aria-label="Apply" hidden><span data-i="check"></span></button>
-          <button class="icon-btn xs danger" id="clearAllFilters" type="button" aria-label="Clear all filters" hidden><span data-i="trash"></span></button>
+          <button class="icon-btn xs" id="clearSearchInput" type="button" aria-label="Clear text" data-tip="Clear text" hidden><span data-i="x"></span></button>
+          <button class="icon-btn xs accent" id="commitSearchBtn" type="button" aria-label="Apply" data-tip="Done" hidden><span data-i="check"></span></button>
+          <button class="icon-btn xs danger" id="clearAllFilters" type="button" aria-label="Clear all filters" data-tip="Clear all filters" hidden><span data-i="trash"></span></button>
           <kbd class="search-kbd">⌘K</kbd>
         </div>
         <div class="search-panel" id="universalSearchResults" role="listbox">
@@ -98,11 +98,11 @@
           </div>
         </div>
       </div>
-      <label class="fy" for="yearFilter">
+      <button class="fy" id="yearFilter" type="button" data-select aria-haspopup="listbox" aria-expanded="false" aria-label="Fiscal year">
         <span class="fy-label">Fiscal year</span>
-        <select id="yearFilter" aria-label="Fiscal year"></select>
-      </label>
-      <button class="btn soft" id="toggleFiltersBtn" type="button" aria-expanded="true" aria-controls="deckFilters">
+        <span class="fy-value"><span id="yearFilterText">—</span><span data-i="chevron"></span></span>
+      </button>
+      <button class="btn soft deck-toggle" id="toggleFiltersBtn" type="button" aria-expanded="true" aria-controls="deckFilters">
         <span data-i="sliders"></span><span class="btn-text">Filters</span><span class="count-badge" id="filterCountBadge" hidden>0</span>
       </button>
     </div>
@@ -129,8 +129,10 @@
         <div class="card stat-card skeleton"></div>
       </div>
       <div class="section-head">
-        <h2 class="section-title">Medication classes</h2>
-        <p class="section-note">Tap a class to filter by it</p>
+        <div>
+          <h2 class="section-title">Medication classes</h2>
+          <p class="section-note">Tap a class to filter by it</p>
+        </div>
       </div>
       <div class="stats-grid" id="statsCategoryGrid"></div>
     </section>
@@ -141,7 +143,7 @@
           <h2 class="section-title">Charts</h2>
           <p class="section-note" id="chartsNote">Every chart follows the active filters</p>
         </div>
-        <button class="btn soft" id="exportAllPngBtn" type="button"><span data-i="image"></span><span class="btn-text">Export all as PNG</span></button>
+        <button class="btn soft" id="exportAllPngBtn" type="button"><span data-i="image"></span><span class="btn-text">Export board as PNG</span></button>
       </div>
       <div class="chart-grid" id="chartGrid"></div>
     </section>
@@ -169,7 +171,7 @@
           </div>
           <label class="mini-search">
             <span data-i="search"></span>
-            <input type="search" id="missingSearch" placeholder="Find pharmacy or region" autocomplete="off" />
+            <input type="search" id="missingSearch" placeholder="Find pharmacy or region" autocomplete="off" spellcheck="false" />
           </label>
         </div>
         <div class="table-scroll">
@@ -200,23 +202,54 @@
       <div class="compare-deck">
         <div class="card panel side side-a" id="compareSideA"></div>
         <div class="vs">
+          <span class="vs-line" aria-hidden="true"></span>
           <span class="vs-badge">vs</span>
-          <button class="icon-btn" id="swapSidesBtn" type="button" aria-label="Swap sides" title="Swap sides"><span data-i="swap"></span></button>
+          <button class="icon-btn swap-btn" id="swapSidesBtn" type="button" aria-label="Swap sides" data-tip="Swap A and B"><span data-i="swap"></span></button>
+          <span class="vs-line" aria-hidden="true"></span>
         </div>
         <div class="card panel side side-b" id="compareSideB"></div>
       </div>
-      <div class="compare-bar">
-        <p class="section-note">Row pills show the difference against the opposite side</p>
-        <button class="btn primary" id="exportCompareCsvBtn" type="button"><span data-i="download"></span><span class="btn-text">Export CSV</span></button>
-      </div>
-      <div class="compare-tables" id="compareResults"></div>
+
+      <div class="duel-grid" id="compareHeadline"></div>
+
+      <article class="card ledger" id="compareLedger">
+        <header class="ledger-head">
+          <div>
+            <h2 class="section-title">Side by side</h2>
+            <p class="section-note" id="compareNote">Change is A measured against B</p>
+          </div>
+          <div class="ledger-tools" id="compareTools">
+            <div class="seg" data-cmp="sort" role="group" aria-label="Sort rows">
+              <button type="button" data-v="default">Default</button>
+              <button type="button" data-v="change">Biggest shift</button>
+              <button type="button" data-v="value">Largest</button>
+            </div>
+            <div class="seg" data-cmp="mode" role="group" aria-label="Change format">
+              <button type="button" data-v="pct">%</button>
+              <button type="button" data-v="abs">Δ</button>
+            </div>
+            <button class="toggle-chip" id="cmpHideZero" type="button" aria-pressed="true"><span class="toggle-dot"></span>Hide empty</button>
+            <button class="btn primary sm" id="exportCompareCsvBtn" type="button"><span data-i="download"></span><span class="btn-text">CSV</span></button>
+          </div>
+        </header>
+        <div class="ledger-cols" aria-hidden="true">
+          <span class="lc-metric">Metric</span>
+          <span class="lc-a"><span class="side-badge sm a">A</span><span id="ledgerLabelA">A</span></span>
+          <span class="lc-bars"></span>
+          <span class="lc-b"><span id="ledgerLabelB">B</span><span class="side-badge sm b">B</span></span>
+          <span class="lc-delta">Change</span>
+        </div>
+        <div class="ledger-body" id="compareResults" role="table" aria-label="Comparison"></div>
+      </article>
     </section>
   </main>
 
   <footer class="foot">
-    <span>Alembic</span><span class="foot-dot">·</span><span>distilled from the live prescription sheet</span>
+    <img src="images/app-icon.jpg" alt="" width="18" height="18" /><span>Alembic</span><span class="foot-dot">·</span><span>distilled from the live prescription sheet</span>
   </footer>
 </div>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
 
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 

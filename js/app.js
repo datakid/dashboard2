@@ -242,11 +242,45 @@ const App = {
   }, 60),
 
   populateYears() {
-    const sel = $('#yearFilter');
-    sel.innerHTML = S.years.slice().reverse().map(y => `<option value="${y}">${fyLabel(y)}</option>`).join('');
     const keep = S.filters.Year && S.years.map(String).includes(String(S.filters.Year));
     S.filters.Year = keep ? String(S.filters.Year) : String(Math.max(...S.years));
-    sel.value = S.filters.Year;
+    this.paintYear();
+  },
+
+  paintYear() { $('#yearFilterText').textContent = S.filters.Year ? fyLabel(S.filters.Year) : '—'; },
+
+  openYear() {
+    if (!S.years.length) return;
+    const counts = {};
+    S.data.forEach(r => { counts[r.Year] = (counts[r.Year] || 0) + 1; });
+    Select.open($('#yearFilter'), {
+      title: 'Fiscal year',
+      value: S.filters.Year,
+      minWidth: 220,
+      options: S.years.slice().reverse().map(y => ({ value: String(y), label: fyLabel(y), hint: `${fmt(counts[y] || 0)} rows` })),
+      onPick: async (v) => {
+        if (Data.activeCount()) {
+          const ok = await Modal.confirm({ title: 'Switch fiscal year?', message: `Moving to FY ${fyLabel(v)} clears your ${Data.activeCount()} active filter${Data.activeCount() > 1 ? 's' : ''}, since regions and pharmacies differ between years.`, confirm: 'Switch year', tone: 'accent', ic: 'calendar' });
+          if (!ok) return;
+        }
+        S.filters.Year = v;
+        FIELDS.forEach(k => { S.filters[k] = []; });
+        this.paintYear();
+        Search.buildIndex();
+        this.changed();
+      }
+    });
+  },
+
+  async confirmClear() {
+    const n = Data.activeCount();
+    if (!n) return;
+    if (n > 1) {
+      const ok = await Modal.confirm({ title: 'Clear all filters?', message: `This removes ${n} active filters and shows the full fiscal year again.`, confirm: 'Clear filters', ic: 'trash' });
+      if (!ok) return;
+    }
+    Filters.clearAll();
+    toast('Filters cleared', 'success', 2200);
   },
 
   onData() {
@@ -298,12 +332,13 @@ const App = {
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#universalSearchInput').focus(); return; }
       if (e.key === 'Escape') {
+        if (Select.isOpen) { Select.close(); return; }
         if (Modal.isOpen) { Modal.close(); return; }
         Search.setOpen(false); Filters.closeAll();
         return;
       }
       const typing = e.target.closest('input, textarea, select, [contenteditable]');
-      if (typing || e.metaKey || e.ctrlKey || e.altKey || Modal.isOpen) return;
+      if (typing || e.metaKey || e.ctrlKey || e.altKey || Modal.isOpen || Select.isOpen || $('.dd-menu.open')) return;
       const k = e.key.toLowerCase();
       if (/^[1-6]$/.test(k)) { this.setTab(this.tabs[Number(k) - 1]); }
       else if (k === 'r') Sync.load(true);
@@ -318,6 +353,7 @@ const App = {
 
   init() {
     hydrateIcons();
+    Tip.init();
     Theme.init();
     Charts.restoreOpts();
     Filters.build();
@@ -337,12 +373,8 @@ const App = {
       const n = this.tabs[(i + (e.key === 'ArrowRight' ? 1 : this.tabs.length - 1)) % this.tabs.length];
       this.setTab(n); $(`.tab[data-tab="${n}"]`).focus();
     });
-    $('#yearFilter').addEventListener('change', (e) => {
-      S.filters.Year = e.target.value;
-      FIELDS.forEach(k => { S.filters[k] = []; });
-      Search.buildIndex();
-      this.changed();
-    });
+    $('#yearFilter').addEventListener('click', () => this.openYear());
+    $('#yearFilter').addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); this.openYear(); } });
     $('#exportExcelBtn').addEventListener('click', () => Exporter.excel());
     $('#missingResultsCount').addEventListener('click', () => this.setTab('missing'));
     $('#duplicateResultsCount').addEventListener('click', () => this.duplicates());
@@ -351,7 +383,12 @@ const App = {
     $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') Modal.close(); });
     $('#scrollTopBtn').addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
     addEventListener('scroll', debounce(() => $('#scrollTopBtn').classList.toggle('show', scrollY > 480), 60), { passive: true });
-    addEventListener('resize', debounce(() => { this.moveThumb(); Theme.apply(true); }, 100));
+    let lastW = innerWidth;
+    addEventListener('resize', debounce(() => {
+      this.moveThumb(); Theme.apply(true);
+      if (Math.abs(innerWidth - lastW) > 40 && S.tab === 'charts' && S.data.length) Charts.render(Data.aggregate(S.filtered));
+      lastW = innerWidth;
+    }, 160));
     addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0]; if (t && t !== S.tab) this.setTab(t, true); });
 
     const initial = location.hash.slice(1).split('?')[0] || store.get('alembic-tab', 'overview');

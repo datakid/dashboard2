@@ -11,9 +11,11 @@ const Filters = {
           <button class="dd-btn" type="button" data-field="${f}" aria-haspopup="listbox" aria-expanded="false">All</button>
           <button class="dd-clear" type="button" data-field="${f}" aria-label="Clear ${FIELD_META[f].label}">${icon('x')}</button>
           <div class="dd-menu" role="listbox" data-field="${f}">
-            <div class="dd-filter"><input type="search" placeholder="Filter ${FIELD_META[f].label.toLowerCase()}…" aria-label="Filter options" /></div>
+            <div class="dd-grip" aria-hidden="true"></div>
+            <div class="dd-title">${FIELD_META[f].label}</div>
+            <div class="dd-filter">${icon('search')}<input type="search" placeholder="Filter ${FIELD_META[f].label.toLowerCase()}…" aria-label="Filter options" spellcheck="false" /></div>
             <div class="dd-list"></div>
-            <div class="dd-foot"><button type="button" data-act="all">Select visible</button><span>Esc to close</span><button type="button" data-act="none">Clear</button></div>
+            <div class="dd-foot"><button type="button" data-act="all">Select visible</button><button type="button" data-act="none">Clear</button><button type="button" class="dd-done" data-act="done">Done</button></div>
           </div>
         </div>
       </div>`).join('');
@@ -34,6 +36,7 @@ const Filters = {
       if (act) {
         e.stopPropagation();
         const field = act.closest('.dd-menu').dataset.field;
+        if (act.dataset.act === 'done') { this.closeAll(); return; }
         if (act.dataset.act === 'none') S.filters[field] = [];
         else {
           const vals = $$('.dd-item:not(.off)', act.closest('.dd-menu')).map(i => i.dataset.value);
@@ -70,7 +73,8 @@ const Filters = {
       }
     });
 
-    document.addEventListener('click', (e) => { if (!e.target.closest('.dd')) this.closeAll(); });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.dd') && !e.target.closest('#scrim')) this.closeAll(); });
+    $('#scrim').addEventListener('click', () => this.closeAll());
 
     $('#toggleFiltersBtn').addEventListener('click', () => {
       const deck = $('#filterDeck');
@@ -91,11 +95,16 @@ const Filters = {
     const inp = $('.dd-filter input', m);
     inp.value = '';
     this.renderList(field);
+    const mobile = matchMedia('(max-width: 760px)').matches;
+    m.classList.toggle('sheet', mobile);
+    $('#scrim').classList.toggle('on', mobile);
+    document.body.classList.toggle('sheet-open', mobile);
     m.classList.add('open'); b.classList.add('open'); b.setAttribute('aria-expanded', 'true');
-    setTimeout(() => inp.focus(), 20);
+    if (!mobile) setTimeout(() => inp.focus(), 20); else m.tabIndex = -1;
   },
 
   closeAll() {
+    if ($('.dd-menu.open')) { $('#scrim').classList.remove('on'); document.body.classList.remove('sheet-open'); }
     $$('.dd-menu.open').forEach(m => m.classList.remove('open'));
     $$('.dd-btn.open').forEach(b => { b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
     this.focus = -1;
@@ -210,7 +219,7 @@ const Search = {
     { id: 'missing', label: 'Go to Missing', ic: 'alert', kw: 'missing inactive records', run: () => App.setTab('missing') },
     { id: 'years', label: 'Go to Years', ic: 'calendar', kw: 'years yearly multi year arena', run: () => App.setTab('years') },
     { id: 'compare', label: 'Go to Compare', ic: 'compare', kw: 'compare versus side', run: () => App.setTab('compare') },
-    { id: 'reset', label: 'Reset filters', ic: 'trash', kw: 'reset clear filters', run: () => Filters.clearAll() },
+    { id: 'reset', label: 'Reset filters', ic: 'trash', kw: 'reset clear filters', run: () => App.confirmClear() },
     { id: 'export', label: 'Export Excel', ic: 'download', kw: 'export excel download xlsx', run: () => Exporter.excel() },
     { id: 'png', label: 'Export charts as PNG', ic: 'image', kw: 'png image charts export', run: () => { App.setTab('charts'); setTimeout(() => Charts.exportAll(), 400); } },
     { id: 'share', label: 'Copy share link', ic: 'link', kw: 'share link url copy', run: () => App.share() },
@@ -395,7 +404,7 @@ const Search = {
     });
     $('#clearSearchInput').addEventListener('click', () => { inp.value = ''; inp.focus(); this.recents(); syncBtns(); });
     $('#commitSearchBtn').addEventListener('click', () => this.setOpen(false));
-    $('#clearAllFilters').addEventListener('click', () => { Filters.clearAll(); inp.focus(); if (this.isOpen()) this.refresh(); });
+    $('#clearAllFilters').addEventListener('click', async () => { this.setOpen(false); await App.confirmClear(); if (!Modal.isOpen) inp.focus(); });
 
     const deb = debounce(q => this.run(q), 80);
     inp.addEventListener('input', () => { syncBtns(); const q = inp.value.trim(); if (!q) { this.recents(); return; } deb(q); });

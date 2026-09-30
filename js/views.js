@@ -19,32 +19,47 @@ const Overview = {
     const active = agg.totals.pharmacies.size;
     const yearPh = new Set(Data.yearRows().map(r => r.Pharmacy).filter(Boolean)).size;
     const months = Data.sortedMonths(agg);
+    const monthVals = months.map(m => Data.sumCats(agg.byMonth[m].byCat, cats));
+    const peakIdx = monthVals.length ? monthVals.indexOf(Math.max(...monthVals)) : -1;
+    const avg = monthVals.length ? total / monthVals.length : 0;
+    const last = monthVals.length > 1 ? monthVals[monthVals.length - 1] : null;
+    const prev = monthVals.length > 1 ? monthVals[monthVals.length - 2] : null;
+    const mom = last !== null && prev ? (last - prev) / prev * 100 : null;
 
     $('#statsTotalRow').innerHTML = `
       <article class="card hero-card">
-        <div>
-          <div class="hero-eyebrow">Total value · FY ${esc(fyLabel(S.filters.Year))}</div>
-          <div class="hero-value" id="heroValue" title="${fmt(total)}">0</div>
+        <div class="hero-main">
+          <div class="hero-eyebrow"><span class="hero-dot"></span>Total value · FY ${esc(fyLabel(S.filters.Year))}</div>
+          <div class="hero-value" id="heroValue" data-tip="${fmt(total)}">0</div>
           <div class="hero-meta">
             <span class="pill accent">${months.length} months</span>
             <span class="pill copper">${cats.length} classes</span>
             <span class="pill plum">${fmt(S.filtered.length)} records</span>
           </div>
         </div>
-        <div class="hero-spark"><canvas id="heroSpark" aria-label="Monthly total trend"></canvas></div>
+        <div class="hero-side">
+          <dl class="hero-facts">
+            <div><dt>Monthly average</dt><dd>${compact(avg)}</dd></div>
+            <div><dt>Peak month</dt><dd dir="auto">${peakIdx >= 0 ? esc(months[peakIdx]) : '—'}</dd></div>
+            <div><dt>Last vs previous</dt><dd>${mom === null ? '—' : `<span class="delta ${mom >= 0 ? 'pos' : 'neg'}">${mom >= 0 ? '+' : ''}${mom.toFixed(1)}%</span>`}</dd></div>
+          </dl>
+          <div class="hero-spark"><canvas id="heroSpark" aria-label="Monthly total trend"></canvas></div>
+        </div>
       </article>`;
     animateNumber($('#heroValue'), total, 900);
 
     const core = [
-      { label: 'Prescriptions', value: presc, ic: 'pill', tone: 0, pct: null },
-      { label: 'Insurance covered', value: insured, ic: 'shield', tone: 1, pct: presc > 0 ? insured / presc * 100 : null, pctLabel: 'of prescriptions' },
-      { label: 'Active pharmacies', value: active, ic: 'building', tone: 2, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: 'of year total' }
+      { label: 'Prescriptions', value: presc, ic: 'pill', tone: 0, pct: null, note: `${compact(months.length ? presc / months.length : 0)} per month` },
+      { label: 'Insurance covered', value: insured, ic: 'shield', tone: 1, pct: presc > 0 ? insured / presc * 100 : null, pctLabel: 'Share of prescriptions' },
+      { label: 'Active pharmacies', value: active, ic: 'building', tone: 2, pct: yearPh > 0 ? active / yearPh * 100 : 0, pctLabel: `Of ${yearPh} pharmacies this year` }
     ];
     $('#statsCoreRow').innerHTML = core.map((c, i) => {
       const [t, ts] = TONES[c.tone];
-      const foot = c.pct === null ? '' : `<div class="stat-foot"><div class="bar"><div class="bar-fill" data-w="${Math.min(100, c.pct)}"></div></div><span class="stat-pct" title="${esc(c.pctLabel || '')}">${c.pct.toFixed(1)}%</span></div>`;
+      const foot = c.pct === null
+        ? `<div class="stat-foot"><span class="stat-note">${esc(c.note || '')}</span></div>`
+        : `<div class="stat-foot"><div class="bar"><div class="bar-fill" data-w="${Math.min(100, c.pct)}"></div></div><span class="stat-pct" data-tip="${esc(c.pctLabel || '')}">${c.pct.toFixed(1)}%</span></div>`;
       return `<article class="card stat-card" style="--i:${i};--tone:${t};--tone-soft:${ts}">
-        <div class="stat-top"><span class="stat-label">${esc(c.label)}</span><span class="stat-icon">${icon(c.ic)}</span></div>
+        <div class="stat-top"><span class="stat-icon">${icon(c.ic)}</span><span class="stat-label">${esc(c.label)}</span></div>
         <div class="stat-value" data-v="${c.value}">0</div>${foot}</article>`;
     }).join('');
 
@@ -55,8 +70,8 @@ const Overview = {
       const pct = total > 0 ? v / total * 100 : 0;
       const [t, ts] = TONES[i % TONES.length];
       const on = S.filters.MedClass.includes(c);
-      return `<button type="button" class="card cat-card${on ? ' active' : ''}" data-cat="${esc(c)}" style="--i:${i};--tone:${t};--tone-soft:${ts}" aria-pressed="${on}" title="${on ? 'Remove' : 'Filter by'} ${esc(c)}">
-        <span class="cat-top"><span class="cat-name" dir="auto">${esc(c)}</span><span class="cat-rank">#${rank.get(c)}</span></span>
+      return `<button type="button" class="card cat-card${on ? ' active' : ''}" data-cat="${esc(c)}" style="--i:${i};--tone:${t};--tone-soft:${ts}" aria-pressed="${on}" aria-label="${on ? 'Remove' : 'Filter by'} ${esc(c)}">
+        <span class="cat-top"><span class="cat-rank">${String(rank.get(c)).padStart(2, '0')}</span><span class="cat-name" dir="auto">${esc(c)}</span></span>
         <span class="cat-value">${fmt(v)}</span>
         <span class="stat-foot"><span class="bar"><span class="bar-fill" style="display:block" data-w="${pct}"></span></span><span class="stat-pct">${pct.toFixed(1)}%</span></span>
       </button>`;
@@ -67,7 +82,7 @@ const Overview = {
       $$('#view-overview .bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
     });
 
-    this.spark(months.map(m => Data.sumCats(agg.byMonth[m].byCat, cats)), months);
+    this.spark(monthVals, months);
   },
 
   spark(values, labels) {
@@ -78,9 +93,9 @@ const Overview = {
     const sage = cssVar('--sage');
     this.sparkChart = new Chart(cv, {
       type: 'line',
-      data: { labels, datasets: [{ data: values, borderColor: sage, borderWidth: 2.5, tension: .42, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: sage, fill: true,
+      data: { labels, datasets: [{ data: values, borderColor: sage, borderWidth: 2.25, tension: .4, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: cssVar('--surface'), pointBorderColor: sage, pointBorderWidth: 2, fill: true,
         backgroundColor: (ctx) => { const { chart } = ctx; if (!chart.chartArea) return 'transparent'; const g = chart.ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom); g.addColorStop(0, cssVar('--sage-soft-2')); g.addColorStop(1, 'rgba(0,0,0,0)'); return g; } }] },
-      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, interaction: { mode: 'index', intersect: false },
+      options: { responsive: true, maintainAspectRatio: false, animation: { duration: 600 }, layout: { padding: { top: 6, bottom: 2 } }, interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false }, tooltip: Charts.tooltip({ label: (c) => ' ' + fmt(c.parsed.y) }) },
         scales: { x: { display: false }, y: { display: false, beginAtZero: true } } }
     });
@@ -100,7 +115,7 @@ const Explore = {
     const tbody = $('#exploreTable tbody');
     const { months, rows } = Data.exploreRows(agg);
     $('#exploreNote').textContent = `${rows.length} metrics across ${months.length} months · click a header to sort, a row to focus`;
-    thead.innerHTML = `<th class="sortable" data-col="Metric">Metric ${sortMark}</th>` + months.map(m => `<th class="sortable num" data-col="${esc(m)}" dir="auto">${esc(m)} ${sortMark}</th>`).join('') + `<th class="sortable num" data-col="_sum">Total ${sortMark}</th>`;
+    thead.innerHTML = `<th class="sortable" data-col="Metric">Metric ${sortMark}</th>` + months.map(m => `<th class="sortable num" data-col="${esc(m)}" dir="auto">${esc(m)} ${sortMark}</th>`).join('') + `<th class="sortable num total-col" data-col="_sum">Total ${sortMark}</th>`;
     const s = S.exploreSort;
     if (s.col) {
       rows.sort((a, b) => {
@@ -117,13 +132,13 @@ const Explore = {
       const max = Math.max(...vals);
       const cells = months.map(m => {
         const v = r[m] || 0;
-        let tr = '';
+        let tr = '<span class="trend"></span>';
         if (prev !== null) tr = v === prev ? '<span class="trend flat">–</span>' : v > prev ? '<span class="trend up">↑</span>' : '<span class="trend down">↓</span>';
         prev = v;
-        const a = max > 0 ? (v / max) * 0.22 : 0;
+        const a = max > 0 ? (v / max) * 0.2 : 0;
         return `<td class="num"><span class="heat" style="background:color-mix(in srgb, var(--sage) ${(a * 100).toFixed(0)}%, transparent)">${fmt(v)}</span>${tr}</td>`;
       }).join('');
-      return `<tr data-row><td class="metric" dir="auto">${esc(r.Metric)}</td>${cells}<td class="num"><strong>${fmt(r._sum)}</strong></td></tr>`;
+      return `<tr data-row><td class="metric" dir="auto">${esc(r.Metric)}</td>${cells}<td class="num total-col"><strong>${fmt(r._sum)}</strong></td></tr>`;
     }).join('');
   },
 
@@ -188,15 +203,31 @@ function rowFocus(sel) {
   });
 }
 
+const SCOPE_LABEL = { Year: 'Fiscal year', Region: 'Region', Pharmacy: 'Pharmacy', Month: 'Month', Class: 'Classification' };
+const SCOPE_ALL = { Year: 'All years', Region: 'All regions', Pharmacy: 'All pharmacies', Month: 'All months', Class: 'All classes' };
+const scopeText = (k, v) => k === 'Year' ? fyLabel(v) : String(v);
+
 const scopedSelects = (filters, side, keys) => keys.map(k => {
   const opts = Data.scopedOptions(filters, k);
   const cur = filters[k];
   if (cur !== 'all' && !opts.map(String).includes(String(cur))) filters[k] = 'all';
   const set = filters[k] !== 'all';
-  return `<label class="sel${set ? ' set' : ''}"><span>${k === 'Class' ? 'Classification' : k}</span>
-    <select data-side="${side}" data-key="${k}" dir="auto"><option value="all">All ${k === 'Class' ? 'classes' : k === 'Pharmacy' ? 'pharmacies' : k.toLowerCase() + 's'}</option>${opts.map(o => `<option value="${esc(o)}"${String(o) === String(filters[k]) ? ' selected' : ''}>${k === 'Year' ? esc(fyLabel(o)) : esc(o)}</option>`).join('')}</select>
-    <button type="button" class="sel-reset" data-side="${side}" data-key="${k}" aria-label="Reset ${k}">${icon('x')}</button></label>`;
+  return `<div class="sel${set ? ' set' : ''}"><span class="sel-label">${SCOPE_LABEL[k]}</span>
+    <div class="sel-wrap">${selBtn(`data-side="${side}" data-key="${k}"`, set ? scopeText(k, filters[k]) : '', SCOPE_ALL[k], set)}
+    <button type="button" class="sel-reset" data-side="${side}" data-key="${k}" aria-label="Reset ${SCOPE_LABEL[k]}">${icon('x')}</button></div></div>`;
 }).join('');
+
+const openScoped = (btn, filters, onDone) => {
+  const k = btn.dataset.key;
+  const opts = Data.scopedOptions(filters, k);
+  Select.open(btn, {
+    title: SCOPE_LABEL[k],
+    value: filters[k],
+    minWidth: 240,
+    options: [{ value: 'all', label: SCOPE_ALL[k], muted: true }, ...opts.map(o => ({ value: String(o), label: scopeText(k, o) }))],
+    onPick: (v) => { onScopedChange(filters, k, v); onDone(); }
+  });
+};
 
 const onScopedChange = (filters, key, value) => {
   filters[key] = value;
@@ -221,7 +252,7 @@ const Years = {
     const map = {};
     years.forEach(y => { map[y] = Data.scopedMetrics({ ...S.yearsFilters, Year: y }); });
     let html = `<div class="table-head"><div><h2 class="section-title">Metrics by year</h2><p class="section-note">Dot marks the highest year · faded is the lowest · click a row to focus</p></div></div><div class="table-scroll"><table class="data-table" id="yearsTable"><thead><tr><th>Metric</th>${years.map(y => `<th class="num">${esc(fyLabel(y))}</th>`).join('')}${years.length > 1 ? '<th class="num">Change</th>' : ''}</tr></thead><tbody>`;
-    SCOPED_METRICS.forEach(m => {
+    SCOPED_METRICS.forEach((m, idx) => {
       const vals = years.map(y => map[y][m]);
       const max = Math.max(...vals), min = Math.min(...vals);
       const varied = max !== min && max > 0;
@@ -231,20 +262,20 @@ const Years = {
         const pct = b ? (a - b) / b * 100 : 0;
         change = `<td class="num">${Math.abs(pct) > 0.1 ? `<span class="delta ${pct > 0 ? 'pos' : 'neg'}">${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</span>` : '<span class="trend flat">–</span>'}</td>`;
       }
-      html += `<tr data-row><td class="metric" dir="auto">${esc(m)}</td>${vals.map(v => `<td class="num ${varied ? (v === max ? 'cell-max' : v === min ? 'cell-min' : '') : ''}">${fmt(v)}</td>`).join('')}${change}</tr>`;
+      html += `<tr data-row${idx === 3 ? ' class="group-end"' : ''}><td class="metric" dir="auto">${esc(m)}</td>${vals.map(v => `<td class="num ${varied ? (v === max ? 'cell-max' : v === min ? 'cell-min' : '') : ''}">${fmt(v)}</td>`).join('')}${change}</tr>`;
     });
     host.innerHTML = html + '</tbody></table></div>';
   },
 
   picker() {
     const draft = new Set(S.yearsScope);
-    const body = `<div class="year-toolbar"><label class="mini-search">${icon('search')}<input type="search" id="yearPickSearch" placeholder="Filter years" /></label><button class="btn soft sm" id="yearSort" type="button">${icon('swap')}<span>Sort</span></button><button class="btn ghost sm" id="yearAll" type="button">All</button><button class="btn ghost sm" id="yearNone" type="button">None</button></div><div class="year-list" id="yearPickList"></div>`;
+    const body = `<div class="year-toolbar"><label class="mini-search">${icon('search')}<input type="search" id="yearPickSearch" placeholder="Filter years" spellcheck="false" /></label><button class="btn soft sm" id="yearSort" type="button">${icon('swap')}<span>Sort</span></button><button class="btn ghost sm" id="yearAll" type="button">All</button><button class="btn ghost sm" id="yearNone" type="button">None</button></div><div class="year-list" id="yearPickList"></div>`;
     Modal.open('Choose fiscal years', body, `<button class="btn ghost" type="button" id="yearCancel">Cancel</button><button class="btn primary" type="button" id="yearApply">${icon('check')}<span>Apply</span></button>`);
     const list = () => {
       const q = $('#yearPickSearch').value.trim();
       let ys = S.years.map(String).sort((a, b) => S.yearSortDesc ? b - a : a - b);
       if (q) ys = ys.filter(y => y.includes(q) || fyLabel(y).includes(q));
-      $('#yearPickList').innerHTML = ys.map(y => `<label class="year-opt"><input type="checkbox" value="${esc(y)}"${draft.has(y) ? ' checked' : ''} />${esc(fyLabel(y))}</label>`).join('') || '<p class="section-note">No years</p>';
+      $('#yearPickList').innerHTML = ys.map(y => `<label class="year-opt"><input type="checkbox" value="${esc(y)}"${draft.has(y) ? ' checked' : ''} /><span>${esc(fyLabel(y))}</span></label>`).join('') || '<p class="section-note">No years</p>';
     };
     list();
     $('#yearPickSearch').addEventListener('input', debounce(list, 150));
@@ -262,8 +293,12 @@ const Years = {
       const b = e.target.closest('button[data-y]');
       if (b) { S.yearsScope = S.yearsScope.filter(y => y !== b.dataset.y); this.render(); }
     });
-    $('#yearsFilters').addEventListener('change', (e) => { if (e.target.matches('select')) { onScopedChange(S.yearsFilters, e.target.dataset.key, e.target.value); this.render(); } });
-    $('#yearsFilters').addEventListener('click', (e) => { const b = e.target.closest('.sel-reset'); if (b) { e.preventDefault(); onScopedChange(S.yearsFilters, b.dataset.key, 'all'); this.render(); } });
+    $('#yearsFilters').addEventListener('click', (e) => {
+      const r = e.target.closest('.sel-reset');
+      if (r) { onScopedChange(S.yearsFilters, r.dataset.key, 'all'); this.render(); return; }
+      const b = e.target.closest('.sel-btn');
+      if (b) openScoped(b, S.yearsFilters, () => this.render());
+    });
     $('#yearsResults').addEventListener('click', (e) => {
       const tr = e.target.closest('tbody tr[data-row]');
       if (!tr) return;
@@ -276,9 +311,19 @@ const Years = {
   }
 };
 
+const HEADLINE = [
+  { k: 'Total Value', label: 'Total value', ic: 'layers' },
+  { k: 'Total Prescriptions', label: 'Prescriptions', ic: 'pill' },
+  { k: 'Insurance Covered', label: 'Insured', ic: 'shield' },
+  { k: 'Active Pharmacies', label: 'Active pharmacies', ic: 'building' }
+];
+
 const Compare = {
-  title(f) { return f.Year !== 'all' ? fyLabel(f.Year) : 'All years'; },
-  sum(f) { const p = ['Region', 'Pharmacy', 'Month', 'Class'].filter(k => f[k] !== 'all').map(k => f[k]); return p.length ? p.join(' · ') : 'No extra filters'; },
+  opt: Object.assign({ sort: 'default', mode: 'pct', hideZero: true }, store.get('alembic-compare-opts', {})),
+  focusKey: null,
+
+  title(f) { return f.Year !== 'all' ? `FY ${fyLabel(f.Year)}` : 'All years'; },
+  sum(f) { const p = ['Region', 'Pharmacy', 'Month', 'Class'].filter(k => f[k] !== 'all').map(k => f[k]); return p.length ? p.join(' · ') : 'Every region, pharmacy and month'; },
 
   init() {
     if (S.years.length) {
@@ -288,36 +333,118 @@ const Compare = {
     }
   },
 
+  change(a, b) {
+    const d = a - b;
+    const pct = b ? d / b * 100 : (a ? Infinity : 0);
+    return { d, pct };
+  },
+
+  deltaPill({ d, pct }, mode = this.opt.mode) {
+    if (!d) return '<span class="delta flat">No change</span>';
+    const dir = d > 0 ? 'pos' : 'neg';
+    const sign = d > 0 ? '+' : '−';
+    const txt = mode === 'abs' || !isFinite(pct) ? `${sign}${compact(Math.abs(d))}` : `${sign}${Math.abs(pct).toFixed(1)}%`;
+    return `<span class="delta ${dir}">${icon(d > 0 ? 'trendUp' : 'trendDown')}${txt}</span>`;
+  },
+
+  sideHTML(side, f) {
+    const s = side === 'A' ? 'a' : 'b';
+    return `<header class="side-head">
+        <span class="side-badge ${s}">${side}</span>
+        <div class="side-heading"><h3 class="side-title">${esc(this.title(f))}</h3><p class="side-sum" dir="auto">${esc(this.sum(f))}</p></div>
+      </header>
+      <div class="select-grid">${scopedSelects(f, side, ['Year', 'Region', 'Pharmacy', 'Month', 'Class'])}</div>`;
+  },
+
   render() {
-    ['A', 'B'].forEach(side => {
-      const f = side === 'A' ? S.cmpA : S.cmpB;
-      $(`#compareSide${side}`).innerHTML = `<div class="side-title"><span class="side-dot"></span>${side === 'A' ? 'Left scope' : 'Right scope'}</div><div class="select-grid">${scopedSelects(f, side, ['Year', 'Region', 'Pharmacy', 'Month', 'Class'])}</div>`;
-    });
+    $('#compareSideA').innerHTML = this.sideHTML('A', S.cmpA);
+    $('#compareSideB').innerHTML = this.sideHTML('B', S.cmpB);
     const a = Data.scopedMetrics(S.cmpA), b = Data.scopedMetrics(S.cmpB);
-    const side = (m, o, f, cls) => `<article class="card compare-table ${cls}"><header class="compare-head"><h3><span class="side-dot"></span>${esc(this.title(f))}</h3><span class="side-sum" dir="auto">${esc(this.sum(f))}</span></header><div class="table-scroll"><table class="data-table"><thead><tr><th>Metric</th><th class="num">Value</th></tr></thead><tbody>${SCOPED_METRICS.map(k => {
-      const d = m[k] - o[k];
-      const pct = o[k] ? d / o[k] * 100 : 0;
-      const pill = Math.abs(pct) > 0.1 ? `<span class="delta ${d > 0 ? 'pos' : 'neg'}">${d > 0 ? '+' : ''}${pct.toFixed(1)}%</span>` : '';
-      return `<tr data-row data-k="${esc(k)}"><td class="metric" dir="auto">${esc(k)}</td><td class="num">${pill}${fmt(m[k])}</td></tr>`;
-    }).join('')}</tbody></table></div></article>`;
-    $('#compareResults').innerHTML = side(a, b, S.cmpA, 'side-a') + side(b, a, S.cmpB, 'side-b');
-    const panes = $$('#compareResults .table-scroll');
-    let lock = false;
-    panes.forEach((p, i) => p.addEventListener('scroll', () => { if (lock) return; lock = true; panes[1 - i].scrollTop = p.scrollTop; requestAnimationFrame(() => { lock = false; }); }));
+    this.paintTools();
+    this.headline(a, b);
+    this.ledger(a, b);
+  },
+
+  paintTools() {
+    $$('#compareTools .seg').forEach(seg => { const k = seg.dataset.cmp; $$('button', seg).forEach(x => x.classList.toggle('on', x.dataset.v === this.opt[k])); });
+    $('#cmpHideZero').setAttribute('aria-pressed', String(this.opt.hideZero));
+  },
+
+  headline(a, b) {
+    $('#compareHeadline').innerHTML = HEADLINE.map(({ k, label, ic }, i) => {
+      const va = a[k], vb = b[k];
+      const tot = va + vb;
+      const share = tot ? va / tot * 100 : 50;
+      const ch = this.change(va, vb);
+      return `<article class="card duel" style="--i:${i}">
+        <header class="duel-head"><span class="duel-icon">${icon(ic)}</span><span class="duel-label">${esc(label)}</span>${this.deltaPill(ch)}</header>
+        <div class="duel-vals">
+          <div class="duel-val a"><span class="side-badge sm a">A</span><strong data-tip="${fmt(va)}">${compact(va)}</strong></div>
+          <div class="duel-val b"><strong data-tip="${fmt(vb)}">${compact(vb)}</strong><span class="side-badge sm b">B</span></div>
+        </div>
+        <div class="duel-split" role="img" aria-label="A ${share.toFixed(0)}% versus B ${(100 - share).toFixed(0)}%"><span class="ds-a" style="width:${tot ? share : 50}%"></span><span class="ds-b"></span></div>
+        <div class="duel-share"><span>${tot ? share.toFixed(0) : '–'}%</span><span>${tot ? (100 - share).toFixed(0) : '–'}%</span></div>
+      </article>`;
+    }).join('');
+  },
+
+  ledger(a, b) {
+    $('#ledgerLabelA').textContent = this.title(S.cmpA);
+    $('#ledgerLabelB').textContent = this.title(S.cmpB);
+    let rows = SCOPED_METRICS.map((k, i) => ({ k, i, a: a[k], b: b[k], head: i < 4, ...this.change(a[k], b[k]) }));
+    const hidden = this.opt.hideZero ? rows.filter(r => !r.head && !r.a && !r.b).length : 0;
+    if (this.opt.hideZero) rows = rows.filter(r => r.head || r.a || r.b);
+    const byScore = (r) => this.opt.sort === 'change' ? (isFinite(r.pct) ? Math.abs(r.pct) : 1e12) : Math.max(r.a, r.b);
+    const head = rows.filter(r => r.head), meds = rows.filter(r => !r.head);
+    if (this.opt.sort !== 'default') meds.sort((x, y) => byScore(y) - byScore(x));
+    const up = meds.filter(r => r.d > 0).length, down = meds.filter(r => r.d < 0).length;
+    $('#compareNote').textContent = `Change is A measured against B · ${up} classes up, ${down} down${hidden ? ` · ${hidden} empty hidden` : ''}`;
+
+    const row = (r) => {
+      const mx = Math.max(r.a, r.b) || 1;
+      const lead = r.d > 0 ? 'lead-a' : r.d < 0 ? 'lead-b' : '';
+      const focus = this.focusKey ? (this.focusKey === r.k ? ' focus' : ' dim') : '';
+      return `<div class="lrow ${lead}${focus}" role="row" data-k="${esc(r.k)}" tabindex="0">
+        <span class="lr-metric" role="cell" dir="auto">${esc(r.k)}</span>
+        <span class="lr-a" role="cell" data-tip="${fmt(r.a)}">${fmt(r.a)}</span>
+        <span class="lr-bars" role="cell" aria-hidden="true"><span class="lb lb-a"><i style="width:${(r.a / mx * 100).toFixed(1)}%"></i></span><span class="lb lb-b"><i style="width:${(r.b / mx * 100).toFixed(1)}%"></i></span></span>
+        <span class="lr-b" role="cell" data-tip="${fmt(r.b)}">${fmt(r.b)}</span>
+        <span class="lr-delta" role="cell">${this.deltaPill(r)}</span>
+      </div>`;
+    };
+    const group = (t, list) => list.length ? `<div class="lgroup" role="rowgroup"><div class="lgroup-title">${esc(t)}<span>${list.length}</span></div>${list.map(row).join('')}</div>` : '';
+    $('#compareResults').innerHTML = group('Headline', head) + group('Medication classes', meds) || emptyHTML('Nothing to compare', 'Both scopes are empty.', 'compare');
+  },
+
+  focusRow(k) {
+    this.focusKey = this.focusKey === k ? null : k;
+    $$('#compareResults .lrow').forEach(r => { r.classList.remove('focus', 'dim'); if (this.focusKey) r.classList.add(r.dataset.k === this.focusKey ? 'focus' : 'dim'); });
   },
 
   bind() {
     const deck = $('.compare-deck');
-    deck.addEventListener('change', (e) => { if (e.target.matches('select')) { onScopedChange(e.target.dataset.side === 'A' ? S.cmpA : S.cmpB, e.target.dataset.key, e.target.value); this.render(); } });
-    deck.addEventListener('click', (e) => { const b = e.target.closest('.sel-reset'); if (b) { e.preventDefault(); onScopedChange(b.dataset.side === 'A' ? S.cmpA : S.cmpB, b.dataset.key, 'all'); this.render(); } });
-    $('#swapSidesBtn').addEventListener('click', () => { [S.cmpA, S.cmpB] = [S.cmpB, S.cmpA]; this.render(); });
-    $('#compareResults').addEventListener('click', (e) => {
-      const tr = e.target.closest('tbody tr[data-row]');
-      if (!tr) return;
-      const k = tr.dataset.k;
-      const was = tr.classList.contains('focus');
-      $$('#compareResults tbody tr').forEach(r => { r.classList.remove('focus', 'dim'); if (!was) r.classList.add(r.dataset.k === k ? 'focus' : 'dim'); });
+    deck.addEventListener('click', (e) => {
+      const r = e.target.closest('.sel-reset');
+      if (r) { onScopedChange(r.dataset.side === 'A' ? S.cmpA : S.cmpB, r.dataset.key, 'all'); this.render(); return; }
+      const b = e.target.closest('.sel-btn');
+      if (b) openScoped(b, b.dataset.side === 'A' ? S.cmpA : S.cmpB, () => this.render());
     });
+    $('#swapSidesBtn').addEventListener('click', () => {
+      [S.cmpA, S.cmpB] = [S.cmpB, S.cmpA];
+      const btn = $('#swapSidesBtn');
+      btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+      this.render();
+    });
+    $('#compareTools').addEventListener('click', (e) => {
+      const sb = e.target.closest('.seg button');
+      if (sb) { this.opt[sb.parentElement.dataset.cmp] = sb.dataset.v; }
+      else if (e.target.closest('#cmpHideZero')) this.opt.hideZero = !this.opt.hideZero;
+      else return;
+      store.set('alembic-compare-opts', this.opt);
+      this.render();
+    });
+    $('#compareResults').addEventListener('click', (e) => { const r = e.target.closest('.lrow'); if (r) this.focusRow(r.dataset.k); });
+    $('#compareResults').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.lrow')) { e.preventDefault(); this.focusRow(e.target.dataset.k); } });
     $('#exportCompareCsvBtn').addEventListener('click', () => Exporter.compareCsv());
   }
 };
