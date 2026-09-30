@@ -65,10 +65,34 @@ Overview, Charts, Explore and Missing all read one period model: `S.filters.Year
 
 Libraries loaded from a CDN: PapaParse, Fuse.js, Chart.js 4, and SheetJS (loaded only when you export).
 
-## Data
-Data comes from a public Google Sheet read as CSV, and nothing is stored on a server. Preferences are saved in localStorage: theme, tab, chart options and compare options.
+## Data and last-sync cache
+Data comes from a public Google Sheet read as CSV. Preferences are saved in localStorage; active filters are saved in sessionStorage. No application database or server writes are used.
 
-## Next steps
-- Offline cache of the last sync
-- Print stylesheet for the Years and Compare tables
-- Optional per-chart fullscreen view
+- Successful syncs save one processed snapshot in IndexedDB (`alembic-cache` / `snapshots`, keyed by sheet ID): schema version, clean rows, merged duplicates, and sync timestamp.
+- Startup restores that snapshot immediately while checking the live sheet. Failed refreshes keep the last successful data visible; invalid/empty responses never replace the cache.
+- The sync indicator shows **Cached data** or **Offline · cached**. Its custom tooltip gives the original sync timestamp. Reconnecting retries the sheet automatically.
+- Cache storage is best-effort: unavailable storage does not prevent live use. Clearing browser site data removes the snapshot.
+- This caches data, not the application shell or CDN dependencies. A fresh page load fully offline still requires those resources to be browser-cached; no service worker or full offline-install guarantee is implemented.
+
+## Print
+- **Print** actions on `#years` and `#compare` match existing buttons and open the browser print dialog directly, with no extra application dialog.
+- `js/reports.js` builds a dedicated, branded report with the active scope, full values, Arabic labels, original sync timestamp, and print timestamp. Years compares the latest two selected years; Compare follows its current sort, hide-empty and percentage/absolute settings.
+- `css/print.css` uses landscape A4, repeated table headers, non-splitting rows, white paper and existing typography/accent colours, regardless of screen theme. Navigation and controls are excluded. The print report is never displayed in the normal UI.
+- Browser Print / Save as PDF remain native browser functions; their dialogs cannot be themed by a static website.
+
+## Verification
+- Live-sheet startup: no browser console errors.
+- IndexedDB save/read, simulated network-failure startup restore, and live recovery: passed with 881 rows.
+- Both Print buttons invoke print and produce 22 report rows.
+- Years and Compare mobile controls and desktop report styles visually checked. Physical printer output/pagination depends on browser and printer settings.
+
+## URLs and storage
+- Entry: `index.html` and the hashes listed above; no new route or parameters required.
+- Public CSV source: `https://docs.google.com/spreadsheets/d/122uThrt83Vs8rUtOe4PCmsWjLSxv8A-OmUbT0Y3PZeg/export?format=csv`.
+- External import app: `https://josn.vercel.app/`.
+- Production URL: not recorded; these changes have not been Hosted-Deployed.
+- Structure addition: `js/reports.js` (IndexedDB snapshot and print report), `css/print.css`.
+
+## Remaining optional development
+- Per-chart fullscreen view.
+- Full offline application shell/dependency caching, if required.

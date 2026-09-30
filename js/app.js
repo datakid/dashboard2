@@ -101,10 +101,34 @@ const Sync = {
   controller: null,
   timer: null,
   clock: null,
+  cached: false,
+  failed: false,
+
+  install(clean, duplicates, at) {
+    S.data = clean;
+    S.duplicates = duplicates;
+    S.years = [...new Set(clean.map(r => r.Year))].filter(Boolean).map(Number).sort((a, b) => a - b);
+    S.statsCache = { sig: null, stats: null };
+    S.dataVersion += 1;
+    S.lastSync = at;
+    App.onData();
+  },
+
+  start() {
+    const version = S.dataVersion;
+    Snapshot.read().then(v => {
+      if (S.dataVersion !== version || !Snapshot.valid(v)) return;
+      this.cached = true;
+      this.install(v.clean, v.duplicates, new Date(v.at));
+      this.paint(S.syncing ? 'syncing' : undefined);
+    });
+    this.load(false);
+  },
 
   label() {
     const d = S.lastSync;
     if (!d) return 'Not synced';
+    if (this.cached || this.failed) return navigator.onLine === false ? 'Offline · cached' : 'Cached data';
     const s = Math.round((Date.now() - d.getTime()) / 1000);
     if (s < 10) return 'Synced just now';
     if (s < 60) return `Synced ${s}s ago`;
@@ -116,9 +140,10 @@ const Sync = {
   paint(state) {
     const el = $('#syncStatus');
     if (state) el.dataset.state = state;
-    else el.dataset.state = S.lastSync && Date.now() - S.lastSync.getTime() > AUTO_SYNC_MS ? 'stale' : 'idle';
+    else el.dataset.state = this.cached || this.failed || (S.lastSync && Date.now() - S.lastSync.getTime() > AUTO_SYNC_MS) ? 'stale' : 'idle';
     $('#syncLabel').textContent = state === 'syncing' ? 'Syncing…' : state === 'error' ? 'Sync failed' : this.label();
-    $('#syncBtn').title = `${this.label()} · Refresh (R)`;
+    $('#syncBtn').dataset.tip = `${this.label()}${S.lastSync ? ' · ' + S.lastSync.toLocaleString() : ''} · Refresh (R)`;
+    $('#syncLabel').setAttribute('aria-live', 'polite');
   },
 
   setAuto(on, announce) {
@@ -131,13 +156,15 @@ const Sync = {
   },
 
   async load(manual = false, auto = false) {
-    if (!window.Papa) { setTimeout(() => this.load(manual, auto), 120); return; }
+    if (!window.Papa) { this.failed = true; this.paint(S.data.length ? undefined : 'error'); if (manual) toast('Parser unavailable · reconnect to refresh', 'error'); return; }
     if (this.controller) this.controller.abort();
     const ctrl = new AbortController();
     this.controller = ctrl;
     S.syncing = true;
     $('#syncBtn').classList.add('spinning');
     this.paint('syncing');
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; ctrl.abort(); }, 20000);
     try {
       const res = await fetch(`${SHEET_URL}&t=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal });
       if (!res.ok) throw new Error('bad');
@@ -145,22 +172,24 @@ const Sync = {
       const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
       parsed.data.forEach((r, i) => { r._rowNum = i + 2; });
       const { clean, duplicates } = Data.process(parsed.data);
-      S.data = clean;
-      S.duplicates = duplicates;
-      S.years = [...new Set(clean.map(r => r.Year))].filter(Boolean).map(Number).sort((a, b) => a - b);
-      S.statsCache = { sig: null, stats: null };
-      S.dataVersion += 1;
-      S.lastSync = new Date();
-      App.onData();
+      if (this.controller !== ctrl) return;
+      const at = new Date();
+      if (!Snapshot.valid({ version: 1, clean, duplicates, at: at.getTime() }) || !parsed.meta.fields.includes('Pharmacy') || !parsed.meta.fields.includes('Month')) throw new Error('Invalid sheet');
+      this.cached = false;
+      this.failed = false;
+      this.install(clean, duplicates, at);
+      Snapshot.save(clean, duplicates, at);
       this.paint();
       if (manual) toast('Data refreshed', 'success');
       else if (auto) toast('Auto-synced', 'success');
     } catch (e) {
-      if (e.name === 'AbortError') return;
-      this.paint('error');
+      if (this.controller !== ctrl || (e.name === 'AbortError' && !timedOut)) return;
+      this.failed = true;
+      this.paint(S.data.length ? undefined : 'error');
       if (!S.data.length) App.loadError();
-      toast('Could not reach the data source — check your connection', 'error');
+      if (manual || !S.data.length) toast(S.data.length ? 'Refresh failed · showing last sync' : 'Could not reach the data source', 'error');
     } finally {
+      clearTimeout(timeout);
       if (this.controller === ctrl) { $('#syncBtn').classList.remove('spinning'); S.syncing = false; }
     }
   },
@@ -170,6 +199,8 @@ const Sync = {
     $('#autoSyncToggle').addEventListener('click', () => this.setAuto(!S.autoSync, true));
     this.setAuto(S.autoSync, false);
     this.clock = setInterval(() => { if (!S.syncing && S.lastSync) this.paint(); }, 20000);
+    addEventListener('online', () => { if ((this.cached || this.failed) && !S.syncing) this.load(false); });
+    addEventListener('offline', () => { if (!S.syncing) this.paint(); });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && S.autoSync && S.lastSync && Date.now() - S.lastSync.getTime() > AUTO_SYNC_MS) this.load(false, true);
     });
@@ -459,6 +490,7 @@ const App = {
     Years.init();
     Compare.bind();
     Sync.init();
+    Report.init();
     this.keys();
 
     $('#tabs').addEventListener('click', (e) => { const t = e.target.closest('.tab'); if (t) this.setTab(t.dataset.tab); });
@@ -493,7 +525,7 @@ const App = {
     const initial = location.hash.slice(1).split('?')[0] || store.get('alembic-tab', 'overview');
     this.setTab(this.tabs.includes(initial) ? initial : 'overview', !!location.hash);
     if (document.fonts) document.fonts.ready.then(() => { this.moveThumb(); Theme.apply(true); });
-    Sync.load(false);
+    Sync.start();
     this.embedBridge();
   },
 
