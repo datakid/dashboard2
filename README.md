@@ -33,7 +33,7 @@ Overview, Charts, Explore and Missing all read one period model: `S.filters.Year
 ## Chart tooltips & labels
 - All chart tooltips are one shared DOM tooltip (`ChartTip`) instead of the canvas tooltip. Its size comes from the real text, so Arabic month and class names no longer spill out of the box.
 - Tooltip titles give the full period (`October 2024`, plus the Arabic month and the FY). Rows show the value, share % and extra detail (change vs previous, stacked total, region, rank).
-- The labels on horizontal bar charts are drawn by the `sideLabels` plugin. They are right-aligned with RTL direction, measured with the loaded font, and truncated with a binary search. Labels outside the focus are drawn in a lighter colour.
+- The labels on horizontal bar charts (Medication, Leading pharmacies, Regional bars) are real page text (`.bar-labels`) placed over the chart, not canvas text. The browser shapes the Arabic, measures the column width and adds the "…" itself, so labels no longer depend on canvas text. The `sideLabels` plugin only moves each label to line up with its bar, and highlights or fades it. PNG exports draw the labels onto the image separately.
 - Time axes use short English month labels (`Oct ’24`), so ticks stay compact and never mix bidi text.
 
 ## Smoothness

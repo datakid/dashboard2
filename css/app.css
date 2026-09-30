@@ -1054,6 +1054,32 @@ button.pill:hover { transform: translateY(-1px); }
 .pill-x:hover svg.i { opacity: 1; }
 .pill-x:hover { background: var(--copper-soft); box-shadow: inset 0 0 0 1px var(--copper-soft); }
 
+.bar-labels { position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none; z-index: 1; contain: layout style; }
+.bar-labels .bl {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 100%;
+  font-family: var(--font-ar);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  unicode-bidi: plaintext;
+  font-feature-settings: normal;
+  letter-spacing: 0;
+  transition: color .16s var(--ease), font-weight .16s;
+  will-change: transform;
+}
+.bar-labels .bl.dim { color: var(--ink-4); }
+.bar-labels .bl.on { color: var(--ink); font-weight: 600; }
+.bar-labels.measuring { width: auto !important; }
+.bar-labels.measuring .bl { position: static; display: block; width: max-content; max-width: none; transform: none !important; }
+
 .ctip {
   position: fixed;
   left: 0;

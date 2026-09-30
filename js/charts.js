@@ -142,45 +142,61 @@ const Charts = {
     return lo ? s.slice(0, lo).trimEnd() + '…' : '…';
   },
 
-  labelAxis(labels) {
-    return {
-      grid: { display: false },
-      border: { display: false },
-      ticks: { display: false },
-      afterFit: (scale) => {
-        const cap = Math.max(96, Math.min(280, scale.chart.width * 0.36));
-        const w = Math.max(0, ...labels.map(l => this.textW(l, `600 13px ${FONT_AR}`)));
-        scale.width = Math.min(cap, Math.ceil(w) + 22);
-      }
-    };
+  labelAxis() {
+    return { display: false, grid: { display: false }, border: { display: false }, ticks: { display: false } };
+  },
+
+  labelHost(id) {
+    const body = $(`#chartGrid [data-chart="${id}"] .chart-body`);
+    if (!body) return null;
+    let host = $('.bar-labels', body);
+    if (!host) { host = document.createElement('div'); host.className = 'bar-labels'; host.setAttribute('aria-hidden', 'true'); body.appendChild(host); }
+    return host;
+  },
+
+  fillLabels(host, labels) {
+    const sig = labels.join('\u0001');
+    if (host._sig === sig) return;
+    host.innerHTML = labels.map((l, i) => `<span class="bl" dir="auto" data-i="${i}">${esc(l)}</span>`).join('');
+    host._sig = sig;
+    host._y = [];
+  },
+
+  measureLabels(id, labels) {
+    const host = this.labelHost(id);
+    if (!host) return 0;
+    this.fillLabels(host, labels);
+    host.hidden = false;
+    host.classList.add('measuring');
+    const w = Math.max(0, ...Array.from(host.children, el => el.getBoundingClientRect().width));
+    host.classList.remove('measuring');
+    const cap = Math.max(96, Math.min(280, host.parentElement.clientWidth * 0.36));
+    return Math.ceil(Math.min(cap, w + 2));
+  },
+
+  placeLabels(chart) {
+    const host = chart.canvas.parentElement && $('.bar-labels', chart.canvas.parentElement);
+    if (!host) return;
+    const m = this.meta[chart.canvas.id];
+    if (!m || !m.labels || chart.options.indexAxis !== 'y' || !chart.chartArea) { host.hidden = true; return; }
+    this.fillLabels(host, m.labels);
+    host.hidden = false;
+    const w = Math.max(0, Math.round(chart.chartArea.left - 12));
+    if (host._w !== w) { host.style.width = w + 'px'; host._w = w; }
+    const sc = chart.scales.y;
+    const act = new Set(chart.getActiveElements().map(e => e.index));
+    Array.from(host.children).forEach((el, i) => {
+      const y = Math.round(sc.getPixelForValue(i) * 2) / 2;
+      if (host._y[i] !== y) { el.style.transform = `translate3d(0, ${y}px, 0) translateY(-50%)`; host._y[i] = y; }
+      el.classList.toggle('on', act.has(i));
+      el.classList.toggle('dim', !!(m.dim && m.dim(i)));
+    });
   },
 
   sideLabels: {
     id: 'sideLabels',
-    afterDraw(chart) {
-      const m = Charts.meta[chart.canvas.id];
-      if (!m || !m.labels || chart.options.indexAxis !== 'y') return;
-      const sc = chart.scales.y;
-      if (!sc) return;
-      const c = chart.ctx;
-      const right = chart.chartArea.left - 12;
-      const maxW = Math.max(16, right - sc.left - 2);
-      const act = new Set(chart.getActiveElements().map(e => e.index));
-      const ink = cssVar('--ink'), ink2 = cssVar('--ink-2'), ink4 = cssVar('--ink-4');
-      c.save();
-      c.textBaseline = 'middle';
-      c.textAlign = 'right';
-      m.labels.forEach((raw, i) => {
-        const l = String(raw ?? '');
-        const on = act.has(i);
-        const dim = m.dim ? m.dim(i) : false;
-        c.font = `${on ? 600 : 500} 13px ${FONT_AR}`;
-        c.fillStyle = on ? ink : dim ? ink4 : ink2;
-        if ('direction' in c) c.direction = isArabic(l) ? 'rtl' : 'ltr';
-        c.fillText(Charts.fit(c, l, maxW), right, sc.getPixelForValue(i));
-      });
-      c.restore();
-    }
+    afterDraw(chart) { Charts.placeLabels(chart); },
+    afterEvent(chart) { Charts.placeLabels(chart); }
   },
 
   barValues: {
@@ -312,7 +328,9 @@ const Charts = {
     const base = { responsive: true, maintainAspectRatio: false, animation: { duration: 460, easing: 'easeOutQuart' }, layout: { padding: { top: 8, right: 12, bottom: 4, left: 4 } } };
     config.options = Object.assign(base, config.options);
     config.options.plugins = Object.assign({ legend: { display: false } }, config.options.plugins || {});
-    if (config.options.indexAxis === 'y') config.options.layout = { padding: { top: 8, right: 48, bottom: 4, left: 4 } };
+    const lw = meta && meta.labels ? this.measureLabels(id, meta.labels.map(String)) : 0;
+    if (!lw) { const h = this.labelHost(id); if (h) h.hidden = true; }
+    if (config.options.indexAxis === 'y') config.options.layout = { padding: { top: 8, right: 48, bottom: 4, left: lw ? lw + 16 : 4 } };
     const sig = [config.type, config.options.indexAxis || 'x', config.data.datasets.map(d => d.type || config.type).join(','), Object.keys(config.options.scales || {}).join(',')].join('|');
     const ch = this.inst[id];
     if (ch && ch.$sig === sig && ch.canvas && ch.canvas.isConnected) {
@@ -635,6 +653,25 @@ const Charts = {
       const sub = $(`[data-sub="${it.id}"]`);
       c.fillText(sub ? sub.textContent : it.def.sub, x + cardPad, y + 57 * scale);
       c.drawImage(it.ch.canvas, x + cardPad, y + cardHead, w - cardPad * 2, ih);
+      const lm = this.meta[it.ch.canvas.id];
+      if (lm && lm.labels && it.ch.options.indexAxis === 'y') {
+        const r = (w - cardPad * 2) / it.ch.width;
+        const right = x + cardPad + (it.ch.chartArea.left - 12) * r;
+        const maxW = (it.ch.chartArea.left - 16) * r;
+        c.save();
+        c.textBaseline = 'middle';
+        c.font = `500 ${13 * r}px ${FONT_AR}`;
+        lm.labels.forEach((l, i) => {
+          const s = String(l ?? '');
+          c.fillStyle = lm.dim && lm.dim(i) ? cssVar('--ink-4') : cssVar('--ink-2');
+          if ('direction' in c) c.direction = isArabic(s) ? 'rtl' : 'ltr';
+          c.textAlign = isArabic(s) ? 'left' : 'right';
+          const t = this.fit(c, s, maxW);
+          const tw = c.measureText(t).width;
+          c.fillText(t, isArabic(s) ? right - tw : right, y + cardHead + it.ch.scales.y.getPixelForValue(i) * r);
+        });
+        c.restore();
+      }
       let ly = y + cardHead + ih + 12 * scale + lineH / 2;
       c.textBaseline = 'middle';
       lrows.forEach(row => {
